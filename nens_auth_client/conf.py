@@ -10,10 +10,10 @@ class NensAuthClientAppConf(AppConf):
     class Meta:
         prefix = "NENS_AUTH"
         required = (
-            "CLIENT_ID",         # Provided by AWS Cognito
-            "CLIENT_SECRET",     # Provided by AWS Cognito
-            "REDIRECT_URI",      # Depends on the urls.py of your django site
+            "CLIENT_ID",  # Provided by AWS Cognito
+            "CLIENT_SECRET",  # Provided by AWS Cognito
+            "REDIRECT_URI",  # Depends on the urls.py of your django site
             "ACCESS_TOKEN_URL",  # N&S Global (full URL ending with /token)
-            "AUTHORIZE_URL",     # N&S Global (full URL ending with /authorize)
-            "JWKS_URI",          # N&S Global (full URL ending with /jwks.json)
+            "AUTHORIZE_URL",  # N&S Global (full URL ending with /authorize)
+            "JWKS_URI",  # N&S Global (full URL ending with /jwks.json)
         )
