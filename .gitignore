@@ -1,0 +1,59 @@
+# From https://github.com/github/gitignore/blob/master/Python.gitignore
+
+# Pyc/pyo files.
+*.py[co]
+__pycache__
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# pipenv
+.env
+.venv
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+coverage
+.tox
+nosetests.xml
+cobertura-coverage.xml
+htmlcov
+jshint.xml
+coverage.xml
+.noseids
+pytest.log
+
+# vim, emacs and pycharm
+*.swp
+*~
+#*\.#*
+#
+.idea
+.idea/
+
+# Mac OS X users
+.DS_Store
+
+# PyDev / Eclipse
+.project
+.pydevproject*
+.settings/
+
+# VS Code
+.vscode
+.devcontainer
+
+db.sqlite3
