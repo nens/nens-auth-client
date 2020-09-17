@@ -9,7 +9,8 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'Django',
-    'authlib',
+    'django-appconf',
+    'authlib[client]',
 ]
 
 tests_require = [

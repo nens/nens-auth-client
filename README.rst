@@ -2,6 +2,7 @@ nens-auth-client
 ==========================================
 
 Introduction
+------------
 
 This library defines the necessary views and models to connect the AWS Cognito
 user pool to the local django user database.

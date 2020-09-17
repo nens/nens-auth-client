@@ -4,4 +4,4 @@ from django.contrib import admin
 from nens_auth_client import models
 
 
-# admin.site.register(models.TODO)
+admin.site.register(models.SocialUser)
