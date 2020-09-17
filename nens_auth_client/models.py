@@ -2,6 +2,9 @@
 from django.conf import settings
 from django.db import models
 
+# A known caveat of django-appconf is that we need to import the AppConf here
+from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
+
 
 user_model = getattr(settings, "AUTH_USER_MODEL", None) or "auth.User"
 
