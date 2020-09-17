@@ -21,10 +21,10 @@ from django.conf import settings
 from nens_auth_client import views
 
 urlpatterns = [
-    path('authorize', views.authorize, name="authorize"),
-    path('login', views.login, name="login"),
-    path('logout', views.logout, name="logout"),
+    path("authorize", views.authorize, name="authorize"),
+    path("login", views.login, name="login"),
+    path("logout", views.logout, name="logout"),
 ]
 
 if settings.NENS_AUTH_STANDALONE:
-    urlpatterns += [path('admin/', admin.site.urls)]
+    urlpatterns += [path("admin/", admin.site.urls)]

@@ -36,9 +36,11 @@ def authorize(request):
 
     # TODO Logic to match userinfo to local user if socialuser does not exist
     try:
-        user = SocialUser.objects.select_related("user").get(
-            uid=userinfo["cognito:username"]
-        ).user
+        user = (
+            SocialUser.objects.select_related("user")
+            .get(uid=userinfo["cognito:username"])
+            .user
+        )
     except SocialUser.DoesNotExist:
         user = None
 
@@ -49,10 +51,7 @@ def authorize(request):
 
     # temporary response (handy for debugging)
     return JsonResponse(
-        {
-            "user": request.user.username if request.user else None,
-            "id_token": userinfo,
-        }
+        {"user": request.user.username if request.user else None, "id_token": userinfo}
     )
 
 

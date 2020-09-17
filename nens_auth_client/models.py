@@ -3,8 +3,6 @@ from django.conf import settings
 from django.db import models
 
 
-from .conf import NensAuthAppConf  # NOQA
-
 user_model = getattr(settings, "AUTH_USER_MODEL", None) or "auth.User"
 
 
