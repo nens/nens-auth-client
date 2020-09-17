@@ -1,5 +1,8 @@
 import pytest
 from authlib.jose import jwt
+from django.conf import settings
+import time
+import requests_mock
 
 
 @pytest.fixture
@@ -28,10 +31,31 @@ def jwks(private_key):
 
 
 @pytest.fixture
-def id_token(private_key):
-    # create an ID token signed with the private_key
-    return jwt.encode(
-        {'alg': private_key["alg"], "kid": private_key["kid"]},
-        {'iss': 'Authlib', 'sub': '123'},
-        private_key
-    ).decode("ascii")
+def id_token_generator(private_key):
+    """A function that generates a signed ID token"""
+    def func(**extra_fields):
+        template = {
+            "iss": "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV",
+            "aud": settings.NENS_AUTH_CLIENT_ID,
+            "sub": "some_sub",
+            "cognito:username": "some_username",
+            "email": "some_email",
+            "iat": int(time.time()),
+            "exp": int(time.time()) + 10,
+            "nonce": "nonce",
+        }
+
+        # sign the ID token with the private_key
+        id_token = jwt.encode(
+            {'alg': private_key["alg"], "kid": private_key["kid"]},
+            {**template, **extra_fields},
+            private_key
+        ).decode("ascii")
+        return id_token
+    return func
+
+
+@pytest.fixture
+def rq_mocker():
+    with requests_mock.Mocker() as m:
+        yield m
