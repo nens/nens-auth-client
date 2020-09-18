@@ -51,6 +51,6 @@ def test_login_when_already_logged_in(rf):
         ("/login?next=http://testserver2/a", "http://testserver/admin"),
     ],
 )
-def test_login_get_succes_url(rf, url, expected):
+def test_get_absolute_succes_url(rf, url, expected):
     request = rf.get(url)
-    assert views._get_login_success_url(request) == expected
+    assert views._get_absolute_success_url(request) == expected
