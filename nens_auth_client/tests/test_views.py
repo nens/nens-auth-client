@@ -49,7 +49,7 @@ def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
     assert jwks_request.url == settings.NENS_AUTH_JWKS_URI
 
 
-def test_authorize_fails_wrong_nonce(id_token_generator, auth_req_generator):
+def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):
     # The id token has a different nonce than the session
     id_token = id_token_generator(nonce="a")
     request = auth_req_generator(id_token, nonce="b")
@@ -57,10 +57,18 @@ def test_authorize_fails_wrong_nonce(id_token_generator, auth_req_generator):
         views.authorize(request)
 
 
-def test_authorize_fails_wrong_state(id_token_generator, auth_req_generator):
+def test_authorize_wrong_state(id_token_generator, auth_req_generator):
     # The incoming state query param is different from the session
     id_token = id_token_generator()
     request = auth_req_generator(id_token, state="a")
     request.session["_cognito_authlib_state_"] = "b"
     with pytest.raises(MismatchingStateError):
+        views.authorize(request)
+
+
+def test_authorize_wrong_issuer(id_token_generator, auth_req_generator):
+    # The issuer in the id token is unknown
+    id_token = id_token_generator(iss="https://google.com")
+    request = auth_req_generator(id_token)
+    with pytest.raises(InvalidClaimError):
         views.authorize(request)

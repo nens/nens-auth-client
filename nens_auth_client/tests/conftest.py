@@ -29,7 +29,7 @@ def id_token_generator(private_key):
 
     def func(**extra_fields):
         template = {
-            "iss": "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV",
+            "iss": settings.NENS_AUTH_ISSUER,
             "aud": settings.NENS_AUTH_CLIENT_ID,
             "sub": "some_sub",
             "cognito:username": "some_username",

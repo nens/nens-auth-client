@@ -20,6 +20,7 @@ class NensAuthClientConfig(AppConfig):
             authorize_url=settings.NENS_AUTH_AUTHORIZE_URL,
             authorize_params=None,
             jwks_uri=settings.NENS_AUTH_JWKS_URI,
+            issuer=settings.NENS_AUTH_ISSUER,
             client_kwargs={"scope": settings.NENS_AUTH_SCOPE},
         )
         return super().ready()
