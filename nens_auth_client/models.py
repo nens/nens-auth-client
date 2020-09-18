@@ -27,12 +27,8 @@ def associate_user(userinfo):
     # TODO Logic to match userinfo to local user if socialuser does not exist
     uid = userinfo["cognito:username"]
     try:
-        user = (
-            SocialUser.objects.select_related("user")
-            .get(uid=uid)
-            .user
-        )
+        user = SocialUser.objects.select_related("user").get(uid=uid).user
     except SocialUser.DoesNotExist:
         user = None
 
-    return user    
+    return user

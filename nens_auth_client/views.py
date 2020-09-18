@@ -42,9 +42,7 @@ def authorize(request):
         django_auth.login(request, user)
 
     # temporary response (handy for debugging)
-    return JsonResponse(
-        {"user": getattr(user, "username", None), "id_token": userinfo}
-    )
+    return JsonResponse({"user": getattr(user, "username", None), "id_token": userinfo})
 
 
 def logout(request):
