@@ -15,5 +15,6 @@ class NensAuthClientAppConf(AppConf):
             "REDIRECT_URI",  # Depends on the urls.py of your django site
             "ACCESS_TOKEN_URL",  # N&S Global (full URL ending with /token)
             "AUTHORIZE_URL",  # N&S Global (full URL ending with /authorize)
+            "ISSUER",  # N&S Global (authorization server URL)
             "JWKS_URI",  # N&S Global (full URL ending with /jwks.json)
         )

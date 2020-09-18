@@ -1,7 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 from django.conf import settings
 from django.db import models
-
 # A known caveat of django-appconf is that we need to import the AppConf here
 from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 
@@ -21,3 +20,14 @@ class SocialUser(models.Model):
 
     def __str__(self):
         return self.uid
+
+
+def associate_user(userinfo):
+    # TODO Logic to match userinfo to local user if socialuser does not exist
+    uid = userinfo["cognito:username"]
+    try:
+        user = SocialUser.objects.select_related("user").get(uid=uid).user
+    except SocialUser.DoesNotExist:
+        user = None
+
+    return user

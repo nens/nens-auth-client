@@ -17,6 +17,8 @@ tests_require = [
     'pytest',
     'pytest-cov',
     'pytest-django',
+    'pytest-mock',
+    'requests-mock',
     'flake8'
 ]
 

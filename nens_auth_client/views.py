@@ -1,9 +1,9 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-from .models import SocialUser
+from .models import associate_user
 from .oauth import oauth
-from django.http.response import JsonResponse
 from django.conf import settings
+from django.http.response import JsonResponse
 
 import django.contrib.auth as django_auth
 
@@ -34,15 +34,7 @@ def authorize(request):
     token = cognito.authorize_access_token(request)
     userinfo = cognito.parse_id_token(request, token)
 
-    # TODO Logic to match userinfo to local user if socialuser does not exist
-    try:
-        user = (
-            SocialUser.objects.select_related("user")
-            .get(uid=userinfo["cognito:username"])
-            .user
-        )
-    except SocialUser.DoesNotExist:
-        user = None
+    user = associate_user(userinfo)
 
     # log the user in (note that this call will error if there are multiple
     # authentication backends configured)
@@ -50,9 +42,7 @@ def authorize(request):
         django_auth.login(request, user)
 
     # temporary response (handy for debugging)
-    return JsonResponse(
-        {"user": request.user.username if request.user else None, "id_token": userinfo}
-    )
+    return JsonResponse({"user": getattr(user, "username", None), "id_token": userinfo})
 
 
 def logout(request):

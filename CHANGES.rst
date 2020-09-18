@@ -12,3 +12,7 @@ Changelog of nens-auth-client
 
 - Added login, authorize and logout views for login/logout via OpenID Connect
   (AWS Cognito). Default settings are setup via django-appconf.
+
+- Added unittests for login and authorize views.
+
+- Added NENS_AUTH_ISSUER setting.
