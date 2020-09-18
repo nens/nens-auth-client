@@ -111,3 +111,11 @@ def test_authorize_unsigned_token(id_token_generator, auth_req_generator):
     request = auth_req_generator(id_token)
     with pytest.raises(JoseError):
         views.authorize(request)
+
+
+def test_authorize_invalid_key_id(id_token_generator, auth_req_generator):
+    # The id token is signed with an unknown key
+    id_token = id_token_generator(kid="unknown_key_id")
+    request = auth_req_generator(id_token)
+    with pytest.raises(ValueError):
+        views.authorize(request)

@@ -29,7 +29,9 @@ def id_token_generator(private_key):
 
     def func(**extra_claims):
         header = {"alg": private_key["alg"], "kid": private_key["kid"]}
+        key = private_key.copy()
         if "kid" in extra_claims:
+            key["kid"] = extra_claims["kid"]
             header["kid"] = extra_claims.pop("kid")
         if "alg" in extra_claims:
             header["alg"] = extra_claims.pop("alg")
@@ -45,10 +47,8 @@ def id_token_generator(private_key):
         }
 
         # sign the ID token with the private_key
-        id_token = jwt.encode(header, {**template, **extra_claims}, private_key).decode(
-            "ascii"
-        )
-        return id_token
+        id_token = jwt.encode(header, {**template, **extra_claims}, key)
+        return id_token.decode("ascii")  # convert bytes to string
 
     return func
 
