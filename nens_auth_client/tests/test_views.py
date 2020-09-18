@@ -34,34 +34,10 @@ def test_login(rf):
     )
 
 
-@pytest.fixture
-def mock_and_authorize(rf, mocker, rq_mocker, jwks):
-    """Mock necessary functions and call the authorize view"""
-
-    def func(id_token, code="code", state="state", nonce="nonce", session=None):
-        # Mock the call to the external token API
-        rq_mocker.post(settings.NENS_AUTH_ACCESS_TOKEN_URL, json={"id_token": id_token})
-        # Mock the call to the external jwks
-        rq_mocker.get(settings.NENS_AUTH_JWKS_URI, json=jwks)
-        # Mock the user association logic (it needs db access)
-        associate_user = mocker.patch("nens_auth_client.views.associate_user")
-        associate_user.return_value = None
-
-        # Create the request
-        request = rf.get(f"/authorize?code={code}&state={state}")
-        request.session = {
-            "_cognito_authlib_state_": state,
-            "_cognito_authlib_nonce_": nonce,
-            **(session or {}),
-        }
-        return views.authorize(request)
-
-    return func
-
-
-def test_authorize(id_token_generator, mock_and_authorize, rq_mocker):
+def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
     id_token = id_token_generator()
-    response = mock_and_authorize(id_token)
+    request = auth_req_generator(id_token)
+    response = views.authorize(request)
     assert response.status_code < 400  # all checks passed
 
     token_request, jwks_request = rq_mocker.request_history
@@ -73,13 +49,18 @@ def test_authorize(id_token_generator, mock_and_authorize, rq_mocker):
     assert jwks_request.url == settings.NENS_AUTH_JWKS_URI
 
 
-def test_authorize_fails_wrong_nonce(id_token_generator, mock_and_authorize):
-    id_token = id_token_generator(nonce="somethingelse")
+def test_authorize_fails_wrong_nonce(id_token_generator, auth_req_generator):
+    # The id token has a different nonce than the session
+    id_token = id_token_generator(nonce="a")
+    request = auth_req_generator(id_token, nonce="b")
     with pytest.raises(InvalidClaimError):
-        mock_and_authorize(id_token)
+        views.authorize(request)
 
 
-def test_authorize_fails_wrong_state(id_token_generator, mock_and_authorize):
+def test_authorize_fails_wrong_state(id_token_generator, auth_req_generator):
+    # The incoming state query param is different from the session
     id_token = id_token_generator()
+    request = auth_req_generator(id_token, state="a")
+    request.session["_cognito_authlib_state_"] = "b"
     with pytest.raises(MismatchingStateError):
-        mock_and_authorize(id_token, session={"_cognito_authlib_state_": "a"})
+        views.authorize(request)
