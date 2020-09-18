@@ -45,13 +45,12 @@ def test_login_when_already_logged_in(rf):
 @pytest.mark.parametrize(
     "url,expected",
     [
-        ("/login", "http://testserver/default"),
+        ("/login", "http://testserver/admin"),
         ("/login?next=a", "http://testserver/a"),
         ("/login?next=http://testserver/a", "http://testserver/a"),
-        ("/login?next=http://testserver2/a", "http://testserver/default"),
+        ("/login?next=http://testserver2/a", "http://testserver/admin"),
     ],
 )
-def test_login_get_succes_url(rf, settings, url, expected):
-    settings.NENS_AUTH_DEFAULT_SUCCESS_URL = "/default"
+def test_login_get_succes_url(rf, url, expected):
     request = rf.get(url)
     assert views._get_login_success_url(request) == expected
