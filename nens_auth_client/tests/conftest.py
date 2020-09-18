@@ -27,7 +27,12 @@ def jwks(private_key):
 def id_token_generator(private_key):
     """A function that generates a signed ID token"""
 
-    def func(**extra_fields):
+    def func(**extra_claims):
+        header = {"alg": private_key["alg"], "kid": private_key["kid"]}
+        if "kid" in extra_claims:
+            header["kid"] = extra_claims.pop("kid")
+        if "alg" in extra_claims:
+            header["alg"] = extra_claims.pop("alg")
         template = {
             "iss": settings.NENS_AUTH_ISSUER,
             "aud": settings.NENS_AUTH_CLIENT_ID,
@@ -40,11 +45,9 @@ def id_token_generator(private_key):
         }
 
         # sign the ID token with the private_key
-        id_token = jwt.encode(
-            {"alg": private_key["alg"], "kid": private_key["kid"]},
-            {**template, **extra_fields},
-            private_key,
-        ).decode("ascii")
+        id_token = jwt.encode(header, {**template, **extra_claims}, private_key).decode(
+            "ascii"
+        )
         return id_token
 
     return func
