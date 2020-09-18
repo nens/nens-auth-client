@@ -2,8 +2,8 @@
 # from nens_auth_client import models
 from .models import associate_user
 from .oauth import oauth
-from django.http.response import JsonResponse
 from django.conf import settings
+from django.http.response import JsonResponse
 
 import django.contrib.auth as django_auth
 

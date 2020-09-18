@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.apps import AppConfig
 from django.conf import settings
-
 from nens_auth_client.oauth import oauth
 
 
