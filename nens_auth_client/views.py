@@ -1,6 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-from .models import SocialUser, associate_user
+from .models import associate_user
 from .oauth import oauth
 from django.http.response import JsonResponse
 from django.conf import settings

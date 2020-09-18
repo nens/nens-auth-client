@@ -1,14 +1,9 @@
 import pytest
-from contextlib import contextmanager
-from urllib.parse import urlparse, urlencode, parse_qs
+from urllib.parse import urlparse, parse_qs
 from nens_auth_client import views
-import random
-import string
-from authlib.jose import jwt
-import time
-
+from authlib.integrations.base_client import MismatchingStateError
+from authlib.jose.errors import InvalidClaimError
 from django.conf import settings
-
 
 
 def test_login(rf):
@@ -19,7 +14,9 @@ def test_login(rf):
     # login generated a redirect to the AUTHORIZE_URL
     assert response.status_code == 302
     url = urlparse(response.url)
-    assert f"{url.scheme}://{url.hostname}{url.path}" == settings.NENS_AUTH_AUTHORIZE_URL
+    assert (
+        f"{url.scheme}://{url.hostname}{url.path}" == settings.NENS_AUTH_AUTHORIZE_URL
+    )
 
     # The query params are conform OpenID Connect spec
     # https://tools.ietf.org/html/rfc6749#section-4.1.1
@@ -31,24 +28,21 @@ def test_login(rf):
     assert qs["scope"] == [settings.NENS_AUTH_SCOPE]
     assert qs["state"] == [request.session["_cognito_authlib_state_"]]
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
-    assert request.session["_cognito_authlib_redirect_uri_"] == settings.NENS_AUTH_REDIRECT_URI
+    assert (
+        request.session["_cognito_authlib_redirect_uri_"]
+        == settings.NENS_AUTH_REDIRECT_URI
+    )
 
 
 @pytest.fixture
 def mock_and_authorize(rf, mocker, rq_mocker, jwks):
     """Mock necessary functions and call the authorize view"""
 
-    def func(id_token, code="code", state="state", nonce="nonce"):
+    def func(id_token, code="code", state="state", nonce="nonce", session=None):
         # Mock the call to the external token API
-        rq_mocker.post(
-            settings.NENS_AUTH_ACCESS_TOKEN_URL,
-            json={"id_token": id_token}
-        )
+        rq_mocker.post(settings.NENS_AUTH_ACCESS_TOKEN_URL, json={"id_token": id_token})
         # Mock the call to the external jwks
-        rq_mocker.get(
-            settings.NENS_AUTH_JWKS_URI,
-            json=jwks
-        )
+        rq_mocker.get(settings.NENS_AUTH_JWKS_URI, json=jwks)
         # Mock the user association logic (it needs db access)
         associate_user = mocker.patch("nens_auth_client.views.associate_user")
         associate_user.return_value = None
@@ -58,6 +52,7 @@ def mock_and_authorize(rf, mocker, rq_mocker, jwks):
         request.session = {
             "_cognito_authlib_state_": state,
             "_cognito_authlib_nonce_": nonce,
+            **(session or {}),
         }
         return views.authorize(request)
 
@@ -67,7 +62,7 @@ def mock_and_authorize(rf, mocker, rq_mocker, jwks):
 def test_authorize(id_token_generator, mock_and_authorize, rq_mocker):
     id_token = id_token_generator()
     response = mock_and_authorize(id_token)
-    assert response.status_code == 200  # all checks passed
+    assert response.status_code < 400  # all checks passed
 
     token_request, jwks_request = rq_mocker.request_history
     assert token_request.url == settings.NENS_AUTH_ACCESS_TOKEN_URL
@@ -76,3 +71,15 @@ def test_authorize(id_token_generator, mock_and_authorize, rq_mocker):
     assert qs["code"] == ["code"]
     assert qs["state"] == ["state"]
     assert jwks_request.url == settings.NENS_AUTH_JWKS_URI
+
+
+def test_authorize_fails_wrong_nonce(id_token_generator, mock_and_authorize):
+    id_token = id_token_generator(nonce="somethingelse")
+    with pytest.raises(InvalidClaimError):
+        mock_and_authorize(id_token)
+
+
+def test_authorize_fails_wrong_state(id_token_generator, mock_and_authorize):
+    id_token = id_token_generator()
+    with pytest.raises(MismatchingStateError):
+        mock_and_authorize(id_token, session={"_cognito_authlib_state_": "a"})
