@@ -85,7 +85,7 @@ def auth_req_generator(rf, mocker, rq_mocker, jwks):
         associate_user.return_value = None
 
         # Create the request
-        request = rf.get(f"/authorize?code={code}&state={state}")
+        request = rf.get("/authorize?code={}&state={}".format(code, state))
         request.session = {
             "_cognito_authlib_state_": state,
             "_cognito_authlib_nonce_": nonce,

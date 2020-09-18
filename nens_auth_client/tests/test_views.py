@@ -15,9 +15,8 @@ def test_login(rf):
     # login generated a redirect to the AUTHORIZE_URL
     assert response.status_code == 302
     url = urlparse(response.url)
-    assert (
-        f"{url.scheme}://{url.hostname}{url.path}" == settings.NENS_AUTH_AUTHORIZE_URL
-    )
+    url_no_qs = url.scheme + "://" + url.hostname + url.path
+    assert url_no_qs == settings.NENS_AUTH_AUTHORIZE_URL
 
     # The query params are conform OpenID Connect spec
     # https://tools.ietf.org/html/rfc6749#section-4.1.1
