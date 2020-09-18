@@ -29,10 +29,6 @@ def test_login(rf):
     assert qs["scope"] == [settings.NENS_AUTH_SCOPE]
     assert qs["state"] == [request.session["_cognito_authlib_state_"]]
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
-    assert (
-        request.session["_cognito_authlib_redirect_uri_"]
-        == settings.NENS_AUTH_REDIRECT_URI
-    )
 
 
 def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
