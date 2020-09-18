@@ -28,14 +28,23 @@ def id_token_generator(private_key):
     """A function that generates a signed ID token"""
 
     def func(**extra_claims):
-        header = {"alg": private_key["alg"], "kid": private_key["kid"]}
+        """The extra_claims override a template with valid claims
+
+        Note that the "kid" and "alg" claims control the signature and do not
+        end up as claims in the ID token.
+        """
+        # Create a copy of private_key and modify it with "alg" and "kid"
         key = private_key.copy()
         if "kid" in extra_claims:
-            key["kid"] = extra_claims["kid"]
-            header["kid"] = extra_claims.pop("kid")
+            key["kid"] = extra_claims.pop("kid")
         if "alg" in extra_claims:
-            header["alg"] = extra_claims.pop("alg")
-        template = {
+            key["alg"] = extra_claims.pop("alg")
+
+        # The header should contain alg and kid:
+        header = {"alg": key["alg"], "kid": key["kid"]}
+
+        # An ID token template with valid fields
+        body = {
             "iss": settings.NENS_AUTH_ISSUER,
             "aud": settings.NENS_AUTH_CLIENT_ID,
             "sub": "some_sub",
@@ -44,11 +53,14 @@ def id_token_generator(private_key):
             "iat": int(time.time()),
             "exp": int(time.time()) + 10,
             "nonce": "nonce",
+            **extra_claims,
         }
 
-        # sign the ID token with the private_key
-        id_token = jwt.encode(header, {**template, **extra_claims}, key)
-        return id_token.decode("ascii")  # convert bytes to string
+        # Sign the token
+        id_token = jwt.encode(header, body, key)
+
+        # Convert bytes to string
+        return id_token.decode("ascii")
 
     return func
 

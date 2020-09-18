@@ -75,7 +75,6 @@ def test_authorize_wrong_audience(id_token_generator, auth_req_generator):
     # The audience in the id token is not equal to client_id
     id_token = id_token_generator(aud="abcd")
     request = auth_req_generator(id_token)
-    # If aud != client_id, the claim "azp" is expected
     with pytest.raises(JoseError):
         views.authorize(request)
 
@@ -89,7 +88,7 @@ def test_authorize_expired(id_token_generator, auth_req_generator):
         views.authorize(request)
 
 
-def test_authorize_invalid_signature(id_token_generator, auth_req_generator):
+def test_authorize_corrupt_signature(id_token_generator, auth_req_generator):
     # The id token has invalid signature padding
     id_token = id_token_generator()
     request = auth_req_generator(id_token[:-1])
