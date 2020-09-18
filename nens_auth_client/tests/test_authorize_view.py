@@ -1,5 +1,5 @@
 import pytest
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs
 from nens_auth_client import views
 from authlib.integrations.base_client import MismatchingStateError
 from authlib.jose.errors import JoseError
@@ -7,34 +7,12 @@ from django.conf import settings
 import time
 
 
-def test_login(rf):
-    request = rf.get("/login")
-    request.session = {}
-    response = views.login(request)
-
-    # login generated a redirect to the AUTHORIZE_URL
-    assert response.status_code == 302
-    url = urlparse(response.url)
-    url_no_qs = url.scheme + "://" + url.hostname + url.path
-    assert url_no_qs == settings.NENS_AUTH_AUTHORIZE_URL
-
-    # The query params are conform OpenID Connect spec
-    # https://tools.ietf.org/html/rfc6749#section-4.1.1
-    # https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-    qs = parse_qs(url.query)
-    assert qs["response_type"] == ["code"]
-    assert qs["client_id"] == [settings.NENS_AUTH_CLIENT_ID]
-    assert qs["redirect_uri"] == [settings.NENS_AUTH_REDIRECT_URI]
-    assert qs["scope"] == [settings.NENS_AUTH_SCOPE]
-    assert qs["state"] == [request.session["_cognito_authlib_state_"]]
-    assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
-
-
 def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
     id_token = id_token_generator()
     request = auth_req_generator(id_token)
     response = views.authorize(request)
-    assert response.status_code < 400  # all checks passed
+    assert response.status_code == 302  # all checks passed
+    assert response.url == "http://testserver/success"
 
     token_request, jwks_request = rq_mocker.request_history
     assert token_request.url == settings.NENS_AUTH_ACCESS_TOKEN_URL
