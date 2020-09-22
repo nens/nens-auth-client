@@ -81,8 +81,8 @@ def auth_req_generator(rf, mocker, rq_mocker, jwks):
         # Mock the call to the external jwks
         rq_mocker.get(settings.NENS_AUTH_JWKS_URI, json=jwks)
         # Mock the user association logic (it needs db access)
-        associate_user = mocker.patch("nens_auth_client.views.associate_user")
-        associate_user.return_value = {}
+        authenticate = mocker.patch("nens_auth_client.views.django_auth.authenticate")
+        authenticate.return_value = None
 
         # Create the request
         request = rf.get("/authorize?code={}&state={}".format(code, state))

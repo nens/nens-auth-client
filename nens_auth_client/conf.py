@@ -4,10 +4,6 @@ from appconf import AppConf
 
 class NensAuthClientAppConf(AppConf):
     SCOPE = "openid email profile"  # phone / user profile admin could be added
-    ASSOCIATE_USER_PIPELINE = [
-        "nens_auth_client.models.get_user_through_socialuser",
-        "nens_auth_client.models.get_user_by_verified_email",
-    ]
     UID_FIELD = "cognito:username"
     STANDALONE = False
 

@@ -1,7 +1,5 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-import sys
-
 from .oauth import oauth
 from django.conf import settings
 from django.http.response import JsonResponse
@@ -20,21 +18,6 @@ def login(request):
     """
     cognito = oauth.create_client("cognito")
     return cognito.authorize_redirect(request, settings.NENS_AUTH_REDIRECT_URI)
-
-
-def _import_func(path):
-    module_name, member = path.rsplit('.', 1)
-    __import__(module_name)
-    return getattr(sys.modules[module_name], member)
-
-
-def associate_user(userinfo):
-    for path in settings.NENS_AUTH_USER_ASSOCIATION_PIPELINE:
-        func = _import_func(path)
-        result = func(userinfo)
-        if result is not None:
-            userinfo.update(result)
-    return userinfo
 
 
 def authorize(request):
