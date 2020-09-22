@@ -13,8 +13,8 @@ UserModel = get_user_model()
 
 
 class BaseBackend:
-    def _create_social_user(user, userinfo):
-        uid = userinfo.get(settings.NENS_AUTH_UID_FIELD)
+    def _create_social_user(self, user, verified_id_token):
+        uid = verified_id_token.get(settings.NENS_AUTH_UID_FIELD)
         if uid is None:
             raise PermissionDenied("No user-id supplied")
         try:
@@ -77,10 +77,13 @@ class EmailVerifiedBackend(BaseBackend):
             raise PermissionDenied("No email supplied")
 
         try:
-            return UserModel.objects.get(email__iexact=email)
+            user = UserModel.objects.get(email__iexact=email)
         except UserModel.DoesNotExist:
             return
         except UserModel.MultipleObjectsReturned:
             raise PermissionDenied(
                 "Multiple users with the same email present ({})".format(email)
             )
+
+        self._create_social_user(user, verified_id_token)
+        return user
