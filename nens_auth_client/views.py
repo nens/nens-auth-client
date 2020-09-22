@@ -4,12 +4,9 @@ import sys
 
 from .oauth import oauth
 from django.conf import settings
-from django.db import IntegrityError
 from django.http.response import JsonResponse
 
 import django.contrib.auth as django_auth
-
-from nens_auth_client.models import SocialUser
 
 
 def login(request):
@@ -53,22 +50,10 @@ def authorize(request):
     token = cognito.authorize_access_token(request)
     userinfo = cognito.parse_id_token(request, token)
 
-    userinfo = associate_user(userinfo)
-
-    # log the user in (note that this call will error if there are multiple
-    # authentication backends configured)
-    user = userinfo.get("user")
+    # connect tot the django authentication backends
+    user = django_auth.authenticate(request, verified_id_token=userinfo)
     if user is not None:
         django_auth.login(request, user)
-
-        if userinfo.get("social") is None:
-            try:
-                SocialUser.objects.create(
-                    uid=userinfo[settings.NENS_AUTH_UID_FIELD],
-                    user_id=user.id
-                )
-            except IntegrityError:
-                pass  # Ignore race condition
 
     # temporary response (handy for debugging)
     return JsonResponse({"user": getattr(user, "username", None), "id_token": userinfo})

@@ -72,6 +72,11 @@ INSTALLED_APPS = (
 # Add your production name here
 ALLOWED_HOSTS = ["localhost"]
 
+AUTHENTICATION_BACKENDS = [
+    "nens_auth_client.backends.SocialUserBackend",
+    "nens_auth_client.backends.EmailVerifiedBackend",
+]
+
 NENS_AUTH_STANDALONE = True  # for testing
 NENS_AUTH_CLIENT_ID = "1f1rf3n93dnsvb6jinske1ccrl"
 NENS_AUTH_CLIENT_SECRET = "1eqdu9bffroptll5bt3lejetkusqaln0ve8ad6l8clg1igoo0728"
