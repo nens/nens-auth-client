@@ -1,5 +1,6 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from nens_auth_client.models import SocialUser
@@ -14,9 +15,7 @@ UserModel = get_user_model()
 
 class BaseBackend:
     def _create_social_user(self, user, verified_id_token):
-        uid = verified_id_token.get(settings.NENS_AUTH_UID_FIELD)
-        if uid is None:
-            raise PermissionDenied("No user-id supplied")
+        uid = verified_id_token["sub"]
         try:
             return SocialUser.objects.create(uid=uid, user=user)
         except IntegrityError:
@@ -36,8 +35,8 @@ class BaseBackend:
 
     def get_user(self, user_id):
         try:
-            user = UserModel._default_manager.get(pk=user_id)
-        except UserModel.DoesNotExist:
+            user = UserModel.objects.get(pk=user_id)
+        except ObjectDoesNotExist:
             return None
         return user if self.user_can_authenticate(user) else None
 
@@ -47,14 +46,11 @@ class SocialUserBackend(BaseBackend):
     """
 
     def authenticate(self, request, verified_id_token=None):
-        uid = verified_id_token.get(settings.NENS_AUTH_UID_FIELD)
-        if uid is None:
-            raise PermissionDenied("No user-id supplied")
+        uid = verified_id_token["sub"]
         try:
-            user = UserModel.objects.get(social__uid=uid)
-        except SocialUser.DoesNotExist:
+            return UserModel.objects.get(social__uid=uid)
+        except ObjectDoesNotExist:
             return
-        return user
 
 
 class EmailVerifiedBackend(BaseBackend):
@@ -68,22 +64,15 @@ class EmailVerifiedBackend(BaseBackend):
 
     def authenticate(self, request, verified_id_token):
         if not verified_id_token.get("email_verified", False):
-            raise PermissionDenied("Email address is not verified")
-        uid = verified_id_token.get(settings.NENS_AUTH_UID_FIELD)
-        if uid is None:
-            raise PermissionDenied("No user-id supplied")
+            return
         email = verified_id_token.get("email")
-        if email is None:
-            raise PermissionDenied("No email supplied")
+        if not email:
+            return
 
         try:
             user = UserModel.objects.get(email__iexact=email)
-        except UserModel.DoesNotExist:
+        except (ObjectDoesNotExist, MultipleObjectsReturned):
             return
-        except UserModel.MultipleObjectsReturned:
-            raise PermissionDenied(
-                "Multiple users with the same email present ({})".format(email)
-            )
 
         self._create_social_user(user, verified_id_token)
         return user

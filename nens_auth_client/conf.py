@@ -4,7 +4,6 @@ from appconf import AppConf
 
 class NensAuthClientAppConf(AppConf):
     SCOPE = "openid email profile"  # phone / user profile admin could be added
-    UID_FIELD = "cognito:username"
     STANDALONE = False
 
     class Meta:
