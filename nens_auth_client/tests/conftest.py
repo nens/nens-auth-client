@@ -72,7 +72,7 @@ def rq_mocker():
 
 
 @pytest.fixture
-def auth_req_generator(rf, mocker, rq_mocker, jwks):
+def auth_req_generator(rf, mocker, rq_mocker, jwks, settings):
     """Mock necessary functions and create an authorization request"""
 
     def func(id_token, code="code", state="state", nonce="nonce"):
@@ -83,6 +83,8 @@ def auth_req_generator(rf, mocker, rq_mocker, jwks):
         # Mock the user association logic (it needs db access)
         authenticate = mocker.patch("nens_auth_client.views.django_auth.authenticate")
         authenticate.return_value = None
+        # Disable automatic SocialUser creation
+        settings.NENS_AUTH_AUTO_CREATE_SOCIAL_USER = False
 
         # Create the request
         request = rf.get("/authorize?code={}&state={}".format(code, state))

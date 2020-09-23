@@ -12,7 +12,7 @@ class SocialUser(models.Model):
     """Associates an external user with a local user"""
 
     user = models.ForeignKey(
-        user_model, related_name="social_user", on_delete=models.CASCADE
+        user_model, related_name="social", on_delete=models.CASCADE
     )
     external_user_id = models.CharField(
         max_length=255,

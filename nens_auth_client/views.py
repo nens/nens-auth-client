@@ -2,7 +2,9 @@
 # from nens_auth_client import models
 from .oauth import oauth
 from django.conf import settings
+from django.db import IntegrityError
 from django.http.response import JsonResponse
+from nens_auth_client.models import SocialUser
 
 import django.contrib.auth as django_auth
 
@@ -35,7 +37,24 @@ def authorize(request):
 
     # connect tot the django authentication backends
     user = django_auth.authenticate(request, verified_id_token=userinfo)
+
     if user is not None:
+        # TODO: Is this the best place to put this logic?
+        # TODO: Unittests
+        # Create a permanent association between local and external user
+        if (
+            settings.NENS_AUTH_AUTO_CREATE_SOCIAL_USER
+            and user.backend != "nens_auth_client.backends.SocialUserBackend"
+        ):
+            # Create a permanent association between local and external user
+            try:
+                SocialUser.objects.create(external_user_id=userinfo["sub"], user=user)
+            except IntegrityError:
+                # This race condition is expected to occur when the same user
+                # calls the authorize view multiple times.
+                pass
+
+        # log the user in
         django_auth.login(request, user)
 
     # temporary response (handy for debugging)

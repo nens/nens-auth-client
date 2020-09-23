@@ -5,6 +5,7 @@ from appconf import AppConf
 class NensAuthClientAppConf(AppConf):
     SCOPE = "openid email profile"  # phone / user profile admin could be added
     STANDALONE = False
+    AUTO_CREATE_SOCIAL_USER = True
 
     class Meta:
         prefix = "NENS_AUTH"

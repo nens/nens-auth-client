@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('external_user_id', models.CharField(db_index=True, max_length=255, help_text="The user ID in the external identity provider, which is present as the 'sub' field in tokens.")),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('last_modified', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='social_user', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='social', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]
