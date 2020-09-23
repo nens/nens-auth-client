@@ -17,7 +17,7 @@ class BaseBackend:
     def _create_social_user(self, user, verified_id_token):
         uid = verified_id_token["sub"]
         try:
-            return SocialUser.objects.create(uid=uid, user=user)
+            return SocialUser.objects.create(external_user_id=uid, user=user)
         except IntegrityError:
             # This race condition is expected to occur when the same user
             # calls /authenticate multiple times.
@@ -48,7 +48,7 @@ class SocialUserBackend(BaseBackend):
     def authenticate(self, request, verified_id_token=None):
         uid = verified_id_token["sub"]
         try:
-            return UserModel.objects.get(social__uid=uid)
+            return UserModel.objects.get(social__external_user_id=uid)
         except ObjectDoesNotExist:
             return
 

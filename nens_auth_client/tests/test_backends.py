@@ -47,7 +47,7 @@ def test_socialuser_exists(user_getter):
         request=None, verified_id_token={"sub": "social-uid"}
     )
     assert user.username == "testuser"
-    user_getter.assert_called_with(social__uid="social-uid")
+    user_getter.assert_called_with(social__external_user_id="social-uid")
 
 
 def test_socialuser_not_exists(user_getter):
@@ -57,7 +57,7 @@ def test_socialuser_not_exists(user_getter):
         request=None, verified_id_token={"sub": "social-uid"}
     )
     assert user is None
-    user_getter.assert_called_with(social__uid="social-uid")
+    user_getter.assert_called_with(social__external_user_id="social-uid")
 
 
 def test_emailverified_exists(user_getter, socialuser_create):
@@ -73,7 +73,7 @@ def test_emailverified_exists(user_getter, socialuser_create):
     )
     assert user.username == "testuser"
     user_getter.assert_called_with(email__iexact="a@b.com")
-    socialuser_create.assert_called_with(uid="social-uid", user=user)
+    socialuser_create.assert_called_with(external_user_id="social-uid", user=user)
 
 
 def test_emailverified_not_exists(user_getter, socialuser_create):
