@@ -11,7 +11,7 @@ def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
     id_token = id_token_generator()
     request = auth_req_generator(id_token)
     response = views.authorize(request)
-    assert response.status_code == 302  # all checks passed
+    assert response.status_code == 302  # 302 redirect to success url: all checks passed
     assert response.url == "http://testserver/success"
 
     token_request, jwks_request = rq_mocker.request_history

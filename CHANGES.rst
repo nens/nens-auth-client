@@ -17,7 +17,7 @@ Changelog of nens-auth-client
 
 - Added NENS_AUTH_ISSUER setting.
 
-- Parse the next query parameter in the login view. If it is unsafe or not
-  provider, use NENS_AUTH_DEFAULT_SUCCESS_URL.
+- Parsing the next query parameter in the login view. If it is unsafe or not
+  provider, use ``NENS_AUTH_DEFAULT_SUCCESS_URL``.
 
 - If already logged in, the login view redirects to the success_url directly.
