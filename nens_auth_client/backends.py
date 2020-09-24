@@ -14,10 +14,19 @@ UserModel = get_user_model()
 
 
 class SocialUserBackend(ModelBackend):
-    """Authenticate a user through an existing SocialUser
-    """
-
     def authenticate(self, request, userinfo=None):
+        """Authenticate a token through an existing SocialUser
+
+        When there are multiple users with the same email address, no user is
+        returned.
+
+        Args:
+          request: the current request
+          userinfo (dict): the payload of the ID token
+
+        Returns:
+          user or None
+        """
         uid = userinfo["sub"]
         try:
             return UserModel.objects.get(social__external_user_id=uid)
@@ -26,15 +35,19 @@ class SocialUserBackend(ModelBackend):
 
 
 class EmailVerifiedBackend(ModelBackend):
-    """Authenticate a user by verified email address (case-insensitive).
-
-    A SocialUser will be created automatically if a user is found.
-
-    When there are multiple users with the same email address, an error is
-    raised.
-    """
-
     def authenticate(self, request, userinfo):
+        """Authenticate a token by verified email address (case-insensitive).
+
+        When there are multiple users with the same email address, no user is
+        returned.
+
+        Args:
+          request: the current request
+          userinfo (dict): the payload of the ID token
+
+        Returns:
+          user or None
+        """
         if not userinfo.get("email_verified", False):
             return
         email = userinfo.get("email")
@@ -62,8 +75,8 @@ def create_socialuser(user, userinfo):
 
     Args:
       user (User): the user to be associated. It should have a 'backend'
-        attribute. This is set by django's authenticate() method.
-      userinfo (dict): a dictionary with a "sub" claim
+        attribute, which is set by django's authenticate() method.
+      userinfo (dict): the payload of the ID token
     """
     # If the user authenticated using the SocialUserBackend, there must
     # already be a SocialUser present. Do nothing in that case.
