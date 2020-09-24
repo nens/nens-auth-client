@@ -1,15 +1,16 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
+from .backends import create_socialuser
 from .oauth import oauth
 from django.conf import settings
-from django.db import IntegrityError
-from django.http.response import JsonResponse
-from nens_auth_client.models import SocialUser
-from django.http.response import HttpResponseRedirect
-
 from django.contrib.auth import REDIRECT_FIELD_NAME
-import django.contrib.auth as django_auth
+from django.core.exceptions import PermissionDenied
+from django.http.response import HttpResponseRedirect
+from django.http.response import JsonResponse
 from django.utils.http import is_safe_url
+
+import django.contrib.auth as django_auth
+
 
 REDIRECT_SESSION_KEY = "nens_auth_redirect_to"
 
@@ -77,27 +78,18 @@ def authorize(request):
     token = cognito.authorize_access_token(request)
     userinfo = cognito.parse_id_token(request, token)
 
-    # connect tot the django authentication backends
+    # The django authentication backend(s) should find a local user
     user = django_auth.authenticate(request, verified_id_token=userinfo)
 
-    if user is not None:
-        # TODO: Is this the best place to put this logic?
-        # TODO: Unittests
-        # Create a permanent association between local and external user
-        if (
-            settings.NENS_AUTH_AUTO_CREATE_SOCIAL_USER
-            and user.backend != "nens_auth_client.backends.SocialUserBackend"
-        ):
-            # Create a permanent association between local and external user
-            try:
-                SocialUser.objects.create(external_user_id=userinfo["sub"], user=user)
-            except IntegrityError:
-                # This race condition is expected to occur when the same user
-                # calls the authorize view multiple times.
-                pass
+    if user is None:
+        raise PermissionDenied("No user found with this idenity")
 
-        # log the user in
-        django_auth.login(request, user)
+    # Log the user in
+    django_auth.login(request, user)
+
+    # Create a permanent association between local and external users
+    if settings.NENS_AUTH_AUTO_CREATE_SOCIAL_USER:
+        create_socialuser(user, userinfo)
 
     return HttpResponseRedirect(request.session[REDIRECT_SESSION_KEY])
 

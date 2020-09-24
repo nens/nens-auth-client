@@ -1,7 +1,9 @@
+from .models import SocialUser
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 
 import logging
 
@@ -45,3 +47,27 @@ class EmailVerifiedBackend(ModelBackend):
             return
 
         return user
+
+
+# for usage in create_socialuser
+SocialUserBackend.import_path = ".".join(
+    [SocialUserBackend.__module__, SocialUserBackend.__name__]
+)
+
+
+def create_socialuser(user, verified_id_token):
+    """Permanently associate a user with an external id
+
+    Creates a SocialUser object if it does not exist already"""
+    # If the user authenticated using the SocialUserBackend, there must
+    # already be a SocialUser present. Do nothing in that case.
+    if user.backend == SocialUserBackend.import_path:
+        return
+
+    # Create a permanent association between local and external user
+    try:
+        SocialUser.objects.create(external_user_id=verified_id_token["sub"], user=user)
+    except IntegrityError:
+        # This race condition is expected to occur when the same user
+        # calls the authorize view multiple times.
+        pass

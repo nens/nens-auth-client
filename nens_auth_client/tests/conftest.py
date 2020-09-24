@@ -6,8 +6,10 @@ import requests_mock
 import json
 import os
 from nens_auth_client.views import REDIRECT_SESSION_KEY
+from django.contrib.auth import get_user_model
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
+UserModel = get_user_model()
 
 
 @pytest.fixture(scope="module")
@@ -81,11 +83,13 @@ def auth_req_generator(rf, mocker, rq_mocker, jwks, settings):
         rq_mocker.post(settings.NENS_AUTH_ACCESS_TOKEN_URL, json={"id_token": id_token})
         # Mock the call to the external jwks
         rq_mocker.get(settings.NENS_AUTH_JWKS_URI, json=jwks)
-        # Mock the user association logic (it needs db access)
+        # Mock the user association call
         authenticate = mocker.patch("nens_auth_client.views.django_auth.authenticate")
-        authenticate.return_value = None
+        authenticate.return_value = UserModel(username="testuser")
         # Disable automatic SocialUser creation
         settings.NENS_AUTH_AUTO_CREATE_SOCIAL_USER = False
+        # Mock the user login call
+        mocker.patch("nens_auth_client.views.django_auth.login")
 
         # Create the request
         request = rf.get(
