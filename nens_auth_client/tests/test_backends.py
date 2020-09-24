@@ -23,7 +23,7 @@ def test_socialuser_exists(user_getter):
     user_getter.return_value = User(username="testuser")
 
     user = backends.SocialUserBackend().authenticate(
-        request=None, verified_id_token={"sub": "social-uid"}
+        request=None, userinfo={"sub": "social-uid"}
     )
     assert user.username == "testuser"
     user_getter.assert_called_with(social__external_user_id="social-uid")
@@ -33,7 +33,7 @@ def test_socialuser_not_exists(user_getter):
     user_getter.side_effect = ObjectDoesNotExist
 
     user = backends.SocialUserBackend().authenticate(
-        request=None, verified_id_token={"sub": "social-uid"}
+        request=None, userinfo={"sub": "social-uid"}
     )
     assert user is None
     user_getter.assert_called_with(social__external_user_id="social-uid")
@@ -44,7 +44,7 @@ def test_emailverified_exists(user_getter):
 
     user = backends.EmailVerifiedBackend().authenticate(
         request=None,
-        verified_id_token={
+        userinfo={
             "sub": "social-uid",
             "email": "a@b.com",
             "email_verified": True,
@@ -59,7 +59,7 @@ def test_emailverified_not_exists(user_getter):
 
     user = backends.EmailVerifiedBackend().authenticate(
         request=None,
-        verified_id_token={
+        userinfo={
             "sub": "social-uid",
             "email": "a@b.com",
             "email_verified": True,
@@ -74,7 +74,7 @@ def test_emailverified_multiple_exist(user_getter):
 
     user = backends.EmailVerifiedBackend().authenticate(
         request=None,
-        verified_id_token={
+        userinfo={
             "sub": "social-uid",
             "email": "a@b.com",
             "email_verified": True,
@@ -86,7 +86,7 @@ def test_emailverified_multiple_exist(user_getter):
 
 
 @pytest.mark.parametrize(
-    "token",
+    "userinfo",
     [
         {"sub": "social-uid", "email": "a@b.com", "email_verified": False},
         {"sub": "social-uid", "email": "a@b.com"},
@@ -94,9 +94,9 @@ def test_emailverified_multiple_exist(user_getter):
         {"sub": "social-uid", "email_verified": True},
     ],
 )
-def test_emailverified_no_verified_email(user_getter, token):
+def test_emailverified_no_verified_email(user_getter, userinfo):
     user = backends.EmailVerifiedBackend().authenticate(
-        request=None, verified_id_token=token
+        request=None, userinfo=userinfo
     )
     assert user is None
     assert not user_getter.called

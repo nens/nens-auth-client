@@ -65,17 +65,18 @@ user, the django ``AUTHENTICATION_BACKENDS`` are used.
 See the (django docs)[https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#customizing-authentication-in-django].
 
 In the nens-auth-client ``authorize`` view, the ``authenticate`` function from
-django.contrib.auth is called with a keyword argument ``verified_id_token``. It
-is up to the authentication backends to return a ``user`` instance.
+django.contrib.auth is called with a keyword argument ``userinfo``. This
+``userinfo`` equals the decoded ID token. It is up to the authentication
+backends to return a ``user`` instance based on ``userinfo``.
 
-In the default implementation, nens-auth-client associates external users to
-remote users by emailaddress (if it is verified). The association between an
+In the default implementation nens-auth-client associates external users to
+remote users by email address (if it is verified). The association between an
 external and local user is saved via the creation of a ``SocialUser`` object.
 
 - ``SocialUserBackend`` produces a user if there is a SocialUser present with
-  its ``external_user_id`` matching ``verified_id_token["sub"]``
+  its ``external_user_id`` matching ``userinfo["sub"]``
 - ``EmailVerifiedBackend`` produces a user if there is one with an matching
-  email address and if the externally provided email is verified.
+  userinfo["email"] and if userinfo["email_verified"] is True.
 
 At the end of the authentication chain, a SocialUser object may be created for
 next time usage. This is controlled with the setting ``NENS_AUTH_AUTO_CREATE_SOCIAL_USER``.

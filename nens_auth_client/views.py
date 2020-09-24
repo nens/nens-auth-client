@@ -72,14 +72,13 @@ def authorize(request):
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     TODO: Gracefully handle errors (instead of bare 403 / 500)
-    TODO: Logic to match userinfo to local user if socialuser does not exist
     """
     cognito = oauth.create_client("cognito")
     token = cognito.authorize_access_token(request)
     userinfo = cognito.parse_id_token(request, token)
 
     # The django authentication backend(s) should find a local user
-    user = django_auth.authenticate(request, verified_id_token=userinfo)
+    user = django_auth.authenticate(request, userinfo=userinfo)
 
     if user is None:
         raise PermissionDenied("No user found with this idenity")

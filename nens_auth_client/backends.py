@@ -17,8 +17,8 @@ class SocialUserBackend(ModelBackend):
     """Authenticate a user through an existing SocialUser
     """
 
-    def authenticate(self, request, verified_id_token=None):
-        uid = verified_id_token["sub"]
+    def authenticate(self, request, userinfo=None):
+        uid = userinfo["sub"]
         try:
             return UserModel.objects.get(social__external_user_id=uid)
         except ObjectDoesNotExist:
@@ -34,10 +34,10 @@ class EmailVerifiedBackend(ModelBackend):
     raised.
     """
 
-    def authenticate(self, request, verified_id_token):
-        if not verified_id_token.get("email_verified", False):
+    def authenticate(self, request, userinfo):
+        if not userinfo.get("email_verified", False):
             return
-        email = verified_id_token.get("email")
+        email = userinfo.get("email")
         if not email:
             return
 
@@ -55,7 +55,7 @@ SOCIALUSERBACKEND_PATH = ".".join(
 )
 
 
-def create_socialuser(user, verified_id_token):
+def create_socialuser(user, userinfo):
     """Permanently associate a user with an external id
 
     Creates a SocialUser object if it does not exist already
@@ -63,7 +63,7 @@ def create_socialuser(user, verified_id_token):
     Args:
       user (User): the user to be associated. It should have a 'backend'
         attribute. This is set by django's authenticate() method.
-      verified_id_token (dict): a dictionary with a "sub" claim
+      userinfo (dict): a dictionary with a "sub" claim
     """
     # If the user authenticated using the SocialUserBackend, there must
     # already be a SocialUser present. Do nothing in that case.
@@ -72,7 +72,7 @@ def create_socialuser(user, verified_id_token):
 
     # Create a permanent association between local and external user
     try:
-        SocialUser.objects.create(external_user_id=verified_id_token["sub"], user=user)
+        SocialUser.objects.create(external_user_id=userinfo["sub"], user=user)
     except IntegrityError:
         # This race condition is expected to occur when the same user
         # calls the authorize view multiple times.
