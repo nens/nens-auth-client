@@ -7,6 +7,8 @@ class NensAuthClientAppConf(AppConf):
     STANDALONE = False
     AUTO_CREATE_SOCIAL_USER = True
 
+    DEFAULT_SUCCESS_URL = "/"  # Default redirect after successful login
+
     class Meta:
         prefix = "NENS_AUTH"
         required = (
