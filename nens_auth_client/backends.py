@@ -50,7 +50,7 @@ class EmailVerifiedBackend(ModelBackend):
 
 
 # for usage in create_socialuser
-SocialUserBackend.import_path = ".".join(
+SOCIALUSERBACKEND_PATH = ".".join(
     [SocialUserBackend.__module__, SocialUserBackend.__name__]
 )
 
@@ -58,10 +58,16 @@ SocialUserBackend.import_path = ".".join(
 def create_socialuser(user, verified_id_token):
     """Permanently associate a user with an external id
 
-    Creates a SocialUser object if it does not exist already"""
+    Creates a SocialUser object if it does not exist already
+
+    Args:
+      user (User): the user to be associated. It should have a 'backend'
+        attribute. This is set by django's authenticate() method.
+      verified_id_token (dict): a dictionary with a "sub" claim
+    """
     # If the user authenticated using the SocialUserBackend, there must
     # already be a SocialUser present. Do nothing in that case.
-    if user.backend == SocialUserBackend.import_path:
+    if user.backend == SOCIALUSERBACKEND_PATH:
         return
 
     # Create a permanent association between local and external user

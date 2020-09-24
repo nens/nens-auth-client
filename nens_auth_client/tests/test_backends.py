@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from nens_auth_client import backends
 
 import pytest
@@ -99,3 +100,27 @@ def test_emailverified_no_verified_email(user_getter, token):
     )
     assert user is None
     assert not user_getter.called
+
+
+def test_create_socialuser(socialuser_create):
+    user = User(id=42, username="testuser")
+    user.backend = None
+    backends.create_socialuser(user, {"sub": "abc"})
+    socialuser_create.assert_called_with(user=user, external_user_id="abc")
+
+
+def test_create_socialuser_skip(socialuser_create):
+    user = User(id=42, username="testuser")
+    user.backend = backends.SOCIALUSERBACKEND_PATH
+    backends.create_socialuser(user, {"sub": "abc"})
+    assert not socialuser_create.called
+
+
+def test_create_socialuser_race_condition(socialuser_create):
+    user = User(id=42, username="testuser")
+    user.backend = None
+    socialuser_create.side_effect = IntegrityError
+
+    # ignores the IntegrityError:
+    backends.create_socialuser(user, {"sub": "abc"})
+    assert socialuser_create.called
