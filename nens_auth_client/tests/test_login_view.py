@@ -6,7 +6,7 @@ from django.contrib.auth.models import AnonymousUser, User
 
 
 def test_login(rf):
-    request = rf.get("http://testserver/login?next=/a")
+    request = rf.get("http://testserver/login/?next=/a")
     request.session = {}
     request.user = AnonymousUser()  # user is not logged in initially!
     response = views.login(request)
@@ -27,12 +27,12 @@ def test_login(rf):
     assert qs["scope"] == [settings.NENS_AUTH_SCOPE]
     assert qs["state"] == [request.session["_cognito_authlib_state_"]]
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
-    assert request.session[views.REDIRECT_SESSION_KEY] == "http://testserver/a"
+    assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "http://testserver/a"
 
 
 def test_login_when_already_logged_in(rf):
     # The login view redirects to DEFAULT_SUCCESS_URL if already logged in
-    request = rf.get("http://testserver/login?next=/a")
+    request = rf.get("http://testserver/login/?next=/a")
     request.session = {}
     request.user = User()
     response = views.login(request)
@@ -45,12 +45,12 @@ def test_login_when_already_logged_in(rf):
 @pytest.mark.parametrize(
     "url,expected",
     [
-        ("/login", "http://testserver/admin/"),
-        ("/login?next=a", "http://testserver/a"),
-        ("/login?next=http://testserver/a", "http://testserver/a"),
-        ("/login?next=http://testserver2/a", "http://testserver/admin/"),
+        ("/login/", "http://testserver/d"),
+        ("/login/?next=/a", "http://testserver/a"),
+        ("/login/?next=http://testserver/a", "http://testserver/a"),
+        ("/login/?next=http://testserver2/a", "http://testserver/d"),
     ],
 )
-def test_get_absolute_succes_url(rf, url, expected):
+def test_get_absolute_redirect_url(rf, url, expected):
     request = rf.get(url)
-    assert views._get_absolute_success_url(request) == expected
+    assert views._get_absolute_redirect_url(request, default="/d") == expected
