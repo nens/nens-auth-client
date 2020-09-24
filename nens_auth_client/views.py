@@ -2,9 +2,7 @@
 # from nens_auth_client import models
 from .models import associate_user
 from .oauth import oauth
-from urllib.parse import urlencode
 from django.conf import settings
-from django.http.response import JsonResponse
 from django.http.response import HttpResponseRedirect
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -102,24 +100,25 @@ def logout(request):
 
     Note that this view is called twice in this flow.
     """
-    # Get the redirect url from the session (if step 3.)
-    redirect_url = request.session.pop(LOGOUT_REDIRECT_SESSION_KEY, None)
-
-    # Get the redirect url from the query params (if step 1.)
-    if redirect_url is None:
-        redirect_url = _get_absolute_redirect_url(
-            request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
-        )
-
-    # In case of step 3. or if step 1. & user was not logged in: redirect
     if not request.user.is_authenticated:
+        # We are in step 3. (user is already logged out)
+        redirect_url = request.session.pop(LOGOUT_REDIRECT_SESSION_KEY, None)
+        if redirect_url is None:
+            # If there is nothing in the session, the user called /logout
+            # without being logged in in the first place. Just use the 'next'
+            # parameter.
+            redirect_url = _get_absolute_redirect_url(
+                request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+            )
         return HttpResponseRedirect(redirect_url)
 
     # Log the user out
     django_auth.logout(request)
 
     # Store the redirect_url in the session for later use
-    request.session[LOGOUT_REDIRECT_SESSION_KEY] = redirect_url
+    request.session[LOGOUT_REDIRECT_SESSION_KEY] = _get_absolute_redirect_url(
+        request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+    )
 
     # Redirect to authorization server
     logout_url = "{}?client_id={}&logout_uri={}".format(
