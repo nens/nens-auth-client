@@ -45,10 +45,10 @@ def test_login_when_already_logged_in(rf):
 @pytest.mark.parametrize(
     "url,expected",
     [
-        ("/login", "http://testserver/admin"),
+        ("/login", "http://testserver/admin/"),
         ("/login?next=a", "http://testserver/a"),
         ("/login?next=http://testserver/a", "http://testserver/a"),
-        ("/login?next=http://testserver2/a", "http://testserver/admin"),
+        ("/login?next=http://testserver2/a", "http://testserver/admin/"),
     ],
 )
 def test_get_absolute_succes_url(rf, url, expected):
