@@ -89,7 +89,7 @@ def authorize(request):
 
 
 def logout(request):
-    """Logout hte user (locally and remotely)
+    """Logout the user (locally and remotely)
 
     The full flow goes as follows:
 
