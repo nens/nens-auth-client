@@ -1,14 +1,16 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-from .models import associate_user
+from .backends import create_remoteuser
 from .oauth import oauth
 from django.conf import settings
-from django.http.response import JsonResponse
-from django.http.response import HttpResponseRedirect
-
 from django.contrib.auth import REDIRECT_FIELD_NAME
-import django.contrib.auth as django_auth
+from django.core.exceptions import PermissionDenied
+from django.http.response import HttpResponseRedirect
+from django.http.response import JsonResponse
 from django.utils.http import is_safe_url
+
+import django.contrib.auth as django_auth
+
 
 REDIRECT_SESSION_KEY = "nens_auth_redirect_to"
 
@@ -70,18 +72,23 @@ def authorize(request):
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     TODO: Gracefully handle errors (instead of bare 403 / 500)
-    TODO: Logic to match userinfo to local user if socialuser does not exist
     """
     cognito = oauth.create_client("cognito")
     token = cognito.authorize_access_token(request)
     userinfo = cognito.parse_id_token(request, token)
 
-    user = associate_user(userinfo)
+    # The django authentication backend(s) should find a local user
+    user = django_auth.authenticate(request, userinfo=userinfo)
 
-    # log the user in (note that this call will error if there are multiple
-    # authentication backends configured)
-    if user is not None:
-        django_auth.login(request, user)
+    if user is None:
+        raise PermissionDenied("No user found with this idenity")
+
+    # Log the user in
+    django_auth.login(request, user)
+
+    # Create a permanent association between local and external users
+    if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
+        create_remoteuser(user, userinfo)
 
     return HttpResponseRedirect(request.session[REDIRECT_SESSION_KEY])
 
