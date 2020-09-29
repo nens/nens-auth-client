@@ -8,7 +8,7 @@ Changelog of nens-auth-client
 - Initial project structure created with cookiecutter and
   https://github.com/nens/cookiecutter-djangosite-template
 
-- Added SocialUser model.
+- Added RemoteUser model.
 
 - Added login, authorize and logout views for login/logout via OpenID Connect
   (AWS Cognito). Default settings are setup via django-appconf.
@@ -21,3 +21,6 @@ Changelog of nens-auth-client
   provider, use ``NENS_AUTH_DEFAULT_SUCCESS_URL``.
 
 - If already logged in, the login view redirects to the success_url directly.
+
+- Added custom authentication backends "RemoteUserBackend" and
+  "EmailVerifiedBackend" to associate remote user ids with local users.
