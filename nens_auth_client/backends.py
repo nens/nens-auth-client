@@ -1,4 +1,4 @@
-from .models import SocialUser
+from .models import RemoteUser
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import MultipleObjectsReturned
@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
-class SocialUserBackend(ModelBackend):
+class RemoteUserBackend(ModelBackend):
     def authenticate(self, request, userinfo=None):
-        """Authenticate a token through an existing SocialUser
+        """Authenticate a token through an existing RemoteUser
 
         When there are multiple users with the same email address, no user is
         returned.
@@ -29,7 +29,7 @@ class SocialUserBackend(ModelBackend):
         """
         uid = userinfo["sub"]
         try:
-            return UserModel.objects.get(social__external_user_id=uid)
+            return UserModel.objects.get(remote__external_user_id=uid)
         except ObjectDoesNotExist:
             return
 
@@ -62,30 +62,30 @@ class EmailVerifiedBackend(ModelBackend):
         return user
 
 
-# for usage in create_socialuser
-SOCIALUSERBACKEND_PATH = ".".join(
-    [SocialUserBackend.__module__, SocialUserBackend.__name__]
+# for usage in create_remoteuser
+REMOTEUSERBACKEND_PATH = ".".join(
+    [RemoteUserBackend.__module__, RemoteUserBackend.__name__]
 )
 
 
-def create_socialuser(user, userinfo):
+def create_remoteuser(user, userinfo):
     """Permanently associate a user with an external id
 
-    Creates a SocialUser object if it does not exist already
+    Creates a RemoteUser object if it does not exist already
 
     Args:
       user (User): the user to be associated. It should have a 'backend'
         attribute, which is set by django's authenticate() method.
       userinfo (dict): the payload of the ID token
     """
-    # If the user authenticated using the SocialUserBackend, there must
-    # already be a SocialUser present. Do nothing in that case.
-    if user.backend == SOCIALUSERBACKEND_PATH:
+    # If the user authenticated using the RemoteUserBackend, there must
+    # already be a RemoteUser present. Do nothing in that case.
+    if user.backend == REMOTEUSERBACKEND_PATH:
         return
 
     # Create a permanent association between local and external user
     try:
-        SocialUser.objects.create(external_user_id=userinfo["sub"], user=user)
+        RemoteUser.objects.create(external_user_id=userinfo["sub"], user=user)
     except IntegrityError:
         # This race condition is expected to occur when the same user
         # calls the authorize view multiple times.

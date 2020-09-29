@@ -1,6 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-from .backends import create_socialuser
+from .backends import create_remoteuser
 from .oauth import oauth
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -87,8 +87,8 @@ def authorize(request):
     django_auth.login(request, user)
 
     # Create a permanent association between local and external users
-    if settings.NENS_AUTH_AUTO_CREATE_SOCIAL_USER:
-        create_socialuser(user, userinfo)
+    if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
+        create_remoteuser(user, userinfo)
 
     return HttpResponseRedirect(request.session[REDIRECT_SESSION_KEY])
 

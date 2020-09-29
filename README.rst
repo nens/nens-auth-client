@@ -25,10 +25,11 @@ Add these to the ``INSTALLED_APPS`` setting:
         ...
     )
 
-Also, add the following setting to override the default Django authentication
-backend::
+Also, add the following setting to be able to connect remote users to the local
+Django user database::
 
     AUTHENTICATION_BACKENDS = [
+        "django.contrib.auth.backends.ModelBackend",
         "nens_auth_client.backends.SocialUserBackend",
         "nens_auth_client.backends.EmailVerifiedBackend",
     ]
@@ -62,7 +63,7 @@ The OpenID Connect flow provides an ID token to your client application. What
 to do with that, is entirely up to the application. We like to use the built-in
 django User models. To associate the externally provided user-id with a local
 user, the django ``AUTHENTICATION_BACKENDS`` are used.
-See the (django docs)[https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#customizing-authentication-in-django].
+See the `django docs <https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#customizing-authentication-in-django>`_.
 
 In the nens-auth-client ``authorize`` view, the ``authenticate`` function from
 django.contrib.auth is called with a keyword argument ``userinfo``. This
@@ -70,16 +71,22 @@ django.contrib.auth is called with a keyword argument ``userinfo``. This
 backends to return a ``user`` instance based on ``userinfo``.
 
 In the default implementation nens-auth-client associates external users to
-remote users by email address (if it is verified). The association between an
-external and local user is saved via the creation of a ``SocialUser`` object.
+remote users via the ``RemoteUser`` model. If there is no existing association,
+a user is selected by email address (if it is verified). This logic is contained
+in the ``AUTHENTICATION_BACKENDS`` setting:
 
-- ``SocialUserBackend`` produces a user if there is a SocialUser present with
+- ``RemoteUserBackend`` produces a user if there is a RemoteUser present with
   its ``external_user_id`` matching ``userinfo["sub"]``
 - ``EmailVerifiedBackend`` produces a user if there is one with an matching
   userinfo["email"] and if userinfo["email_verified"] is True.
 
-At the end of the authentication chain, a SocialUser object may be created for
-next time usage. This is controlled with the setting ``NENS_AUTH_AUTO_CREATE_SOCIAL_USER``.
+At the end of the authentication chain, a ``RemoteUser`` object is created for
+next time usage. This is skipped when the user was authenticated via the
+``RemoteUserBackend``. Control this feature with ``NENS_AUTH_AUTO_CREATE_SOCIAL_USER``.
+
+If you application requires this logic to be appended, start with subclassing
+``django.contrib.auth.backends.ModelBackend`` and overriding the ``authenticate``
+method with call signature ``request: Request, userinfo: dict``.
 
 
 Local development

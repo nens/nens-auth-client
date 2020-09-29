@@ -86,8 +86,8 @@ def auth_req_generator(rf, mocker, rq_mocker, jwks, settings):
         # Mock the user association call
         authenticate = mocker.patch("nens_auth_client.views.django_auth.authenticate")
         authenticate.return_value = UserModel(username="testuser")
-        # Disable automatic SocialUser creation
-        settings.NENS_AUTH_AUTO_CREATE_SOCIAL_USER = False
+        # Disable automatic RemoteUser creation
+        settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER = False
         # Mock the user login call
         mocker.patch("nens_auth_client.views.django_auth.login")
 

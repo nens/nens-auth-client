@@ -14,29 +14,29 @@ def user_getter(mocker):
 
 
 @pytest.fixture
-def socialuser_create(mocker):
-    SocialUser = mocker.patch("nens_auth_client.backends.SocialUser")
-    return SocialUser.objects.create
+def remoteuser_create(mocker):
+    RemoteUser = mocker.patch("nens_auth_client.backends.RemoteUser")
+    return RemoteUser.objects.create
 
 
-def test_socialuser_exists(user_getter):
+def test_remoteuser_exists(user_getter):
     user_getter.return_value = User(username="testuser")
 
-    user = backends.SocialUserBackend().authenticate(
-        request=None, userinfo={"sub": "social-uid"}
+    user = backends.RemoteUserBackend().authenticate(
+        request=None, userinfo={"sub": "remote-uid"}
     )
     assert user.username == "testuser"
-    user_getter.assert_called_with(social__external_user_id="social-uid")
+    user_getter.assert_called_with(remote__external_user_id="remote-uid")
 
 
-def test_socialuser_not_exists(user_getter):
+def test_remoteuser_not_exists(user_getter):
     user_getter.side_effect = ObjectDoesNotExist
 
-    user = backends.SocialUserBackend().authenticate(
-        request=None, userinfo={"sub": "social-uid"}
+    user = backends.RemoteUserBackend().authenticate(
+        request=None, userinfo={"sub": "remote-uid"}
     )
     assert user is None
-    user_getter.assert_called_with(social__external_user_id="social-uid")
+    user_getter.assert_called_with(remote__external_user_id="remote-uid")
 
 
 def test_emailverified_exists(user_getter):
@@ -45,7 +45,7 @@ def test_emailverified_exists(user_getter):
     user = backends.EmailVerifiedBackend().authenticate(
         request=None,
         userinfo={
-            "sub": "social-uid",
+            "sub": "remote-uid",
             "email": "a@b.com",
             "email_verified": True,
         },
@@ -60,7 +60,7 @@ def test_emailverified_not_exists(user_getter):
     user = backends.EmailVerifiedBackend().authenticate(
         request=None,
         userinfo={
-            "sub": "social-uid",
+            "sub": "remote-uid",
             "email": "a@b.com",
             "email_verified": True,
         },
@@ -75,7 +75,7 @@ def test_emailverified_multiple_exist(user_getter):
     user = backends.EmailVerifiedBackend().authenticate(
         request=None,
         userinfo={
-            "sub": "social-uid",
+            "sub": "remote-uid",
             "email": "a@b.com",
             "email_verified": True,
         },
@@ -88,10 +88,10 @@ def test_emailverified_multiple_exist(user_getter):
 @pytest.mark.parametrize(
     "userinfo",
     [
-        {"sub": "social-uid", "email": "a@b.com", "email_verified": False},
-        {"sub": "social-uid", "email": "a@b.com"},
-        {"sub": "social-uid", "email": "", "email_verified": True},
-        {"sub": "social-uid", "email_verified": True},
+        {"sub": "remote-uid", "email": "a@b.com", "email_verified": False},
+        {"sub": "remote-uid", "email": "a@b.com"},
+        {"sub": "remote-uid", "email": "", "email_verified": True},
+        {"sub": "remote-uid", "email_verified": True},
     ],
 )
 def test_emailverified_no_verified_email(user_getter, userinfo):
@@ -102,25 +102,25 @@ def test_emailverified_no_verified_email(user_getter, userinfo):
     assert not user_getter.called
 
 
-def test_create_socialuser(socialuser_create):
+def test_create_remoteuser(remoteuser_create):
     user = User(id=42, username="testuser")
     user.backend = None
-    backends.create_socialuser(user, {"sub": "abc"})
-    socialuser_create.assert_called_with(user=user, external_user_id="abc")
+    backends.create_remoteuser(user, {"sub": "abc"})
+    remoteuser_create.assert_called_with(user=user, external_user_id="abc")
 
 
-def test_create_socialuser_skip(socialuser_create):
+def test_create_remoteuser_skip(remoteuser_create):
     user = User(id=42, username="testuser")
-    user.backend = backends.SOCIALUSERBACKEND_PATH
-    backends.create_socialuser(user, {"sub": "abc"})
-    assert not socialuser_create.called
+    user.backend = backends.REMOTEUSERBACKEND_PATH
+    backends.create_remoteuser(user, {"sub": "abc"})
+    assert not remoteuser_create.called
 
 
-def test_create_socialuser_race_condition(socialuser_create):
+def test_create_remoteuser_race_condition(remoteuser_create):
     user = User(id=42, username="testuser")
     user.backend = None
-    socialuser_create.side_effect = IntegrityError
+    remoteuser_create.side_effect = IntegrityError
 
     # ignores the IntegrityError:
-    backends.create_socialuser(user, {"sub": "abc"})
-    assert socialuser_create.called
+    backends.create_remoteuser(user, {"sub": "abc"})
+    assert remoteuser_create.called
