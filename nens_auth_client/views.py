@@ -7,6 +7,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.utils.http import is_safe_url
+from django.views.decorators.cache import cache_control
 
 import django.contrib.auth as django_auth
 
@@ -33,6 +34,7 @@ def _get_absolute_redirect_url(request, default):
     return request.build_absolute_uri(default)
 
 
+@cache_control(no_store=True)
 def login(request):
     """Initiate authentication through OpenID Connect
 
@@ -68,6 +70,7 @@ def login(request):
     return cognito.authorize_redirect(request, settings.NENS_AUTH_REDIRECT_URI)
 
 
+@cache_control(no_store=True)
 def authorize(request):
     """Authorizes a user that authenticated through OpenID Connect.
 
@@ -95,6 +98,7 @@ def authorize(request):
     return HttpResponseRedirect(request.session[LOGIN_REDIRECT_SESSION_KEY])
 
 
+@cache_control(no_store=True)
 def logout(request):
     """Logout the user (locally and remotely)
 

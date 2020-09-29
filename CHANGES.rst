@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Set Cache-Control headers to "no-store" for login, authorize and logout.
 
 
 0.1 (2020-09-29)

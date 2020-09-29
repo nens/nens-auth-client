@@ -22,6 +22,9 @@ def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
     assert qs["state"] == ["state"]
     assert jwks_request.url == settings.NENS_AUTH_JWKS_URI
 
+    # check if Cache-Control header is set to "no-store"
+    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+
 
 def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):
     # The id token has a different nonce than the session

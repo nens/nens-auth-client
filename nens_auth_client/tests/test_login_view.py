@@ -29,6 +29,9 @@ def test_login(rf):
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "http://testserver/a"
 
+    # check if Cache-Control header is set to "no-store"
+    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+
 
 def test_login_when_already_logged_in(rf):
     # The login view redirects to DEFAULT_SUCCESS_URL if already logged in
