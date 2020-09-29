@@ -4,8 +4,8 @@ from appconf import AppConf
 
 class NensAuthClientAppConf(AppConf):
     SCOPE = "openid email profile"  # phone / user profile admin could be added
-
     STANDALONE = False
+    AUTO_CREATE_REMOTE_USER = True
 
     DEFAULT_SUCCESS_URL = "/"  # Default redirect after successful login
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout

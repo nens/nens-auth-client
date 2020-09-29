@@ -15,13 +15,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='SocialUser',
+            name='RemoteUser',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uid', models.CharField(db_index=True, max_length=255)),
+                ('external_user_id', models.CharField(db_index=True, unique=True, max_length=255, help_text="The user ID in the external identity provider, which is present as the 'sub' field in tokens.")),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('last_modified', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='social_user', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='remote', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

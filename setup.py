@@ -5,7 +5,7 @@ version = '0.1.dev0'
 long_description = '\n\n'.join([
     open('README.rst').read(),
     open('CHANGES.rst').read(),
-    ])
+])
 
 install_requires = [
     'Django',
