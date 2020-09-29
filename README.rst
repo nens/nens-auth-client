@@ -78,7 +78,7 @@ in the ``AUTHENTICATION_BACKENDS`` setting:
 - ``RemoteUserBackend`` produces a user if there is a RemoteUser present with
   its ``external_user_id`` matching ``userinfo["sub"]``
 - ``EmailVerifiedBackend`` produces a user if there is one with an matching
-  userinfo["email"] and if userinfo["email_verified"] is True.
+  ``userinfo["email"]`` and if ``userinfo["email_verified"]`` is True.
 
 At the end of the authentication chain, a ``RemoteUser`` object is created for
 next time usage. This is skipped when the user was authenticated via the
@@ -86,7 +86,7 @@ next time usage. This is skipped when the user was authenticated via the
 
 If you application requires this logic to be appended, start with subclassing
 ``django.contrib.auth.backends.ModelBackend`` and overriding the ``authenticate``
-method with call signature ``request: Request, userinfo: dict``.
+method with call signature ``(request: Request, userinfo: dict)``.
 
 
 Local development
