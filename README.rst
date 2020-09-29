@@ -38,7 +38,7 @@ Some settings that identify your application and set up the authorization server
 
     NENS_AUTH_CLIENT_ID = "..."  # generate one on AWS Cognito
     NENS_AUTH_CLIENT_SECRET = "..."  # generate one on AWS Cognito
-    NENS_AUTH_REDIRECT_URI = "https://<your-app-domain>/authorize"  # configure this also on AWS Cognito
+    NENS_AUTH_REDIRECT_URI = "https://<your-app-domain>/authorize/"  # configure this also on AWS Cognito
     NENS_AUTH_ACCESS_TOKEN_URL = "https://nens.auth.eu-west-1.amazoncognito.com/oauth2/token"
     NENS_AUTH_AUTHORIZE_URL = "https://nens.auth.eu-west-1.amazoncognito.com/oauth2/authorize"
     NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV"
