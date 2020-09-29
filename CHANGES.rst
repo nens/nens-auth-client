@@ -24,3 +24,5 @@ Changelog of nens-auth-client
 
 - Added custom authentication backends "RemoteUserBackend" and
   "EmailVerifiedBackend" to associate remote user ids with local users.
+
+- Call AWS LOGOUT endpoint in the logout view and added logout redirects.
