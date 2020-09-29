@@ -11,6 +11,7 @@ install_requires = [
     'Django',
     'django-appconf',
     'authlib[client]',
+    'requests',
 ]
 
 tests_require = [
