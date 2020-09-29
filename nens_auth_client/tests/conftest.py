@@ -5,7 +5,7 @@ import time
 import requests_mock
 import json
 import os
-from nens_auth_client.views import REDIRECT_SESSION_KEY
+from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
 from django.contrib.auth import get_user_model
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -93,12 +93,12 @@ def auth_req_generator(rf, mocker, rq_mocker, jwks, settings):
 
         # Create the request
         request = rf.get(
-            "http://testserver/authorize?code={}&state={}".format(code, state)
+            "http://testserver/authorize/?code={}&state={}".format(code, state)
         )
         request.session = {
             "_cognito_authlib_state_": state,
             "_cognito_authlib_nonce_": nonce,
-            REDIRECT_SESSION_KEY: "http://testserver/success",
+            LOGIN_REDIRECT_SESSION_KEY: "http://testserver/success",
         }
         return request
 
