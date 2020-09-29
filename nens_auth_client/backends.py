@@ -17,9 +17,6 @@ class RemoteUserBackend(ModelBackend):
     def authenticate(self, request, userinfo=None):
         """Authenticate a token through an existing RemoteUser
 
-        When there are multiple users with the same email address, no user is
-        returned.
-
         Args:
           request: the current request
           userinfo (dict): the payload of the ID token
