@@ -10,6 +10,9 @@ user pool to the local django user database.
 Usage (user login/logout)
 -------------------------
 
+General
+~~~~~~~
+
 The nens-auth-client library exposes one django application: ``nens_auth_client``.
 The django built-in apps ``auth``, ``sessions`` and ``contenttypes`` are
 also required, but they probably are already there.
@@ -33,18 +36,27 @@ Django user database::
         "nens_auth_client.backends.EmailVerifiedBackend",
     ]
 
-Some settings that identify your application and set up the authorization server::
+Some settings that set up the authorization server::
+
+    NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV"
+    NENS_AUTH_JWKS_URI = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV/.well-known/jwks.json"
+    NENS_AUTH_ACCESS_TOKEN_URL = "https://nens.auth.eu-west-1.amazoncognito.com/oauth2/token"
+    NENS_AUTH_AUTHORIZE_URL = "https://nens.auth.eu-west-1.amazoncognito.com/oauth2/authorize"
+    NENS_AUTH_LOGOUT_URL = "https://nens.auth.eu-west-1.amazoncognito.com/logout"
+
+
+Login/logout views
+~~~~~~~~~~~~~~~~~~
+
+Some settings that identify your application as an OpenID Connect Client::
 
     NENS_AUTH_CLIENT_ID = "..."  # generate one on AWS Cognito
     NENS_AUTH_CLIENT_SECRET = "..."  # generate one on AWS Cognito
     NENS_AUTH_REDIRECT_URI = "https://<your-app-domain>/authorize/"  # configure this also on AWS Cognito
-    NENS_AUTH_ACCESS_TOKEN_URL = "https://nens.auth.eu-west-1.amazoncognito.com/oauth2/token"
-    NENS_AUTH_AUTHORIZE_URL = "https://nens.auth.eu-west-1.amazoncognito.com/oauth2/authorize"
-    NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV"
-    NENS_AUTH_JWKS_URI = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV/.well-known/jwks.json"
-
-
-Finally, include the ``nens-auth-client`` urls to your application's urls.py::
+    NENS_AUTH_LOGOUT_REDIRECT_URI = "https://<your-app-domain>/logout/"  # configure this also on AWS Cognito
+   
+ 
+Include the ``nens-auth-client`` urls to your application's urls.py::
 
     from django.conf.urls import include
 
@@ -54,10 +66,18 @@ Finally, include the ``nens-auth-client`` urls to your application's urls.py::
         ...
     ]
 
-If your web application acts as a Resource Server, then it will need to accept
-Bearer tokens in http requests. ``nens-auth-client`` has a middleware for
-this, which depends on AuthenticationMiddleware (which in turn depends on
-SessionMiddleware)::
+Optionally set defaults for the redirect after successful login/logout::
+
+    NENS_AUTH_DEFAULT_SUCCESS_URL = "/welcome/"
+    NENS_AUTH_DEFAULT_LOGOUT_URL = "/goodbye/"
+
+
+Bearer tokens
+~~~~~~~~~~~~~
+
+If your web application acts as a Resource Server in the Authorization Code
+Flow, then it will need to accept Bearer tokens in http requests.
+``nens-auth-client`` has a middleware for this::
 
     MIDDLEWARE = (
         ...
@@ -72,8 +92,10 @@ application may use for additional authorization logic. Note that the above
 AUTHENTICATION_BACKENDS have limited function for bearer token, because
 bearer tokens typically do not include an ``"email"`` claim.
 
-Also, do not forget to set the ``NENS_AUTH_RESOURCE_SERVER_ID`` setting, which
-should match the one set in the AWS Cognito. It needs a trailing slash.
+Also, do not forget to set the ``NENS_AUTH_RESOURCE_SERVER_ID``, which
+should match the one set in the AWS Cognito. It needs a trailing slash::
+
+    NENS_AUTH_RESOURCE_SERVER_ID = "..."  # generate one on AWS Cognito
 
 
 User association logic
