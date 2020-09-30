@@ -20,7 +20,8 @@ def decode_access_token(token):
       claims (dict): the token payload
 
     Raises:
-      authlib.jose.errors.JoseError if token is invalid
+      authlib.jose.errors.JoseError: if token is invalid
+      ValueError: if the key id is not present in the jwks.json
     """
     # TODO Cache this
     jwks = requests.get(settings.NENS_AUTH_JWKS_URI)
@@ -43,5 +44,5 @@ def decode_access_token(token):
         func(claims)
 
     # Validate the token and return
-    claims.validate()
+    claims.validate(leeway=120)  # leeway matches authlib's implementation
     return dict(claims)

@@ -35,8 +35,9 @@ def preprocess_access_token(claims):
     new_scopes = []
     for scope in claims.get("scope", "").split(" "):
         if scope.startswith(aud):
-            new_scopes.append(scope[len(aud) :])
+            new_scopes.append(scope[len(aud):])
     if not new_scopes:
         return  # Don't set the audience if there are no relevant scopes
-    claims["aud"] = aud
+    if "aud" not in claims:  # Never overwrite an existing audience
+        claims["aud"] = aud
     claims["scope"] = " ".join(new_scopes)

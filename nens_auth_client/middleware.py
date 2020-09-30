@@ -9,14 +9,13 @@ import django.contrib.auth as django_auth
 class AccessTokenMiddleware:
     """Middleware for user authentication with OAuth2 Bearer tokens
 
-    The Bearer token is gotten from the Authorization request header.
-
     Use this middleware *after* the AuthenticationMiddleware.
 
     If there is already a user set (probably via a session cookie), the Bearer
     token is ignored.
 
-    The "scope" claim is ignored: users are always logged in with full access.
+    Any authorization logic based on the "scope" claim should be implemented
+    based on ``request.user.oauth2_scope`` (which is set by this middleware).
     """
 
     def __init__(self, get_response):
@@ -57,6 +56,9 @@ class AccessTokenMiddleware:
 
         # Log the user in (without creating a session)
         request.user = user
+
+        # Store the scope on the user object for later usage
+        request.user.oauth2_scope = claims.get("scope")
 
         # Create a permanent association between local and external users
         if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:

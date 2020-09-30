@@ -82,8 +82,8 @@ def id_token_generator(token_generator, id_token_template):
 def access_token_template():
     return {
         "iss": settings.NENS_AUTH_ISSUER,
-        # "aud": settings.NENS_AUTH_SERVER_ID, AWS Access Tokens have no "aud"
-        "scope": "{}readwrite".format(settings.NENS_AUTH_RESOURCE_SERVER_ID),
+        "aud": settings.NENS_AUTH_RESOURCE_SERVER_ID,
+        "scope": "readwrite",
         "token_use": "access",
         "sub": "some_sub",
         "username": "some_username",
