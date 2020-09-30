@@ -23,17 +23,13 @@ class AccessTokenMiddleware:
 
     def __call__(self, request):
         assert hasattr(request, "user"), (
-            "The OAuth2TokenMiddleware middleware requires authentication "
+            "The AccessTokenMiddleware requires authentication "
             "middleware to be installed. Edit your MIDDLEWARE setting to "
             "insert 'django.contrib.auth.middleware.AuthenticationMiddleware'"
             "before 'nens_auth_client.middleware.OAuth2TokenMiddleware'."
         )
-        assert settings.NENS_AUTH_RESOURCE_SERVER_ID, (
-            "The OAuth2TokenMiddleware requires the setting "
-            "'NENS_AUTH_RESOURCE_SERVER_ID'"
-        )
         # See https://tools.ietf.org/html/rfc6750#section-2.1,
-        # Bearer is case-sensitive and there is exactly 1 seperator after.
+        # Bearer is case-sensitive and there is exactly 1 separator after.
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
         token = auth_header[7:] if auth_header.startswith("Bearer") else None
 

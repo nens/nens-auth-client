@@ -27,6 +27,12 @@ def jwks(private_key):
 
 
 @pytest.fixture
+def jwks_request(rq_mocker, jwks):
+    # Mock the call to the external jwks
+    rq_mocker.get(settings.NENS_AUTH_JWKS_URI, json=jwks)
+
+
+@pytest.fixture
 def token_generator(private_key):
     """A function that generates a signed token"""
 
@@ -112,14 +118,12 @@ def rq_mocker():
 
 
 @pytest.fixture
-def auth_req_generator(rf, mocker, rq_mocker, jwks, settings):
+def auth_req_generator(rf, mocker, rq_mocker, jwks_request, settings):
     """Mock necessary functions and create an authorization request"""
 
     def func(id_token, code="code", state="state", nonce="nonce"):
         # Mock the call to the external token API
         rq_mocker.post(settings.NENS_AUTH_ACCESS_TOKEN_URL, json={"id_token": id_token})
-        # Mock the call to the external jwks
-        rq_mocker.get(settings.NENS_AUTH_JWKS_URI, json=jwks)
         # Mock the user association call
         authenticate = mocker.patch("nens_auth_client.views.django_auth.authenticate")
         authenticate.return_value = UserModel(username="testuser")
