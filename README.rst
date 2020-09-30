@@ -32,7 +32,7 @@ Django user database::
 
     AUTHENTICATION_BACKENDS = [
         "django.contrib.auth.backends.ModelBackend",
-        "nens_auth_client.backends.SocialUserBackend",
+        "nens_auth_client.backends.RemoteUserBackend",
         "nens_auth_client.backends.EmailVerifiedBackend",
     ]
 
@@ -76,8 +76,8 @@ Bearer tokens
 ~~~~~~~~~~~~~
 
 If your web application acts as a Resource Server in the Authorization Code
-Flow, then it will need to accept Bearer tokens in http requests.
-``nens-auth-client`` has a middleware for this::
+or Client Credentials Flow, then it will need to accept Bearer tokens in
+http requests ``nens-auth-client`` has a middleware for this::
 
     MIDDLEWARE = (
         ...
@@ -87,15 +87,23 @@ Flow, then it will need to accept Bearer tokens in http requests.
         ...
     )
 
-This middleware will set the ``requests.user.oauth2_scope``, that your
-application may use for additional authorization logic. Note that the above
-AUTHENTICATION_BACKENDS have limited function for bearer token, because
-bearer tokens typically do not include an ``"email"`` claim.
+This middleware will set the ``requests.user.oauth2_scope`` that your
+application may use for additional authorization logic.
 
-Also, do not forget to set the ``NENS_AUTH_RESOURCE_SERVER_ID``, which
+Also, set the ``NENS_AUTH_RESOURCE_SERVER_ID``, which
 should match the one set in the AWS Cognito. It needs a trailing slash::
 
     NENS_AUTH_RESOURCE_SERVER_ID = "..."  # generate one on AWS Cognito
+
+Note that the above AUTHENTICATION_BACKENDS have limited function here, because
+bearer tokens typically do not include much information about the user. In a
+default setup, a user should do a one-time login so that a ``RemoteUser`` is
+created. After that, the user can be found by the "sub" claim in the
+access token.
+
+For the Client Credentials Flow there isn't any user. For that, a RemoteUser
+should be created manually (with ``external_user_id`` equalling the client_id.
+This could be attached to some service account.
 
 
 User association logic
@@ -124,7 +132,7 @@ in the ``AUTHENTICATION_BACKENDS`` setting:
 
 At the end of the authentication chain, a ``RemoteUser`` object is created for
 next time usage. This is skipped when the user was authenticated via the
-``RemoteUserBackend``. Control this feature with ``NENS_AUTH_AUTO_CREATE_SOCIAL_USER``.
+``RemoteUserBackend``. Control this feature with ``NENS_AUTH_AUTO_CREATE_REMOTE_USER``.
 
 If you application requires this logic to be appended, start with subclassing
 ``django.contrib.auth.backends.ModelBackend`` and overriding the ``authenticate``

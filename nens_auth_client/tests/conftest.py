@@ -86,6 +86,7 @@ def id_token_generator(token_generator, id_token_template):
 
 @pytest.fixture
 def access_token_template():
+    # For Authorization Code Flow (Resource Server side).
     return {
         "iss": settings.NENS_AUTH_ISSUER,
         "aud": settings.NENS_AUTH_RESOURCE_SERVER_ID,
