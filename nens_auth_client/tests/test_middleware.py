@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from nens_auth_client.middleware import OAuth2TokenMiddleware
+from nens_auth_client.middleware import AccessTokenMiddleware
 
 import pytest
 
@@ -21,12 +21,12 @@ def middleware_mocker(mocker, rq_mocker, jwks, settings):
     return {"authenticate": authenticate}
 
 
-def test_oauth2_middleware(rf, id_token_generator, middleware_mocker, settings):
-    token = id_token_generator(sub="abcd")
+def test_oauth2_middleware(rf, access_token_generator, middleware_mocker, settings):
+    token = access_token_generator(sub="abcd")
     request = rf.get("/", HTTP_AUTHORIZATION="Bearer " + token)
     request.user = AnonymousUser()
 
-    processed = OAuth2TokenMiddleware(lambda x: x)(request)
+    processed = AccessTokenMiddleware(lambda x: x)(request)
     assert processed.user.username == "testuser"
 
     assert middleware_mocker["authenticate"].called

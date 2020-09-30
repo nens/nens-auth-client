@@ -74,6 +74,7 @@ def authorize(request):
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     TODO: Gracefully handle errors (instead of bare 403 / 500)
+    TODO: Cache the JWKS request
     """
     cognito = oauth.create_client("cognito")
     token = cognito.authorize_access_token(request)

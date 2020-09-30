@@ -27,43 +27,80 @@ def jwks(private_key):
 
 
 @pytest.fixture
-def id_token_generator(private_key):
-    """A function that generates a signed ID token"""
+def token_generator(private_key):
+    """A function that generates a signed token"""
 
-    def func(**extra_claims):
-        """The extra_claims override a template with valid claims
-
-        Note that the "kid" and "alg" claims control the signature and do not
-        end up as claims in the ID token.
+    def func(**claims):
+        """The "kid" and "alg" claims control the signature and do
+        not end up as claims in the ID token.
         """
         # Create a copy of private_key and modify it with "alg" and "kid"
         key = private_key.copy()
-        if "kid" in extra_claims:
-            key["kid"] = extra_claims.pop("kid")
-        if "alg" in extra_claims:
-            key["alg"] = extra_claims.pop("alg")
+        if "kid" in claims:
+            key["kid"] = claims.pop("kid")
+        if "alg" in claims:
+            key["alg"] = claims.pop("alg")
 
         # The header should contain alg and kid:
         header = {"alg": key["alg"], "kid": key["kid"]}
 
-        # An ID token template with valid fields
-        body = {
-            "iss": settings.NENS_AUTH_ISSUER,
-            "aud": settings.NENS_AUTH_CLIENT_ID,
-            "sub": "some_sub",
-            "cognito:username": "some_username",
-            "email": "some_email",
-            "iat": int(time.time()),
-            "exp": int(time.time()) + 10,
-            "nonce": "nonce",
-            **extra_claims,
-        }
-
         # Sign the token
-        id_token = jwt.encode(header, body, key)
+        token = jwt.encode(header, claims, key)
 
         # Convert bytes to string
-        return id_token.decode("ascii")
+        return token.decode("ascii")
+
+    return func
+
+
+@pytest.fixture
+def id_token_template():
+    return {
+        "iss": settings.NENS_AUTH_ISSUER,
+        "aud": settings.NENS_AUTH_CLIENT_ID,
+        "sub": "some_sub",
+        "cognito:username": "some_username",
+        "email": "some_email",
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 10,
+        "nonce": "nonce",
+    }
+
+
+@pytest.fixture
+def id_token_generator(token_generator, id_token_template):
+    """A function that generates a signed ID token"""
+
+    def func(**extra_claims):
+        claims = {**id_token_template, **extra_claims}
+        return token_generator(**claims)
+
+    return func
+
+
+@pytest.fixture
+def access_token_template():
+    return {
+        "iss": settings.NENS_AUTH_ISSUER,
+        # "aud": settings.NENS_AUTH_SERVER_ID, AWS Access Tokens have no "aud"
+        "scope": "{}readwrite".format(settings.NENS_AUTH_RESOURCE_SERVER_ID),
+        "token_use": "access",
+        "sub": "some_sub",
+        "username": "some_username",
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 10,
+        "jti": "abcd",
+        "client_id": "1234",
+    }
+
+
+@pytest.fixture
+def access_token_generator(token_generator, access_token_template):
+    """A function that generates a signed access token"""
+
+    def func(**extra_claims):
+        claims = {**access_token_template, **extra_claims}
+        return token_generator(**claims)
 
     return func
 
