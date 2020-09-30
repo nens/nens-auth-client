@@ -7,15 +7,14 @@ Introduction
 This library defines the necessary views and models to connect the AWS Cognito
 user pool to the local django user database.
 
-Usage
------
+Usage (user login/logout)
+-------------------------
 
 The nens-auth-client library exposes one django application: ``nens_auth_client``.
 The django built-in apps ``auth``, ``sessions`` and ``contenttypes`` are
 also required, but they probably are already there.
-Add these to the ``INSTALLED_APPS`` setting:
+Add these to the ``INSTALLED_APPS`` setting::
 
-.. code-block:: python
     INSTALLED_APPS = (
         ...
         "nens_auth_client",
@@ -55,6 +54,27 @@ Finally, include the ``nens-auth-client`` urls to your application's urls.py::
         ...
     ]
 
+If your web application acts as a Resource Server, then it will need to accept
+Bearer tokens in http requests. ``nens-auth-client`` has a middleware for
+this, which depends on AuthenticationMiddleware (which in turn depends on
+SessionMiddleware)::
+
+    MIDDLEWARE = (
+        ...
+        "django.contrib.sessions.middleware.SessionMiddleware",
+        "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "nens_auth_client.middleware.AccessTokenMiddleware",
+        ...
+    )
+
+This middleware will set the ``requests.user.oauth2_scope``, that your
+application may use for additional authorization logic. Note that the above
+AUTHENTICATION_BACKENDS have limited function for bearer token, because
+bearer tokens typically do not include an ``"email"`` claim.
+
+Also, do not forget to set the ``NENS_AUTH_RESOURCE_SERVER_ID`` setting, which
+should match the one set in the AWS Cognito. It needs a trailing slash.
+
 
 User association logic
 ----------------------
@@ -66,9 +86,9 @@ user, the django ``AUTHENTICATION_BACKENDS`` are used.
 See the `django docs <https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#customizing-authentication-in-django>`_.
 
 In the nens-auth-client ``authorize`` view, the ``authenticate`` function from
-django.contrib.auth is called with a keyword argument ``userinfo``. This
-``userinfo`` equals the decoded ID token. It is up to the authentication
-backends to return a ``user`` instance based on ``userinfo``.
+django.contrib.auth is called with a keyword argument ``claims``. This
+``claims`` equals the decoded ID token. It is up to the authentication
+backends to return a ``user`` instance based on ``claims``.
 
 In the default implementation nens-auth-client associates external users to
 remote users via the ``RemoteUser`` model. If there is no existing association,
@@ -76,9 +96,9 @@ a user is selected by email address (if it is verified). This logic is contained
 in the ``AUTHENTICATION_BACKENDS`` setting:
 
 - ``RemoteUserBackend`` produces a user if there is a RemoteUser present with
-  its ``external_user_id`` matching ``userinfo["sub"]``
+  its ``external_user_id`` matching ``claims["sub"]``
 - ``EmailVerifiedBackend`` produces a user if there is one with an matching
-  ``userinfo["email"]`` and if ``userinfo["email_verified"]`` is True.
+  ``claims["email"]`` and if ``claims["email_verified"]`` is True.
 
 At the end of the authentication chain, a ``RemoteUser`` object is created for
 next time usage. This is skipped when the user was authenticated via the
@@ -86,8 +106,7 @@ next time usage. This is skipped when the user was authenticated via the
 
 If you application requires this logic to be appended, start with subclassing
 ``django.contrib.auth.backends.ModelBackend`` and overriding the ``authenticate``
-method with call signature ``(request: Request, userinfo: dict)``.
-
+method with call signature ``(request: Request, claims: dict)``.
 
 Local development
 -----------------
