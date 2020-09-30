@@ -77,10 +77,10 @@ def authorize(request):
     """
     cognito = oauth.create_client("cognito")
     token = cognito.authorize_access_token(request)
-    userinfo = cognito.parse_id_token(request, token)
+    claims = cognito.parse_id_token(request, token)
 
     # The django authentication backend(s) should find a local user
-    user = django_auth.authenticate(request, userinfo=userinfo)
+    user = django_auth.authenticate(request, claims=claims)
 
     if user is None:
         raise PermissionDenied("No user found with this idenity")
@@ -90,7 +90,7 @@ def authorize(request):
 
     # Create a permanent association between local and external users
     if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
-        create_remoteuser(user, userinfo)
+        create_remoteuser(user, claims)
 
     return HttpResponseRedirect(request.session[LOGIN_REDIRECT_SESSION_KEY])
 
