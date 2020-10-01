@@ -15,8 +15,6 @@ class NensAuthClientAppConf(AppConf):
         required = (
             "CLIENT_ID",  # Provided by AWS Cognito
             "CLIENT_SECRET",  # Provided by AWS Cognito
-            "REDIRECT_URI",  # Depends on the urls.py of your django site
-            "LOGOUT_REDIRECT_URI",  # Depends on the urls.py of your django site
             "ACCESS_TOKEN_URL",  # N&S Global (full URL ending with /token)
             "AUTHORIZE_URL",  # N&S Global (full URL ending with /authorize)
             "LOGOUT_URL",  # N&S Global (full URL ending with /logout)
