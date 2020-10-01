@@ -16,7 +16,7 @@ LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
-def _get_redirect_url(request, default):
+def _get_redirect_url(request):
     """Get the redirect url from the 'next' parameter in the url and check
     if it is safe.
     """
