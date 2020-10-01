@@ -38,10 +38,10 @@ def login(request):
 
     The full flow goes as follows:
 
-    1. https://xxx.lizard.net/login/?next=admin/
-    2. https://aws.cognito/login/?...&redirect_uri=https://auth.lizard.net/authorize/
-    3. https://xxx.lizard.net/authorize/
-    4. https://xxx.lizard.net/admin/
+    1. https://x.lizard.net/login/?next=/admin/
+    2. https://aws.cognito/login/?...&redirect_uri=https://x.lizard.net/authorize/
+    3. https://x.lizard.net/authorize/
+    4. https://x.lizard.net/admin/
 
     Note that a list of all (absolute) redirect URIs
     (e.g. "https://auth.lizard.net/authorize/") need to be registered with
