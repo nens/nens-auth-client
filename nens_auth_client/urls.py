@@ -22,7 +22,7 @@ from nens_auth_client import views
 try:
     from django.urls import re_path
 except ImportError:  # Django 1.11 compatibility
-    from django.urls import url as re_path
+    from django.conf.urls import url as re_path
 
 
 
