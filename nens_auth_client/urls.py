@@ -16,15 +16,21 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path
 from nens_auth_client import views
 
 
+try:
+    from django.urls import re_path
+except ImportError:  # Django 1.11 compatibility
+    from django.urls import url as re_path
+
+
+
 urlpatterns = [
-    path("authorize/", views.authorize, name="authorize"),
-    path("login/", views.login, name="login"),
-    path("logout/", views.logout, name="logout"),
+    re_path("^authorize/$", views.authorize, name="authorize"),
+    re_path("^login/$", views.login, name="login"),
+    re_path("^logout/$", views.logout, name="logout"),
 ]
 
 if settings.NENS_AUTH_STANDALONE:
-    urlpatterns += [path("admin/", admin.site.urls)]
+    urlpatterns += [re_path("^admin/", admin.site.urls)]
