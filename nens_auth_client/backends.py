@@ -14,17 +14,17 @@ UserModel = get_user_model()
 
 
 class RemoteUserBackend(ModelBackend):
-    def authenticate(self, request, userinfo=None):
+    def authenticate(self, request, claims=None):
         """Authenticate a token through an existing RemoteUser
 
         Args:
           request: the current request
-          userinfo (dict): the payload of the ID token
+          claims (dict): the verified payload of the ID or Access token
 
         Returns:
           user or None
         """
-        uid = userinfo["sub"]
+        uid = claims["sub"]
         try:
             return UserModel.objects.get(remote__external_user_id=uid)
         except ObjectDoesNotExist:
@@ -32,7 +32,7 @@ class RemoteUserBackend(ModelBackend):
 
 
 class EmailVerifiedBackend(ModelBackend):
-    def authenticate(self, request, userinfo):
+    def authenticate(self, request, claims):
         """Authenticate a token by verified email address (case-insensitive).
 
         When there are multiple users with the same email address, no user is
@@ -40,14 +40,14 @@ class EmailVerifiedBackend(ModelBackend):
 
         Args:
           request: the current request
-          userinfo (dict): the payload of the ID token
+          claims (dict): the verified payload of the ID or Access token
 
         Returns:
           user or None
         """
-        if not userinfo.get("email_verified", False):
+        if not claims.get("email_verified", False):
             return
-        email = userinfo.get("email")
+        email = claims.get("email")
         if not email:
             return
 
@@ -65,7 +65,7 @@ REMOTEUSERBACKEND_PATH = ".".join(
 )
 
 
-def create_remoteuser(user, userinfo):
+def create_remoteuser(user, claims):
     """Permanently associate a user with an external id
 
     Creates a RemoteUser object if it does not exist already
@@ -73,7 +73,7 @@ def create_remoteuser(user, userinfo):
     Args:
       user (User): the user to be associated. It should have a 'backend'
         attribute, which is set by django's authenticate() method.
-      userinfo (dict): the payload of the ID token
+      claims (dict): the verified payload of the ID or Access token
     """
     # If the user authenticated using the RemoteUserBackend, there must
     # already be a RemoteUser present. Do nothing in that case.
@@ -82,7 +82,7 @@ def create_remoteuser(user, userinfo):
 
     # Create a permanent association between local and external user
     try:
-        RemoteUser.objects.create(external_user_id=userinfo["sub"], user=user)
+        RemoteUser.objects.create(external_user_id=claims["sub"], user=user)
     except IntegrityError:
         # This race condition is expected to occur when the same user
         # calls the authorize view multiple times.

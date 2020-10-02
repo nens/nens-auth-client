@@ -5,7 +5,10 @@ Changelog of nens-auth-client
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added AccessTokenMiddleware enabling usage of this package in Resource
+  Servers.
+
+- Renamed "userinfo" to "claims" in the authentication backends.
 
 
 0.1 (2020-09-29)
