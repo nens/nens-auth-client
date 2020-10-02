@@ -12,6 +12,13 @@ Changelog of nens-auth-client
 
 - Django 1.11 compatibilty in urls.py.
 
+- Set Cache-Control headers to "no-store" for login, authorize and logout.
+
+- Added AccessTokenMiddleware enabling usage of this package in Resource
+  Servers.
+
+- Renamed "userinfo" to "claims" in the authentication backends.
+
 
 0.1 (2020-09-29)
 ----------------

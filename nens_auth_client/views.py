@@ -1,13 +1,14 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
 from .backends import create_remoteuser
-from .oauth import oauth
+from .oauth import oauth_registry
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
-from django.utils.http import is_safe_url
 from django.urls import reverse
+from django.utils.http import is_safe_url
+from django.views.decorators.cache import cache_control
 
 import django.contrib.auth as django_auth
 
@@ -30,6 +31,7 @@ def _get_redirect_url(request):
             return redirect_to
 
 
+@cache_control(no_store=True)
 def login(request):
     """Initiate authentication through OpenID Connect
 
@@ -61,25 +63,27 @@ def login(request):
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Redirect to the authorization server
-    cognito = oauth.create_client("cognito")
+    cognito = oauth_registry.create_client("cognito")
 
     redirect_uri = request.build_absolute_uri(reverse(authorize))
     return cognito.authorize_redirect(request, redirect_uri)
 
 
+@cache_control(no_store=True)
 def authorize(request):
     """Authorizes a user that authenticated through OpenID Connect.
 
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     TODO: Gracefully handle errors (instead of bare 403 / 500)
+    TODO: Cache the JWKS request
     """
-    cognito = oauth.create_client("cognito")
+    cognito = oauth_registry.create_client("cognito")
     token = cognito.authorize_access_token(request)
-    userinfo = cognito.parse_id_token(request, token)
+    claims = cognito.parse_id_token(request, token)
 
     # The django authentication backend(s) should find a local user
-    user = django_auth.authenticate(request, userinfo=userinfo)
+    user = django_auth.authenticate(request, claims=claims)
 
     if user is None:
         raise PermissionDenied("No user found with this idenity")
@@ -89,11 +93,12 @@ def authorize(request):
 
     # Create a permanent association between local and external users
     if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
-        create_remoteuser(user, userinfo)
+        create_remoteuser(user, claims)
 
     return HttpResponseRedirect(request.session[LOGIN_REDIRECT_SESSION_KEY])
 
 
+@cache_control(no_store=True)
 def logout(request):
     """Logout the user (locally and remotely)
 

@@ -55,6 +55,7 @@ MIDDLEWARE = (
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "nens_auth_client.middleware.AccessTokenMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 )
@@ -88,3 +89,4 @@ NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4
 NENS_AUTH_JWKS_URI = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV/.well-known/jwks.json"
 NENS_AUTH_DEFAULT_LOGOUT_URL = "/admin/"
 NENS_AUTH_DEFAULT_SUCCESS_URL = "/admin/"
+NENS_AUTH_RESOURCE_SERVER_ID = "http://localhost:8000/admin/"  # trailing slash
