@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
 from .backends import create_remoteuser
-from .oauth import oauth
+from .oauth import oauth_registry
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
@@ -66,7 +66,7 @@ def login(request):
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Redirect to the authorization server
-    cognito = oauth.create_client("cognito")
+    cognito = oauth_registry.create_client("cognito")
     return cognito.authorize_redirect(request, settings.NENS_AUTH_REDIRECT_URI)
 
 
@@ -77,13 +77,14 @@ def authorize(request):
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     TODO: Gracefully handle errors (instead of bare 403 / 500)
+    TODO: Cache the JWKS request
     """
-    cognito = oauth.create_client("cognito")
+    cognito = oauth_registry.create_client("cognito")
     token = cognito.authorize_access_token(request)
-    userinfo = cognito.parse_id_token(request, token)
+    claims = cognito.parse_id_token(request, token)
 
     # The django authentication backend(s) should find a local user
-    user = django_auth.authenticate(request, userinfo=userinfo)
+    user = django_auth.authenticate(request, claims=claims)
 
     if user is None:
         raise PermissionDenied("No user found with this idenity")
@@ -93,7 +94,7 @@ def authorize(request):
 
     # Create a permanent association between local and external users
     if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
-        create_remoteuser(user, userinfo)
+        create_remoteuser(user, claims)
 
     return HttpResponseRedirect(request.session[LOGIN_REDIRECT_SESSION_KEY])
 
