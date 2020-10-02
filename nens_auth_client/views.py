@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
 from .backends import create_remoteuser
-from .oauth import oauth_registry
+from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
@@ -66,8 +66,8 @@ def login(request):
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Redirect to the authorization server
-    cognito = oauth_registry.create_client("cognito")
-    return cognito.authorize_redirect(request, settings.NENS_AUTH_REDIRECT_URI)
+    client = get_oauth_client()
+    return client.authorize_redirect(request, settings.NENS_AUTH_REDIRECT_URI)
 
 
 @cache_control(no_store=True)
@@ -79,9 +79,9 @@ def authorize(request):
     TODO: Gracefully handle errors (instead of bare 403 / 500)
     TODO: Cache the JWKS request
     """
-    cognito = oauth_registry.create_client("cognito")
-    token = cognito.authorize_access_token(request)
-    claims = cognito.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
+    client = get_oauth_client()
+    token = client.authorize_access_token(request)
+    claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
     # The django authentication backend(s) should find a local user
     user = django_auth.authenticate(request, claims=claims)

@@ -20,11 +20,11 @@ def openid_configuration():
         "id_token_signing_alg_values_supported": ["RS256"],
         "issuer": settings.NENS_AUTH_ISSUER,
         "jwks_uri": settings.NENS_AUTH_ISSUER + "/.well-known/jwks.json",
-        "response_types_supported":["code"],
-        "scopes_supported": ["openid","email","profile"],
-        "subject_types_supported":["public"],
+        "response_types_supported": ["code"],
+        "scopes_supported": ["openid", "email", "profile"],
+        "subject_types_supported": ["public"],
         "token_endpoint": host + "/oauth2/token",
-        "token_endpoint_auth_methods_supported":["client_secret_basic","client_secret_post"],
+        "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post"],
         "userinfo_endpoint": host + "/oauth2/userInfo"
     }
 

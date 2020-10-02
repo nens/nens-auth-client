@@ -6,9 +6,14 @@ from django.utils.module_loading import import_string
 
 import requests
 
-
 # Create the global OAuth registry
 oauth_registry = OAuth()
+
+
+def get_oauth_client():
+    client = oauth_registry.create_client("cognito")
+    if client is None:
+        return discover_client()
 
 
 def discover_client():
@@ -31,7 +36,7 @@ def discover_client():
     assert settings.NENS_AUTH_TOKEN_ENDPOINT_AUTH_METHOD in provider["token_endpoint_auth_methods_supported"]
 
     # Register the AWS Cognito client
-    oauth_registry.register(
+    return oauth_registry.register(
         name="cognito",
         client_id=settings.NENS_AUTH_CLIENT_ID,
         client_secret=settings.NENS_AUTH_CLIENT_SECRET,
