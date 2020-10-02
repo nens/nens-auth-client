@@ -49,9 +49,6 @@ Some settings that identify your application as an OpenID Connect Client::
 
     NENS_AUTH_CLIENT_ID = "..."  # generate one on AWS Cognito
     NENS_AUTH_CLIENT_SECRET = "..."  # generate one on AWS Cognito
-    NENS_AUTH_REDIRECT_URI = "https://<your-app-domain>/authorize/"  # configure this also on AWS Cognito
-    NENS_AUTH_LOGOUT_REDIRECT_URI = "https://<your-app-domain>/logout/"  # configure this also on AWS Cognito
-   
  
 Include the ``nens-auth-client`` urls in your application's urls.py::
 
@@ -62,6 +59,10 @@ Include the ``nens-auth-client`` urls in your application's urls.py::
         url(r"^accounts/", include("nens_auth_client.urls", namespace="auth")),
         ...
     ]
+
+You must register the absolute ``authorize`` and ``logout`` URIs in AWS Cognito.
+If the site runs on multiple domains, they all have to be registered. Wildcards
+are not possible because of security reasons.
 
 Optionally set defaults for the redirect after successful login/logout::
 
