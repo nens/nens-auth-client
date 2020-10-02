@@ -8,7 +8,6 @@ class NensAuthClientAppConf(AppConf):
     AUTO_CREATE_REMOTE_USER = True
     TIMEOUT = 10  # Timeout for token, JWKS and discovery requests (seconds)
     LEEWAY = 120  # Amount of seconds that a token's expiry can be off
-    TOKEN_ENDPOINT_AUTH_METHOD = "client_secret_basic"
 
     DEFAULT_SUCCESS_URL = "/"  # Default redirect after successful login
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout

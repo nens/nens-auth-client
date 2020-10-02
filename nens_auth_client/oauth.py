@@ -27,18 +27,21 @@ def get_oauth_client():
 
 
 class CognitoOAuthClient(DjangoRemoteApp):
-    def parse_bearer_token(self, bearer, claims_options=None, leeway=120):
+    def parse_access_token(self, token, claims_options=None, leeway=120):
         """Decode and validate an access token and return its payload.
 
+        Note: this function is based on DjangoRemoteApp._parse_id_token to
+        make use of the same server settings and key cache.
+
         Args:
-          bearer (str): access token (base64 encoded JWT)
+          token (str): access token (base64 encoded JWT)
 
         Returns:
           claims (dict): the token payload
 
         Raises:
-        authlib.jose.errors.JoseError: if token is invalid
-        ValueError: if the key id is not present in the jwks.json
+          authlib.jose.errors.JoseError: if token is invalid
+          ValueError: if the key id is not present in the jwks.json
         """
         # this is a copy from the _parse_id_token equivalent function
         def load_key(header, payload):
@@ -63,9 +66,8 @@ class CognitoOAuthClient(DjangoRemoteApp):
         if not alg_values:
             alg_values = ['RS256']
 
-        jwt = JsonWebToken(alg_values)
-        claims = jwt.decode(
-            bearer,
+        claims = JsonWebToken(alg_values).decode(
+            token,
             key=load_key,
             claims_options=claims_options,
         )
