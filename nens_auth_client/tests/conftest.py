@@ -30,12 +30,21 @@ def openid_configuration():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def default_session_fixture(openid_configuration):
+def mock_autodiscovery(openid_configuration):
     with requests_mock.Mocker() as m:
         m.get(
             settings.NENS_AUTH_ISSUER + "/.well-known/openid-configuration",
             json=openid_configuration
         )
+        yield
+
+
+@pytest.fixture
+def rq_mocker():
+    # We use real_http=True because the request mocker is always nested
+    # inside "mock_autodiscovery"
+    with requests_mock.Mocker(real_http=True) as m:
+        yield m
 
 
 @pytest.fixture(scope="module")
@@ -136,12 +145,6 @@ def access_token_generator(token_generator, access_token_template):
         return token_generator(**claims)
 
     return func
-
-
-@pytest.fixture
-def rq_mocker():
-    with requests_mock.Mocker() as m:
-        yield m
 
 
 @pytest.fixture

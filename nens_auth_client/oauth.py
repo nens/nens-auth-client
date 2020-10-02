@@ -14,6 +14,7 @@ def get_oauth_client():
     client = oauth_registry.create_client("cognito")
     if client is None:
         return discover_client()
+    return oauth_registry.create_client("cognito")
 
 
 def discover_client():

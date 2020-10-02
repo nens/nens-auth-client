@@ -14,7 +14,7 @@ def test_authorize(id_token_generator, auth_req_generator, rq_mocker, openid_con
     assert response.status_code == 302  # 302 redirect to success url: all checks passed
     assert response.url == "http://testserver/success"
 
-    token_request, jwks_request = rq_mocker.request_history
+    _, token_request, jwks_request = rq_mocker.request_history
     assert token_request.url == openid_configuration["token_endpoint"]
     qs = parse_qs(token_request.text)
     assert qs["grant_type"] == ["authorization_code"]

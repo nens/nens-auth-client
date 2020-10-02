@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 
 
-def test_login(rf):
+def test_login(rf, openid_configuration):
     request = rf.get("http://testserver/login/?next=/a")
     request.session = {}
     request.user = AnonymousUser()  # user is not logged in initially!
@@ -15,7 +15,7 @@ def test_login(rf):
     assert response.status_code == 302
     url = urlparse(response.url)
     url_no_qs = url.scheme + "://" + url.hostname + url.path
-    assert url_no_qs == settings.NENS_AUTH_AUTHORIZE_URL
+    assert url_no_qs == openid_configuration["authorization_endpoint"]
 
     # The query params are conform OpenID Connect spec
     # https://tools.ietf.org/html/rfc6749#section-4.1.1
