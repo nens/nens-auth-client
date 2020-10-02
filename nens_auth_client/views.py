@@ -17,9 +17,10 @@ LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
-def _get_redirect_url(request):
-    """Get the redirect url from the 'next' parameter in the url and check
-    if it is safe.
+def _get_redirect_from_next(request, default):
+    """Return redirect url from the "next" parameter in the url
+
+    Returns the default if there is no "next" parameter or if it is unsafe.
     """
     if REDIRECT_FIELD_NAME in request.GET:
         redirect_to = request.GET[REDIRECT_FIELD_NAME]
@@ -29,6 +30,8 @@ def _get_redirect_url(request):
             require_https=request.is_secure(),
         ):
             return redirect_to
+
+    return default
 
 
 @cache_control(no_store=True)
@@ -53,7 +56,9 @@ def login(request):
     else cookies will not be valid.
     """
     # Get the success redirect url
-    success_url = _get_redirect_url(request) or settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    success_url = _get_redirect_from_next(
+        request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    )
 
     # If the user was already authenticated, redirect to the success url
     if request.user.is_authenticated:
@@ -118,14 +123,18 @@ def logout(request):
             # If there is nothing in the session, the user called /logout
             # without being logged in in the first place. Just use the 'next'
             # parameter.
-            redirect_url = _get_redirect_url(request) or settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+            redirect_url = _get_redirect_from_next(
+                request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+            )
         return HttpResponseRedirect(redirect_url)
 
     # Log the user out
     django_auth.logout(request)
 
     # Store the redirect_url in the session for later use
-    request.session[LOGOUT_REDIRECT_SESSION_KEY] = _get_redirect_url(request) or settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+    request.session[LOGOUT_REDIRECT_SESSION_KEY] = _get_redirect_from_next(
+        request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+    )
 
     # Redirect to authorization server
     logout_url = "{}?client_id={}&logout_uri={}".format(

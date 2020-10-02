@@ -48,13 +48,13 @@ def test_login_when_already_logged_in(rf):
 @pytest.mark.parametrize(
     "url,expected",
     [
-        ("login/", None),
+        ("login/", "/x"),
         ("login/?next=/a", "/a"),
         ("login/?next=https://testserver/a", "https://testserver/a"),
-        ("login/?next=https://testserver2/a", None),  # different domain
-        ("login/?next=http://testserver/a", None),  # https to http
+        ("login/?next=https://testserver2/a", "/x"),  # different domain
+        ("login/?next=http://testserver/a", "/x"),  # https to http
     ],
 )
-def test_get_redirect_url(rf, url, expected):
+def test_get_redirect_from_next(rf, url, expected):
     request = rf.get(url, secure=True)
-    assert views._get_redirect_url(request) == expected
+    assert views._get_redirect_from_next(request, default="/x") == expected
