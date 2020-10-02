@@ -22,17 +22,19 @@ def get_oauth_client():
         client_secret=settings.NENS_AUTH_CLIENT_SECRET,
         server_metadata_url=url,
         client_kwargs={"scope": " ".join(settings.NENS_AUTH_SCOPE)},
-        client_cls=CognitoOAuthClient,
+        client_cls=DjangoOAuthClient,
     )
     return oauth_registry.create_client("cognito")
 
 
-class CognitoOAuthClient(DjangoRemoteApp):
+class DjangoOAuthClient(DjangoRemoteApp):
     def logout_redirect(self, request, logout_uri=None):
-        """Create a redirect to AWS Cognito's logout endpoint
+        """Create a redirect to the remote server's logout endpoint
 
         Note: this function requires NENS_AUTH_GET_LOGOUT_ENDPOINT to point
         to a callable that generates the LOGOUT endpoint url.
+
+        See nens_auth_client.cognito.get_logout_endpoint for an example.
         """
         # Get the logout endpoint URL
         func = import_string(settings.NENS_AUTH_GET_LOGOUT_ENDPOINT)

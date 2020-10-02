@@ -14,6 +14,7 @@ UserModel = get_user_model()
 
 @pytest.fixture(scope="session")
 def openid_configuration():
+    # Returns an RFC-compliant response for OpenID Discovery
     host = "https://authserver"
     return {
         "authorization_endpoint": host + "/oauth2/authorize",
@@ -24,7 +25,7 @@ def openid_configuration():
         "scopes_supported": ["openid", "email", "profile"],
         "subject_types_supported": ["public"],
         "token_endpoint": host + "/oauth2/token",
-        "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post"],
+        "token_endpoint_auth_methods_supported": ["client_secret_basic"],
         "userinfo_endpoint": host + "/oauth2/userInfo"
     }
 

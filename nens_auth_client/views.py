@@ -113,7 +113,6 @@ def logout(request):
     4. https://xxx.lizard.net/admin/
 
     Note that this view is called twice in this flow.
-    Note2 this is an AWS Cognito specific implementation.
     """
     if not request.user.is_authenticated:
         # We are in step 3. (user is already logged out)

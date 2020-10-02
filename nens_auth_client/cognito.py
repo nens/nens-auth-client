@@ -57,6 +57,10 @@ def preprocess_access_token(claims):
 
 
 def get_logout_endpoint(server_metadata):
-    """Create the LOGOUT endpoint from the server metadata dictionary"""
-    authorization_endpoint = server_metadata['authorization_endpoint']
+    """Create the LOGOUT endpoint from the server metadata dictionary
+
+    This replaces /oauth2/authorize with /logout, which is how it
+    works for AWS Cognito.
+    """
+    authorization_endpoint = server_metadata["authorization_endpoint"]
     return authorization_endpoint.replace("/oauth2/authorize", "/logout")
