@@ -2,7 +2,10 @@ from django.conf import settings
 
 
 def preprocess_access_token(claims):
-    """Convert AWS Cognito Access token claims to RFC7523 compliant form.
+    """Convert AWS Cognito Access token claims to standard form, inplace.
+
+    This function is intended for usage in the NENS_AUTH_PREPROCESS_ACCESS_TOKEN
+    setting.
 
     AWS Cognito Access tokens are missing the "aud" (audience) claim and
     instead put the audience into each scope.
@@ -15,7 +18,6 @@ def preprocess_access_token(claims):
 
     Args:
       claims (dict): payload of the Access Token
-      audience (str): URL of this Resource Server (with trailing slash)
 
     Example:
     >>> audience = "https://some/api/"
