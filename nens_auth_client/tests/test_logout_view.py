@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 
 
-def test_logout(rf, mocker):
+def test_logout(rf, mocker, openid_configuration):
     django_logout = mocker.patch("nens_auth_client.views.django_auth.logout")
 
     request = rf.get("http://testserver/logout/?next=/a")
@@ -16,7 +16,7 @@ def test_logout(rf, mocker):
     assert response.status_code == 302
     url = urlparse(response.url)
     url_no_qs = url.scheme + "://" + url.hostname + url.path
-    assert url_no_qs == settings.NENS_AUTH_LOGOUT_URL
+    assert url_no_qs == "https://authserver/logout"
 
     # django logout was called
     assert django_logout.called

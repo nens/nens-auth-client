@@ -33,10 +33,9 @@ Django user database::
         "nens_auth_client.backends.EmailVerifiedBackend",
     ]
 
-Some settings that set up our connection to the authorization server::
+Identify the authorization server (the "issuer")::
 
     NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV"
-    NENS_AUTH_LOGOUT_URL = "https://nens.auth.eu-west-1.amazoncognito.com/logout"
 
 
 Usage: login/logout views

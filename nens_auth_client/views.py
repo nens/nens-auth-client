@@ -80,7 +80,6 @@ def authorize(request):
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     TODO: Gracefully handle errors (instead of bare 403 / 500)
-    TODO: Cache the JWKS request
     """
     client = get_oauth_client()
     token = client.authorize_access_token(request)
@@ -137,9 +136,6 @@ def logout(request):
     )
 
     # Redirect to authorization server
-    logout_url = "{}?client_id={}&logout_uri={}".format(
-        settings.NENS_AUTH_LOGOUT_URL,
-        settings.NENS_AUTH_CLIENT_ID,
-        request.build_absolute_uri(reverse(logout)),
-    )
-    return HttpResponseRedirect(logout_url)
+    logout_uri = request.build_absolute_uri(reverse(logout))
+    client = get_oauth_client()
+    return client.logout_redirect(request, logout_uri)

@@ -54,3 +54,9 @@ def preprocess_access_token(claims):
     # Update the claims inplace
     claims["aud"] = audience
     claims["scope"] = " ".join(new_scopes)
+
+
+def get_logout_endpoint(server_metadata):
+    """Create the LOGOUT endpoint from the server metadata dictionary"""
+    authorization_endpoint = server_metadata['authorization_endpoint']
+    return authorization_endpoint.replace("/oauth2/authorize", "/logout")

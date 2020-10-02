@@ -14,12 +14,12 @@ class NensAuthClientAppConf(AppConf):
 
     RESOURCE_SERVER_ID = None  # For Access Tokens ("aud" should equal this)
     PREPROCESS_ACCESS_TOKEN = "nens_auth_client.cognito.preprocess_access_token"
+    GET_LOGOUT_ENDPOINT = "nens_auth_client.cognito.get_logout_endpoint"
 
     class Meta:
         prefix = "NENS_AUTH"
         required = (
             "CLIENT_ID",  # Provided by AWS Cognito
             "CLIENT_SECRET",  # Provided by AWS Cognito
-            "LOGOUT_URL",  # N&S Global (full URL ending with /logout)
             "ISSUER",  # N&S Global (authorization server URL)
         )

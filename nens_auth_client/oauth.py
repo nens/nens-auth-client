@@ -4,6 +4,7 @@ from authlib.oidc.discovery import get_well_known_url
 from django.conf import settings
 from django.utils.module_loading import import_string
 from authlib.integrations.django_client import DjangoRemoteApp
+from django.http.response import HttpResponseRedirect
 
 # Create the global OAuth registry
 oauth_registry = OAuth()
@@ -27,6 +28,24 @@ def get_oauth_client():
 
 
 class CognitoOAuthClient(DjangoRemoteApp):
+    def logout_redirect(self, request, logout_uri=None):
+        """Create a redirect to AWS Cognito's logout endpoint
+
+        Note: this function requires NENS_AUTH_GET_LOGOUT_ENDPOINT to point
+        to a callable that generates the LOGOUT endpoint url.
+        """
+        # Get the logout endpoint URL
+        func = import_string(settings.NENS_AUTH_GET_LOGOUT_ENDPOINT)
+        logout_endpoint = func(self.load_server_metadata())
+
+        # Add query parameters and redirect to authorization server
+        logout_url = "{}?client_id={}&logout_uri={}".format(
+            logout_endpoint,
+            self.client_id,
+            logout_uri,
+        )
+        return HttpResponseRedirect(logout_url)
+
     def parse_access_token(self, token, claims_options=None, leeway=120):
         """Decode and validate an access token and return its payload.
 
