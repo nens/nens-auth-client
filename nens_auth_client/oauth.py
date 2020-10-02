@@ -42,9 +42,7 @@ class DjangoOAuthClient(DjangoRemoteApp):
 
         # Add query parameters and redirect to authorization server
         logout_url = "{}?client_id={}&logout_uri={}".format(
-            logout_endpoint,
-            self.client_id,
-            logout_uri,
+            logout_endpoint, self.client_id, logout_uri
         )
         return HttpResponseRedirect(logout_url)
 
@@ -68,29 +66,27 @@ class DjangoOAuthClient(DjangoRemoteApp):
         def load_key(header, payload):
             jwk_set = self.fetch_jwk_set()
             try:
-                return jwk.loads(jwk_set, header.get('kid'))
+                return jwk.loads(jwk_set, header.get("kid"))
             except ValueError:
                 # re-try with new jwk set
                 jwk_set = self.fetch_jwk_set(force=True)
-                return jwk.loads(jwk_set, header.get('kid'))
+                return jwk.loads(jwk_set, header.get("kid"))
 
         metadata = self.load_server_metadata()
         claims_options = {
             "aud": {"essential": True, "value": settings.NENS_AUTH_RESOURCE_SERVER_ID},
-            "iss": {"essential": True, "value": metadata['issuer']},
+            "iss": {"essential": True, "value": metadata["issuer"]},
             "sub": {"essential": True},
             "scope": {"essential": True},
-            **(claims_options or {})
+            **(claims_options or {}),
         }
 
-        alg_values = metadata.get('id_token_signing_alg_values_supported')
+        alg_values = metadata.get("id_token_signing_alg_values_supported")
         if not alg_values:
-            alg_values = ['RS256']
+            alg_values = ["RS256"]
 
         claims = JsonWebToken(alg_values).decode(
-            token,
-            key=load_key,
-            claims_options=claims_options,
+            token, key=load_key, claims_options=claims_options
         )
 
         # Preprocess the token (to get it into an RFC compliant format)

@@ -43,7 +43,7 @@ def preprocess_access_token(claims):
     new_scopes = []
     for scope_item in claims.get("scope", "").split(" "):
         if scope_item.startswith(audience):
-            scope_without_audience = scope_item[len(audience):]
+            scope_without_audience = scope_item[len(audience) :]
             new_scopes.append(scope_without_audience)
 
     # Don't set the audience if there are no scopes as Access Token is

@@ -9,4 +9,5 @@ class NensAuthClientConfig(AppConfig):
     def ready(self):
         # Perform system checks
         from nens_auth_client import checks  # NOQA
+
         return super().ready()
