@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.apps import AppConfig
 from django.conf import settings
-from nens_auth_client.oauth import oauth
+from nens_auth_client.oauth import oauth_registry
 
 
 class NensAuthClientConfig(AppConfig):
@@ -10,7 +10,7 @@ class NensAuthClientConfig(AppConfig):
 
     def ready(self):
         # Register the AWS Cognito client
-        oauth.register(
+        oauth_registry.register(
             name="cognito",
             client_id=settings.NENS_AUTH_CLIENT_ID,
             client_secret=settings.NENS_AUTH_CLIENT_SECRET,

@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
 from .backends import create_remoteuser
-from .oauth import oauth
+from .oauth import oauth_registry
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
@@ -64,7 +64,7 @@ def login(request):
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Redirect to the authorization server
-    cognito = oauth.create_client("cognito")
+    cognito = oauth_registry.create_client("cognito")
     return cognito.authorize_redirect(request, settings.NENS_AUTH_REDIRECT_URI)
 
 
@@ -76,7 +76,7 @@ def authorize(request):
     TODO: Gracefully handle errors (instead of bare 403 / 500)
     TODO: Cache the JWKS request
     """
-    cognito = oauth.create_client("cognito")
+    cognito = oauth_registry.create_client("cognito")
     token = cognito.authorize_access_token(request)
     claims = cognito.parse_id_token(request, token)
 

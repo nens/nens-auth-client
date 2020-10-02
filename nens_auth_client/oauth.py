@@ -7,7 +7,7 @@ import requests
 
 
 # Create the global OAuth registry
-oauth = OAuth()
+oauth_registry = OAuth()
 
 
 def decode_access_token(token):
