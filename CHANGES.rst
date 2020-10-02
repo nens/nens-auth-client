@@ -5,6 +5,8 @@ Changelog of nens-auth-client
 0.2 (unreleased)
 ----------------
 
+- Set Cache-Control headers to "no-store" for login, authorize and logout.
+
 - Added AccessTokenMiddleware enabling usage of this package in Resource
   Servers.
 
