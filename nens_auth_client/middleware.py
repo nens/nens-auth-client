@@ -1,5 +1,5 @@
 from .backends import create_remoteuser
-from .oauth import decode_access_token
+from .oauth import get_oauth_client
 from authlib.jose.errors import JoseError
 from django.conf import settings
 
@@ -25,14 +25,15 @@ class AccessTokenMiddleware:
         # See https://tools.ietf.org/html/rfc6750#section-2.1,
         # Bearer is case-sensitive and there is exactly 1 separator after.
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
-        token = auth_header[7:] if auth_header.startswith("Bearer") else None
+        bearer = auth_header[7:] if auth_header.startswith("Bearer") else None
 
         # Do something only if there is a Bearer token and there is no user.
-        if not (token and request.user.is_anonymous):
+        if not (bearer and request.user.is_anonymous):
             return self.get_response(request)
 
+        client = get_oauth_client()
         try:
-            claims = decode_access_token(token)
+            claims = client.parse_bearer_token(bearer, leeway=settings.NENS_AUTH_LEEWAY)
         except JoseError:
             # do nothing: not authenticating will lead to a 401 eventually
             return self.get_response(request)

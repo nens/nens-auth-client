@@ -3,7 +3,6 @@ from urllib.parse import parse_qs
 from nens_auth_client import views
 from authlib.integrations.base_client import MismatchingStateError
 from authlib.jose.errors import JoseError
-from django.conf import settings
 import time
 
 

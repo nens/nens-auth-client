@@ -31,7 +31,8 @@ def openid_configuration():
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_autodiscovery(openid_configuration):
-    with requests_mock.Mocker() as m:
+    # We use real_http=False to block any outgoing HTTP request
+    with requests_mock.Mocker(real_http=False) as m:
         m.get(
             settings.NENS_AUTH_ISSUER + "/.well-known/openid-configuration",
             json=openid_configuration
@@ -41,7 +42,7 @@ def mock_autodiscovery(openid_configuration):
 
 @pytest.fixture
 def rq_mocker():
-    # We use real_http=True because the request mocker is always nested
+    # We use real_http=True because the request mocker is nested
     # inside "mock_autodiscovery"
     with requests_mock.Mocker(real_http=True) as m:
         yield m
