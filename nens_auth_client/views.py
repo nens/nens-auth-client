@@ -81,7 +81,7 @@ def authorize(request):
     """
     cognito = oauth_registry.create_client("cognito")
     token = cognito.authorize_access_token(request)
-    claims = cognito.parse_id_token(request, token)
+    claims = cognito.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
     # The django authentication backend(s) should find a local user
     user = django_auth.authenticate(request, claims=claims)
@@ -111,6 +111,7 @@ def logout(request):
     4. https://xxx.lizard.net/admin/
 
     Note that this view is called twice in this flow.
+    Note2 this is an AWS Cognito specific implementation.
     """
     if not request.user.is_authenticated:
         # We are in step 3. (user is already logged out)

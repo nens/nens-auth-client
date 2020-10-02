@@ -3,9 +3,12 @@ from appconf import AppConf
 
 
 class NensAuthClientAppConf(AppConf):
-    SCOPE = "openid email profile"  # phone / user profile admin could be added
+    SCOPE = ["openid", "email", "profile"]
     STANDALONE = False
     AUTO_CREATE_REMOTE_USER = True
+    TIMEOUT = 10  # Timeout for token, JWKS and discovery requests (seconds)
+    LEEWAY = 120  # Amount of seconds that a token's expiry can be off
+    TOKEN_ENDPOINT_AUTH_METHOD = "client_secret_basic"
 
     DEFAULT_SUCCESS_URL = "/"  # Default redirect after successful login
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout
@@ -20,9 +23,6 @@ class NensAuthClientAppConf(AppConf):
             "CLIENT_SECRET",  # Provided by AWS Cognito
             "REDIRECT_URI",  # Depends on the urls.py of your django site
             "LOGOUT_REDIRECT_URI",  # Depends on the urls.py of your django site
-            "ACCESS_TOKEN_URL",  # N&S Global (full URL ending with /token)
-            "AUTHORIZE_URL",  # N&S Global (full URL ending with /authorize)
             "LOGOUT_URL",  # N&S Global (full URL ending with /logout)
             "ISSUER",  # N&S Global (authorization server URL)
-            "JWKS_URI",  # N&S Global (full URL ending with /jwks.json)
         )

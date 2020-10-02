@@ -7,7 +7,7 @@ from django.conf import settings
 import time
 
 
-def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
+def test_authorize(id_token_generator, auth_req_generator, rq_mocker, openid_configuration):
     id_token = id_token_generator()
     request = auth_req_generator(id_token)
     response = views.authorize(request)
@@ -15,12 +15,12 @@ def test_authorize(id_token_generator, auth_req_generator, rq_mocker):
     assert response.url == "http://testserver/success"
 
     token_request, jwks_request = rq_mocker.request_history
-    assert token_request.url == settings.NENS_AUTH_ACCESS_TOKEN_URL
+    assert token_request.url == openid_configuration["token_endpoint"]
     qs = parse_qs(token_request.text)
     assert qs["grant_type"] == ["authorization_code"]
     assert qs["code"] == ["code"]
     assert qs["state"] == ["state"]
-    assert jwks_request.url == settings.NENS_AUTH_JWKS_URI
+    assert jwks_request.url == openid_configuration["jwks_uri"]
 
     # check if Cache-Control header is set to "no-store"
     assert response._headers["cache-control"] == ("Cache-Control", "no-store")

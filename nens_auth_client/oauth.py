@@ -1,5 +1,6 @@
 from authlib.integrations.django_client import OAuth
 from authlib.jose import jwt
+from authlib.oidc.discovery import get_well_known_url, OpenIDProviderMetadata
 from django.conf import settings
 from django.utils.module_loading import import_string
 
@@ -8,6 +9,41 @@ import requests
 
 # Create the global OAuth registry
 oauth_registry = OAuth()
+
+
+def discover_client():
+    # Generate the autodiscovery url (<iss>/.well-known/openid-configuration)
+    url = get_well_known_url(settings.NENS_AUTH_ISSUER, external=True)
+
+    # Get the configuration dict and validate it
+    response = requests.get(url, timeout=settings.NENS_AUTH_TIMEOUT)
+    response.raise_for_status()
+
+    # Check if the configuration is RFC8414 compliant
+    provider = OpenIDProviderMetadata(response.json())
+    provider.validate()
+
+    # Check if the our configuration is correct
+    assert provider["issuer"] == settings.NENS_AUTH_ISSUER
+    unsupported_scopes = set(settings.NENS_AUTH_SCOPE) - set(provider["scopes_supported"])
+    assert not unsupported_scopes
+    assert "code" in provider["response_types_supported"]
+    assert settings.NENS_AUTH_TOKEN_ENDPOINT_AUTH_METHOD in provider["token_endpoint_auth_methods_supported"]
+
+    # Register the AWS Cognito client
+    oauth_registry.register(
+        name="cognito",
+        client_id=settings.NENS_AUTH_CLIENT_ID,
+        client_secret=settings.NENS_AUTH_CLIENT_SECRET,
+        access_token_url=provider["token_endpoint"],
+        access_token_params=None,
+        authorize_url=provider["authorization_endpoint"],
+        authorize_params=None,
+        jwks_uri=provider["jwks_uri"],
+        issuer=settings.NENS_AUTH_ISSUER,
+        client_kwargs={"scope": " ".join(settings.NENS_AUTH_SCOPE)},
+        token_endpoint_auth_method=settings.NENS_AUTH_TOKEN_ENDPOINT_AUTH_METHOD,
+    )
 
 
 def decode_access_token(token):
@@ -44,5 +80,5 @@ def decode_access_token(token):
         func(claims)
 
     # Validate the token and return
-    claims.validate(leeway=120)  # leeway matches authlib's implementation
+    claims.validate(leeway=settings.NENS_AUTH_LEEWAY)
     return dict(claims)

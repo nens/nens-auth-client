@@ -24,7 +24,7 @@ def test_login(rf):
     assert qs["response_type"] == ["code"]
     assert qs["client_id"] == [settings.NENS_AUTH_CLIENT_ID]
     assert qs["redirect_uri"] == [settings.NENS_AUTH_REDIRECT_URI]
-    assert qs["scope"] == [settings.NENS_AUTH_SCOPE]
+    assert qs["scope"] == [" ".join(settings.NENS_AUTH_SCOPE)]
     assert qs["state"] == [request.session["_cognito_authlib_state_"]]
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "http://testserver/a"

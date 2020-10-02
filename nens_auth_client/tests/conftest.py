@@ -12,6 +12,32 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
 UserModel = get_user_model()
 
 
+@pytest.fixture(scope="session")
+def openid_configuration():
+    host = "https://authserver"
+    return {
+        "authorization_endpoint": host + "/oauth2/authorize",
+        "id_token_signing_alg_values_supported": ["RS256"],
+        "issuer": settings.NENS_AUTH_ISSUER,
+        "jwks_uri": settings.NENS_AUTH_ISSUER + "/.well-known/jwks.json",
+        "response_types_supported":["code"],
+        "scopes_supported": ["openid","email","profile"],
+        "subject_types_supported":["public"],
+        "token_endpoint": host + "/oauth2/token",
+        "token_endpoint_auth_methods_supported":["client_secret_basic","client_secret_post"],
+        "userinfo_endpoint": host + "/oauth2/userInfo"
+    }
+
+
+@pytest.fixture(scope="session", autouse=True)
+def default_session_fixture(openid_configuration):
+    with requests_mock.Mocker() as m:
+        m.get(
+            settings.NENS_AUTH_ISSUER + "/.well-known/openid-configuration",
+            json=openid_configuration
+        )
+
+
 @pytest.fixture(scope="module")
 def private_key():
     # For testing purposes. Generated on mkjwk.org.
@@ -27,9 +53,9 @@ def jwks(private_key):
 
 
 @pytest.fixture
-def jwks_request(rq_mocker, jwks):
+def jwks_request(rq_mocker, jwks, openid_configuration):
     # Mock the call to the external jwks
-    rq_mocker.get(settings.NENS_AUTH_JWKS_URI, json=jwks)
+    rq_mocker.get(openid_configuration["jwks_uri"], json=jwks)
 
 
 @pytest.fixture
@@ -119,12 +145,12 @@ def rq_mocker():
 
 
 @pytest.fixture
-def auth_req_generator(rf, mocker, rq_mocker, jwks_request, settings):
+def auth_req_generator(rf, mocker, rq_mocker, jwks_request, settings, openid_configuration):
     """Mock necessary functions and create an authorization request"""
 
     def func(id_token, code="code", state="state", nonce="nonce"):
         # Mock the call to the external token API
-        rq_mocker.post(settings.NENS_AUTH_ACCESS_TOKEN_URL, json={"id_token": id_token})
+        rq_mocker.post(openid_configuration["token_endpoint"], json={"id_token": id_token})
         # Mock the user association call
         authenticate = mocker.patch("nens_auth_client.views.django_auth.authenticate")
         authenticate.return_value = UserModel(username="testuser")
