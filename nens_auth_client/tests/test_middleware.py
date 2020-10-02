@@ -37,12 +37,6 @@ def test_middleware(r, access_token_generator, mocked_middleware):
     assert processed_request.user.oauth2_scope == "readwrite"
 
 
-def test_middleware_no_user(r, mocked_middleware):
-    delattr(r, "user")
-    with pytest.raises(AssertionError):
-        mocked_middleware(r)
-
-
 def test_middleware_logged_in_user(r, access_token_generator, mocked_middleware):
     # An already logged in user (e.g. session cookie) is unchanged
     r.user = UserModel(username="otheruser")

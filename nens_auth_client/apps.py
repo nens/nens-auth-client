@@ -9,6 +9,8 @@ class NensAuthClientConfig(AppConfig):
     verbose_name = "N&S authentication client"
 
     def ready(self):
+        # Perform system checks
+        from nens_auth_client import checks  # NOQA
         # Register the AWS Cognito client
         oauth_registry.register(
             name="cognito",

@@ -32,19 +32,19 @@ def preprocess_access_token(claims):
         ...
     }
     """
+    # Do nothing if there is an already an "aud" claim
+    if "aud" in claims:
+        return
+
     # Get the expected "aud" claim
     audience = settings.NENS_AUTH_RESOURCE_SERVER_ID
-    assert audience[-1] == "/"
-
-    # Stop if there is an existing "aud" claim and it does not match
-    if "aud" in claims and claims["aud"] != audience:
-        return
 
     # List scopes and chop off the audience from the scope
     new_scopes = []
-    for scope in claims.get("scope", "").split(" "):
-        if scope.startswith(audience):
-            new_scopes.append(scope[len(audience):])
+    for scope_item in claims.get("scope", "").split(" "):
+        if scope_item.startswith(audience):
+            scope_without_audience = scope_item[len(audience):]
+            new_scopes.append(scope_without_audience)
 
     # Don't set the audience if there are no scopes as Access Token is
     # apparently not meant for this server.

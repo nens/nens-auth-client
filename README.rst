@@ -84,7 +84,7 @@ http requests. ``nens-auth-client`` has a middleware for this::
         ...
     )
 
-This middleware will set the ``requests.user.oauth2_scope`` that your
+This middleware will set the ``request.user.oauth2_scope`` that your
 application may use for additional authorization logic.
 
 Also, set the ``NENS_AUTH_RESOURCE_SERVER_ID``, which
@@ -99,7 +99,7 @@ created. After that, the user can be found by the "sub" claim in the
 access token.
 
 For the Client Credentials Flow there isn't any user. For that, a RemoteUser
-should be created manually (with ``external_user_id`` equalling the client_id.
+should be created manually (with ``external_user_id`` equaling the client_id.
 This could be attached to some service account.
 
 
