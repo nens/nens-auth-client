@@ -23,11 +23,11 @@ def test_login(rf):
     qs = parse_qs(url.query)
     assert qs["response_type"] == ["code"]
     assert qs["client_id"] == [settings.NENS_AUTH_CLIENT_ID]
-    assert qs["redirect_uri"] == [settings.NENS_AUTH_REDIRECT_URI]
+    assert qs["redirect_uri"] == ["http://testserver/authorize/"]
     assert qs["scope"] == [" ".join(settings.NENS_AUTH_SCOPE)]
     assert qs["state"] == [request.session["_cognito_authlib_state_"]]
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
-    assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "http://testserver/a"
+    assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "/a"
 
     # check if Cache-Control header is set to "no-store"
     assert response._headers["cache-control"] == ("Cache-Control", "no-store")
@@ -42,18 +42,19 @@ def test_login_when_already_logged_in(rf):
 
     # login generated a redirect to the (absolutized) 'next' parameter
     assert response.status_code == 302
-    assert response.url == "http://testserver/a"
+    assert response.url == "/a"
 
 
 @pytest.mark.parametrize(
     "url,expected",
     [
-        ("/login/", "http://testserver/d"),
-        ("/login/?next=/a", "http://testserver/a"),
-        ("/login/?next=http://testserver/a", "http://testserver/a"),
-        ("/login/?next=http://testserver2/a", "http://testserver/d"),
+        ("login/", "/x"),
+        ("login/?next=/a", "/a"),
+        ("login/?next=https://testserver/a", "https://testserver/a"),
+        ("login/?next=https://testserver2/a", "/x"),  # different domain
+        ("login/?next=http://testserver/a", "/x"),  # https to http
     ],
 )
-def test_get_absolute_redirect_url(rf, url, expected):
-    request = rf.get(url)
-    assert views._get_absolute_redirect_url(request, default="/d") == expected
+def test_get_redirect_from_next(rf, url, expected):
+    request = rf.get(url, secure=True)
+    assert views._get_redirect_from_next(request, default="/x") == expected

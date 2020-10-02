@@ -5,6 +5,13 @@ Changelog of nens-auth-client
 0.2 (unreleased)
 ----------------
 
+- Removed the NENS_AUTH_REDIRECT_URI and NENS_AUTH_LOGOUT_REDIRECT_URI. Instead
+  we generate them from the authorize and logout view paths, respectively. Note
+  that it requires all possible site domains to be registered with the
+  Authorization Server.
+
+- Django 1.11 compatibilty in urls.py.
+
 - Set Cache-Control headers to "no-store" for login, authorize and logout.
 
 - Added AccessTokenMiddleware enabling usage of this package in Resource

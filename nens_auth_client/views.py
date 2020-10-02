@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.http import is_safe_url
 from django.views.decorators.cache import cache_control
 
@@ -16,13 +17,13 @@ LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
-def _get_absolute_redirect_url(request, default):
-    """Get the (absolute) success url from the 'next' parameter in the url
+def _get_redirect_from_next(request, default):
+    """Return redirect url from the "next" parameter in the url
 
-    Defaults to NENS_AUTH_DEFAULT_SUCCESS_URL.
+    Returns the default if there is no "next" parameter or if it is unsafe.
     """
     if REDIRECT_FIELD_NAME in request.GET:
-        redirect_to = request.build_absolute_uri(request.GET[REDIRECT_FIELD_NAME])
+        redirect_to = request.GET[REDIRECT_FIELD_NAME]
         if is_safe_url(
             url=redirect_to,
             allowed_hosts={request.get_host()},
@@ -30,8 +31,7 @@ def _get_absolute_redirect_url(request, default):
         ):
             return redirect_to
 
-    # Absolutize the default url
-    return request.build_absolute_uri(default)
+    return default
 
 
 @cache_control(no_store=True)
@@ -43,18 +43,20 @@ def login(request):
 
     The full flow goes as follows:
 
-    1. https://xxx.lizard.net/login/?next=admin/
-    2. https://aws.cognito/login/?...&redirect_uri=https://auth.lizard.net/authorize/
-    3. https://auth.lizard.net/authorize/
-    4. https://xxx.lizard.net/admin/
+    1. https://x.lizard.net/login/?next=/admin/
+    2. https://aws.cognito/login/?...&redirect_uri=https://x.lizard.net/authorize/
+    3. https://x.lizard.net/authorize/
+    4. https://x.lizard.net/admin/
 
-    Note that /authorize is on a fixed domain (say, "auth.lizard.net"). This
-    is imposed by AWS Cognito (it just checks redirect_uri). To account for the
-    possibility that /login is on a different domain (say, "xxx.lizard.net"),
-    the 'next' url is absolutized before storing in the session.
+    Note that a list of all (absolute) redirect URIs
+    (e.g. "https://auth.lizard.net/authorize/") need to be registered with
+    AWS Cognito. Wildcards are not allowed because of security reasons.
+
+    At the same time we need the redirect to go to the correct subdomain or
+    else cookies will not be valid.
     """
     # Get the success redirect url
-    success_url = _get_absolute_redirect_url(
+    success_url = _get_redirect_from_next(
         request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
     )
 
@@ -67,7 +69,8 @@ def login(request):
 
     # Redirect to the authorization server
     client = get_oauth_client()
-    return client.authorize_redirect(request, settings.NENS_AUTH_REDIRECT_URI)
+    redirect_uri = request.build_absolute_uri(reverse(authorize))
+    return client.authorize_redirect(request, redirect_uri)
 
 
 @cache_control(no_store=True)
@@ -120,7 +123,7 @@ def logout(request):
             # If there is nothing in the session, the user called /logout
             # without being logged in in the first place. Just use the 'next'
             # parameter.
-            redirect_url = _get_absolute_redirect_url(
+            redirect_url = _get_redirect_from_next(
                 request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
             )
         return HttpResponseRedirect(redirect_url)
@@ -129,7 +132,7 @@ def logout(request):
     django_auth.logout(request)
 
     # Store the redirect_url in the session for later use
-    request.session[LOGOUT_REDIRECT_SESSION_KEY] = _get_absolute_redirect_url(
+    request.session[LOGOUT_REDIRECT_SESSION_KEY] = _get_redirect_from_next(
         request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
     )
 
@@ -137,6 +140,6 @@ def logout(request):
     logout_url = "{}?client_id={}&logout_uri={}".format(
         settings.NENS_AUTH_LOGOUT_URL,
         settings.NENS_AUTH_CLIENT_ID,
-        settings.NENS_AUTH_LOGOUT_REDIRECT_URI,
+        request.build_absolute_uri(reverse(logout)),
     )
     return HttpResponseRedirect(logout_url)

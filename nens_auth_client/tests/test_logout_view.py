@@ -22,7 +22,7 @@ def test_logout(rf, mocker):
     assert django_logout.called
 
     # the 'next' param was stored in the session
-    assert request.session[views.LOGOUT_REDIRECT_SESSION_KEY] == "http://testserver/a"
+    assert request.session[views.LOGOUT_REDIRECT_SESSION_KEY] == "/a"
 
     # check if Cache-Control header is set to "no-store"
     assert response._headers["cache-control"] == ("Cache-Control", "no-store")
@@ -32,15 +32,13 @@ def test_logout_as_callback(rf, mocker):
     django_logout = mocker.patch("nens_auth_client.views.django_auth.logout")
 
     request = rf.get("http://testserver/logout/?next=/a")
-    request.session = {
-        views.LOGOUT_REDIRECT_SESSION_KEY: "http://testserver/b"
-    }
+    request.session = {views.LOGOUT_REDIRECT_SESSION_KEY: "/b"}
     request.user = AnonymousUser()  # user is not logged in anymore
     response = views.logout(request)
 
     # logout generated a redirect to the url stored in the session
     assert response.status_code == 302
-    assert response.url == "http://testserver/b"
+    assert response.url == "/b"
 
     # django logout was not called
     assert not django_logout.called
@@ -60,7 +58,7 @@ def test_logout_not_logged_in(rf, mocker):
 
     # logout generated a redirect to the 'next' URL
     assert response.status_code == 302
-    assert response.url == "http://testserver/a"
+    assert response.url == "/a"
 
     # django logout was not called
     assert not django_logout.called
