@@ -16,7 +16,7 @@ def mocked_middleware(rf, mocker, rq_mocker, jwks_request, settings):
     # Disable automatic RemoteUser creation
     settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER = False
     # Disable the custom AWS Cognito Access Token mapping
-    settings.NENS_AUTH_PREPROCESS_ACCESS_TOKEN = None
+    mocker.patch("nens_auth_client.cognito.preprocess_access_token")
     # Make a middleware that returns the request as a response
     middleware = AccessTokenMiddleware(get_response=lambda x: x)
     return middleware

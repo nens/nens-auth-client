@@ -13,8 +13,6 @@ class NensAuthClientAppConf(AppConf):
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout
 
     RESOURCE_SERVER_ID = None  # For Access Tokens ("aud" should equal this)
-    PREPROCESS_ACCESS_TOKEN = "nens_auth_client.cognito.preprocess_access_token"
-    GET_LOGOUT_ENDPOINT = "nens_auth_client.cognito.get_logout_endpoint"
 
     class Meta:
         prefix = "NENS_AUTH"

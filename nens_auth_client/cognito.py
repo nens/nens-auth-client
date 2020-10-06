@@ -1,11 +1,15 @@
 from django.conf import settings
+from authlib.jose import JsonWebToken
+from authlib.jose import jwk
+from authlib.integrations.django_client import DjangoRemoteApp
+from django.http.response import HttpResponseRedirect
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
+from urllib.parse import urlencode
 
 
 def preprocess_access_token(claims):
     """Convert AWS Cognito Access token claims to standard form, inplace.
-
-    This function is intended for usage in the NENS_AUTH_PREPROCESS_ACCESS_TOKEN
-    setting.
 
     AWS Cognito Access tokens are missing the "aud" (audience) claim and
     instead put the audience into each scope.
@@ -56,11 +60,76 @@ def preprocess_access_token(claims):
     claims["scope"] = " ".join(new_scopes)
 
 
-def get_logout_endpoint(server_metadata):
-    """Create the LOGOUT endpoint from the server metadata dictionary
+class CognitoOAuthClient(DjangoRemoteApp):
+    def logout_redirect(self, request, logout_uri=None):
+        """Create a redirect to the remote server's logout endpoint
 
-    This replaces /oauth2/authorize with /logout, which is how it
-    works for AWS Cognito.
-    """
-    authorization_endpoint = server_metadata["authorization_endpoint"]
-    return authorization_endpoint.replace("/oauth2/authorize", "/logout")
+        Note: unlike with login, there is no standardization on the logout
+        endpoint. This function is specifically written for the AWS Cognito
+        LOGOUT endpoint. The LOGOUT url is constructed from the AUTHORIZATION
+        url.
+        """
+        # Get the logout endpoint URL from the authorization endpoint
+        server_metadata = self.load_server_metadata()
+        auth_url = urlparse(server_metadata["authorization_endpoint"])
+        logout_url = urlunparse(
+            (
+                auth_url.scheme,
+                auth_url.netloc,
+                "logout",
+                urlencode({"client_id": self.client_id, "logout_uri": logout_uri}),
+                None,
+                None,
+            )
+        )
+        return HttpResponseRedirect(logout_url)
+
+    def parse_access_token(self, token, claims_options=None, leeway=120):
+        """Decode and validate an access token and return its payload.
+
+        Note: this function is based on authlib.DjangoRemoteApp._parse_id_token
+        to make use of the same server settings and key cache. The token claims
+        are AWS Cognito specific.
+
+        Args:
+          token (str): access token (base64 encoded JWT)
+
+        Returns:
+          claims (dict): the token payload
+
+        Raises:
+          authlib.jose.errors.JoseError: if token is invalid
+          ValueError: if the key id is not present in the jwks.json
+        """
+        # this is a copy from the _parse_id_token equivalent function
+        def load_key(header, payload):
+            jwk_set = self.fetch_jwk_set()
+            try:
+                return jwk.loads(jwk_set, header.get("kid"))
+            except ValueError:
+                # re-try with new jwk set
+                jwk_set = self.fetch_jwk_set(force=True)
+                return jwk.loads(jwk_set, header.get("kid"))
+
+        metadata = self.load_server_metadata()
+        claims_options = {
+            "aud": {"essential": True, "value": settings.NENS_AUTH_RESOURCE_SERVER_ID},
+            "iss": {"essential": True, "value": metadata["issuer"]},
+            "sub": {"essential": True},
+            "scope": {"essential": True},
+            **(claims_options or {}),
+        }
+
+        alg_values = metadata.get("id_token_signing_alg_values_supported")
+        if not alg_values:
+            alg_values = ["RS256"]
+
+        claims = JsonWebToken(alg_values).decode(
+            token, key=load_key, claims_options=claims_options
+        )
+
+        # Preprocess the token (to add the "aud" claim)
+        preprocess_access_token(claims)
+
+        claims.validate(leeway=leeway)
+        return claims
