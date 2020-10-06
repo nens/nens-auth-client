@@ -61,13 +61,20 @@ def preprocess_access_token(claims):
 
 
 class CognitoOAuthClient(DjangoRemoteApp):
-    def logout_redirect(self, request, logout_uri=None):
+    def logout_redirect(self, request, redirect_uri=None):
         """Create a redirect to the remote server's logout endpoint
 
-        Note: unlike with login, there is no standardization on the logout
-        endpoint. This function is specifically written for the AWS Cognito
-        LOGOUT endpoint. The LOGOUT url is constructed from the AUTHORIZATION
-        url.
+        Note that unlike with login, there is no standardization for logout.
+        This function is specifically written for the AWS Cognito logout
+        endpoint. The LOGOUT url is constructed from the AUTHORIZATION url.
+
+        Args:
+          request: The current request
+          redirect_uri: The absolute url to the logout view of this app. It
+            should be pre-registered in AWS Cognito.
+
+        Returns:
+          HttpResponseRedirect to AWS Cognito logout endpoint
         """
         # Get the logout endpoint URL from the authorization endpoint
         server_metadata = self.load_server_metadata()
@@ -78,14 +85,14 @@ class CognitoOAuthClient(DjangoRemoteApp):
                 auth_url.netloc,
                 "/logout",
                 None,
-                urlencode({"client_id": self.client_id, "logout_uri": logout_uri}),
+                urlencode({"client_id": self.client_id, "logout_uri": redirect_uri}),
                 None,
             )
         )
         return HttpResponseRedirect(logout_url)
 
     def parse_access_token(self, token, claims_options=None, leeway=120):
-        """Decode and validate an access token and return its payload.
+        """Decode and validate a Cognito access token and return its payload.
 
         Note: this function is based on authlib.DjangoRemoteApp._parse_id_token
         to make use of the same server settings and key cache. The token claims
