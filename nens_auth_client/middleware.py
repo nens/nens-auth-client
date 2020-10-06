@@ -1,5 +1,5 @@
 from .backends import create_remoteuser
-from .oauth import decode_access_token
+from .oauth import get_oauth_client
 from authlib.jose.errors import JoseError
 from django.conf import settings
 
@@ -31,8 +31,9 @@ class AccessTokenMiddleware:
         if not (token and request.user.is_anonymous):
             return self.get_response(request)
 
+        client = get_oauth_client()
         try:
-            claims = decode_access_token(token)
+            claims = client.parse_access_token(token, leeway=settings.NENS_AUTH_LEEWAY)
         except JoseError:
             # do nothing: not authenticating will lead to a 401 eventually
             return self.get_response(request)

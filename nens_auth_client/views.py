@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
 from .backends import create_remoteuser
-from .oauth import oauth_registry
+from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
@@ -68,10 +68,9 @@ def login(request):
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Redirect to the authorization server
-    cognito = oauth_registry.create_client("cognito")
-
+    client = get_oauth_client()
     redirect_uri = request.build_absolute_uri(reverse(authorize))
-    return cognito.authorize_redirect(request, redirect_uri)
+    return client.authorize_redirect(request, redirect_uri)
 
 
 @cache_control(no_store=True)
@@ -81,11 +80,10 @@ def authorize(request):
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     TODO: Gracefully handle errors (instead of bare 403 / 500)
-    TODO: Cache the JWKS request
     """
-    cognito = oauth_registry.create_client("cognito")
-    token = cognito.authorize_access_token(request)
-    claims = cognito.parse_id_token(request, token)
+    client = get_oauth_client()
+    token = client.authorize_access_token(request)
+    claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
     # The django authentication backend(s) should find a local user
     user = django_auth.authenticate(request, claims=claims)
@@ -137,9 +135,6 @@ def logout(request):
     )
 
     # Redirect to authorization server
-    logout_url = "{}?client_id={}&logout_uri={}".format(
-        settings.NENS_AUTH_LOGOUT_URL,
-        settings.NENS_AUTH_CLIENT_ID,
-        request.build_absolute_uri(reverse(logout)),
-    )
-    return HttpResponseRedirect(logout_url)
+    logout_uri = request.build_absolute_uri(reverse(logout))
+    client = get_oauth_client()
+    return client.logout_redirect(request, logout_uri)
