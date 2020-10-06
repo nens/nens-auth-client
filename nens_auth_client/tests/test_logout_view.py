@@ -1,5 +1,7 @@
+from urllib.parse import parse_qs
 from urllib.parse import urlparse
 from nens_auth_client import views
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 
 
@@ -14,8 +16,10 @@ def test_logout(rf, mocker, openid_configuration):
     # login generated a redirect to the LOGOUT_URL
     assert response.status_code == 302
     url = urlparse(response.url)
-    url_no_qs = url.scheme + "://" + url.hostname + url.path
-    assert url_no_qs == "https://authserver/logout"
+    assert url[:3] == ("https", "authserver", "/logout")
+    qs = parse_qs(url.query)
+    assert qs["client_id"] == [settings.NENS_AUTH_CLIENT_ID]
+    assert qs["logout_uri"] == ["http://testserver/logout/"]
 
     # django logout was called
     assert django_logout.called

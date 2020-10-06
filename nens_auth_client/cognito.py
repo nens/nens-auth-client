@@ -76,9 +76,9 @@ class CognitoOAuthClient(DjangoRemoteApp):
             (
                 auth_url.scheme,
                 auth_url.netloc,
-                "logout",
-                urlencode({"client_id": self.client_id, "logout_uri": logout_uri}),
+                "/logout",
                 None,
+                urlencode({"client_id": self.client_id, "logout_uri": logout_uri}),
                 None,
             )
         )
