@@ -123,7 +123,7 @@ def test_authorize_error_with_description(rf):
         views.authorize(request)
 
 
-def test_token_bad_request(rq_mocker, rf, openid_configuration):
+def test_token_error(rq_mocker, rf, openid_configuration):
     rq_mocker.post(
         openid_configuration["token_endpoint"],
         status_code=400,
