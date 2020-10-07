@@ -83,7 +83,7 @@ def authorize(request):
     """
     client = get_oauth_client()
     client.check_error_in_query_params(request)
-    token = client.authorize_access_token(request)
+    token = client.authorize_access_token(request, timeout=settings.NENS_AUTH_TIMEOUT)
     claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
     # The django authentication backend(s) should find a local user

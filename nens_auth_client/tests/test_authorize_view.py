@@ -3,6 +3,7 @@ from urllib.parse import parse_qs
 from nens_auth_client import views
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
+from django.conf import settings
 import time
 
 
@@ -15,13 +16,16 @@ def test_authorize(
     assert response.status_code == 302  # 302 redirect to success url: all checks passed
     assert response.url == "http://testserver/success"
 
-    _, token_request, jwks_request = rq_mocker.request_history
-    assert token_request.url == openid_configuration["token_endpoint"]
+    # pick the token request (from the JWKS and OpenID Discovery requests)
+    token_request = next(
+        request for request in rq_mocker.request_history
+        if request.url == openid_configuration["token_endpoint"]
+    )
+    assert token_request.timeout == settings.NENS_AUTH_TIMEOUT
     qs = parse_qs(token_request.text)
     assert qs["grant_type"] == ["authorization_code"]
     assert qs["code"] == ["code"]
     assert qs["state"] == ["state"]
-    assert jwks_request.url == openid_configuration["jwks_uri"]
 
     # check if Cache-Control header is set to "no-store"
     assert response._headers["cache-control"] == ("Cache-Control", "no-store")

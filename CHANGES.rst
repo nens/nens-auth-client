@@ -21,6 +21,8 @@ Changelog of nens-auth-client
 
 - Handle error query parameters in the authorize endpoint.
 
+- Use NENS_AUTH_TIMEOUT in the token requests.
+
 
 0.1 (2020-09-29)
 ----------------

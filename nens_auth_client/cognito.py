@@ -152,7 +152,9 @@ class CognitoOAuthClient(DjangoRemoteApp):
         """
         error_type = request.GET.get("error")
         if error_type:
-            self.handle_error(error_type, request.GET.get("error_description"))
+            self.handle_error(
+                error_type, request.GET.get("error_description", error_type)
+            )
 
     @staticmethod
     def handle_error(error_type, error_description):
