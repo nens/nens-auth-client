@@ -1,7 +1,7 @@
 import pytest
 from urllib.parse import parse_qs
 from nens_auth_client import views
-from authlib.integrations.base_client import MismatchingStateError
+from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
 import time
 
@@ -38,7 +38,7 @@ def test_authorize_wrong_state(id_token_generator, auth_req_generator):
     id_token = id_token_generator()
     request = auth_req_generator(id_token, state="a")
     request.session["_cognito_authlib_state_"] = "b"
-    with pytest.raises(MismatchingStateError):
+    with pytest.raises(OAuthError):
         views.authorize(request)
 
 
@@ -96,4 +96,22 @@ def test_authorize_invalid_key_id(id_token_generator, auth_req_generator):
     id_token = id_token_generator(kid="unknown_key_id")
     request = auth_req_generator(id_token)
     with pytest.raises(ValueError):
+        views.authorize(request)
+
+
+def test_authorize_error(rf):
+    request = rf.get(
+        "http://testserver/authorize/?error=some_error"
+    )
+    request.session = {}
+    with pytest.raises(OAuthError, match="some_error"):
+        views.authorize(request)
+
+
+def test_authorize_error_with_description(rf):
+    request = rf.get(
+        "http://testserver/authorize/?error=some_error&error_description=bla"
+    )
+    request.session = {}
+    with pytest.raises(OAuthError, match="bla"):
         views.authorize(request)

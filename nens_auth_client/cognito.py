@@ -2,6 +2,7 @@ from django.conf import settings
 from authlib.jose import JsonWebToken
 from authlib.jose import jwk
 from authlib.integrations.django_client import DjangoRemoteApp
+from authlib.integrations.base_client.errors import OAuthError
 from django.http.response import HttpResponseRedirect
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
@@ -140,3 +141,16 @@ class CognitoOAuthClient(DjangoRemoteApp):
 
         claims.validate(leeway=leeway)
         return claims
+
+    def check_authorize_error(self, request):
+        """Handle errors in the authorize call (according to RFC6749)"""
+        error_type = request.GET.get("error")
+        if error_type:
+            self.handle_error(
+                error_type, request.GET.get("error_description")
+            )
+
+    @staticmethod
+    def handle_error(error_type, error_description):
+        # method copied from authlib.integrations.requests_client
+        raise OAuthError(error_type, error_description)

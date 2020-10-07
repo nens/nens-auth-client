@@ -82,6 +82,7 @@ def authorize(request):
     TODO: Gracefully handle errors (instead of bare 403 / 500)
     """
     client = get_oauth_client()
+    client.check_authorize_error(request)
     token = client.authorize_access_token(request)
     claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
