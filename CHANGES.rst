@@ -19,6 +19,8 @@ Changelog of nens-auth-client
 
 - Renamed "userinfo" to "claims" in the authentication backends.
 
+- Handle error query parameters in the authorize endpoint.
+
 
 0.1 (2020-09-29)
 ----------------

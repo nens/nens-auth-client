@@ -142,8 +142,14 @@ class CognitoOAuthClient(DjangoRemoteApp):
         claims.validate(leeway=leeway)
         return claims
 
-    def check_authorize_error(self, request):
-        """Handle errors in the authorize call (according to RFC6749)"""
+    def check_error_in_query_params(self, request):
+        """Handle errors in the query parameters
+
+        The authorization endpoint (on the authorization server) may respond
+        with a redirect (302) containing error information.
+
+        See: https://tools.ietf.org/html/rfc6749#section-4.1.2.1
+        """
         error_type = request.GET.get("error")
         if error_type:
             self.handle_error(

@@ -100,6 +100,8 @@ def test_authorize_invalid_key_id(id_token_generator, auth_req_generator):
 
 
 def test_authorize_error(rf):
+    # The authorization endpoint (on the authorization server) may give a
+    # redirect (302) with an error message.
     request = rf.get(
         "http://testserver/authorize/?error=some_error"
     )
@@ -113,5 +115,5 @@ def test_authorize_error_with_description(rf):
         "http://testserver/authorize/?error=some_error&error_description=bla"
     )
     request.session = {}
-    with pytest.raises(OAuthError, match="bla"):
+    with pytest.raises(OAuthError, match="some_error: bla"):
         views.authorize(request)
