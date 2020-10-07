@@ -6,7 +6,9 @@ from authlib.jose.errors import JoseError
 import time
 
 
-def test_authorize(id_token_generator, auth_req_generator, rq_mocker, openid_configuration):
+def test_authorize(
+    id_token_generator, auth_req_generator, rq_mocker, openid_configuration
+):
     id_token = id_token_generator()
     request = auth_req_generator(id_token)
     response = views.authorize(request)
@@ -102,11 +104,9 @@ def test_authorize_invalid_key_id(id_token_generator, auth_req_generator):
 def test_authorize_error(rf):
     # The authorization endpoint (on the authorization server) may give a
     # redirect (302) with an error message.
-    request = rf.get(
-        "http://testserver/authorize/?error=some_error"
-    )
+    request = rf.get("http://testserver/authorize/?error=some_error")
     request.session = {}
-    with pytest.raises(OAuthError, match="some_error"):
+    with pytest.raises(OAuthError, match="some_error: some_error"):
         views.authorize(request)
 
 
@@ -115,5 +115,18 @@ def test_authorize_error_with_description(rf):
         "http://testserver/authorize/?error=some_error&error_description=bla"
     )
     request.session = {}
+    with pytest.raises(OAuthError, match="some_error: bla"):
+        views.authorize(request)
+
+
+def test_token_bad_request(rq_mocker, rf, openid_configuration):
+    rq_mocker.post(
+        openid_configuration["token_endpoint"],
+        status_code=400,
+        json={"error": "some_error", "error_description": "bla"},
+    )
+    # Create the request
+    request = rf.get("http://testserver/authorize/?code=abc&state=my_state")
+    request.session = {"_cognito_authlib_state_": "my_state"}
     with pytest.raises(OAuthError, match="some_error: bla"):
         views.authorize(request)
