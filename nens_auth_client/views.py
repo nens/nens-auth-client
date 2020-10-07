@@ -1,6 +1,7 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
 from .backends import create_remoteuser
+from .models import Invite
 from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -14,6 +15,7 @@ import django.contrib.auth as django_auth
 
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
+INVITE_ID_KEY = "nens_auth_invite_id"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
@@ -67,6 +69,9 @@ def login(request):
     # Store the success_url in the session for later use
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
+    # Store the invite-key (if present)
+    request.session[INVITE_ID_KEY] = request.GET.get("invite", None)
+
     # Redirect to the authorization server
     client = get_oauth_client()
     redirect_uri = request.build_absolute_uri(reverse(authorize))
@@ -85,8 +90,12 @@ def authorize(request):
     token = client.authorize_access_token(request)
     claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
-    # The django authentication backend(s) should find a local user
-    user = django_auth.authenticate(request, claims=claims)
+    invite_id = request.session.get(INVITE_ID_KEY)
+    if invite_id:
+        user = Invite.objects.get(id=invite_id).user
+    else:
+        # The django authentication backend(s) should find a local user
+        user = django_auth.authenticate(request, claims=claims)
 
     if user is None:
         raise PermissionDenied("No user found with this idenity")

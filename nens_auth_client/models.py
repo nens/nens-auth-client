@@ -25,3 +25,13 @@ class RemoteUser(models.Model):
 
     def __str__(self):
         return self.external_user_id
+
+
+class Invite(models.Model):
+    id = models.CharField(
+        primary_key=True, max_length=32,
+    )
+    user = models.ForeignKey(
+        user_model, related_name="invites", on_delete=models.CASCADE
+    )
+    created = models.DateTimeField(auto_now_add=True)
