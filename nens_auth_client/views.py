@@ -86,7 +86,7 @@ def authorize(request):
       These are defined in https://tools.ietf.org/html/rfc6749#section-4.1.2.1.
       The error descriptions can be shown to the user.
     - ``django.core.exceptions.PermissionDenied``: authorization errors.
-      This error is raises when no user is present to log in.
+      This error is raised when no user is present to log in.
     """
     client = get_oauth_client()
     client.check_error_in_query_params(request)
