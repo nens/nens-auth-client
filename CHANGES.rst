@@ -19,6 +19,10 @@ Changelog of nens-auth-client
 
 - Renamed "userinfo" to "claims" in the authentication backends.
 
+- Error query parameters are handled in the authorize endpoint.
+
+- NENS_AUTH_TIMEOUT is used in the token requests.
+
 
 0.1 (2020-09-29)
 ----------------

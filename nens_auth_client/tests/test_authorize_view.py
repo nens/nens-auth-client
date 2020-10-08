@@ -1,25 +1,31 @@
 import pytest
 from urllib.parse import parse_qs
 from nens_auth_client import views
-from authlib.integrations.base_client import MismatchingStateError
+from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
+from django.conf import settings
 import time
 
 
-def test_authorize(id_token_generator, auth_req_generator, rq_mocker, openid_configuration):
+def test_authorize(
+    id_token_generator, auth_req_generator, rq_mocker, openid_configuration
+):
     id_token = id_token_generator()
     request = auth_req_generator(id_token)
     response = views.authorize(request)
     assert response.status_code == 302  # 302 redirect to success url: all checks passed
     assert response.url == "http://testserver/success"
 
-    _, token_request, jwks_request = rq_mocker.request_history
-    assert token_request.url == openid_configuration["token_endpoint"]
+    # pick the token request (from the JWKS and OpenID Discovery requests)
+    token_request = next(
+        request for request in rq_mocker.request_history
+        if request.url == openid_configuration["token_endpoint"]
+    )
+    assert token_request.timeout == settings.NENS_AUTH_TIMEOUT
     qs = parse_qs(token_request.text)
     assert qs["grant_type"] == ["authorization_code"]
     assert qs["code"] == ["code"]
     assert qs["state"] == ["state"]
-    assert jwks_request.url == openid_configuration["jwks_uri"]
 
     # check if Cache-Control header is set to "no-store"
     assert response._headers["cache-control"] == ("Cache-Control", "no-store")
@@ -38,7 +44,7 @@ def test_authorize_wrong_state(id_token_generator, auth_req_generator):
     id_token = id_token_generator()
     request = auth_req_generator(id_token, state="a")
     request.session["_cognito_authlib_state_"] = "b"
-    with pytest.raises(MismatchingStateError):
+    with pytest.raises(OAuthError):
         views.authorize(request)
 
 
@@ -96,4 +102,35 @@ def test_authorize_invalid_key_id(id_token_generator, auth_req_generator):
     id_token = id_token_generator(kid="unknown_key_id")
     request = auth_req_generator(id_token)
     with pytest.raises(ValueError):
+        views.authorize(request)
+
+
+def test_authorize_error(rf):
+    # The authorization endpoint (on the authorization server) may give a
+    # redirect (302) with an error message.
+    request = rf.get("http://testserver/authorize/?error=some_error")
+    request.session = {}
+    with pytest.raises(OAuthError, match="some_error: some_error"):
+        views.authorize(request)
+
+
+def test_authorize_error_with_description(rf):
+    request = rf.get(
+        "http://testserver/authorize/?error=some_error&error_description=bla"
+    )
+    request.session = {}
+    with pytest.raises(OAuthError, match="some_error: bla"):
+        views.authorize(request)
+
+
+def test_token_error(rq_mocker, rf, openid_configuration):
+    rq_mocker.post(
+        openid_configuration["token_endpoint"],
+        status_code=400,
+        json={"error": "some_error", "error_description": "bla"},
+    )
+    # Create the request
+    request = rf.get("http://testserver/authorize/?code=abc&state=my_state")
+    request.session = {"_cognito_authlib_state_": "my_state"}
+    with pytest.raises(OAuthError, match="some_error: bla"):
         views.authorize(request)
