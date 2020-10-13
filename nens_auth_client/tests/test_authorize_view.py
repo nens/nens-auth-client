@@ -1,6 +1,8 @@
 import pytest
 from urllib.parse import parse_qs
 from nens_auth_client import views
+from nens_auth_client import models
+from django.contrib.auth.models import User
 from authlib.integrations.base_client import MismatchingStateError
 from authlib.jose.errors import JoseError
 import time
@@ -23,6 +25,35 @@ def test_authorize(id_token_generator, auth_req_generator, rq_mocker, openid_con
 
     # check if Cache-Control header is set to "no-store"
     assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+
+
+@pytest.mark.django_db
+def test_authorize_with_invite(id_token_generator, auth_req_generator, rq_mocker, openid_configuration):
+    id_token = id_token_generator()
+    request = auth_req_generator(id_token)
+
+    # Create an Invite to give an existing user additional roles.
+    # The added role is 'add_invite', but it could be anything.
+    user = User.objects.create(username="testuser")
+    invite = models.Invite.create_invite(
+        user_id=user.id,
+        roles_dict=[{
+            "model": "auth.user",
+            "pk": user.id,
+            "fields": {
+                "user_permissions": [
+                    ["add_invite", "nens_auth_client", "invite"],
+                ]
+            }
+        }]
+    )
+    request.session[views.INVITE_ID_KEY] = invite.id
+    response = views.authorize(request)
+    assert response.status_code == 302  # 302 redirect to success url: all checks passed
+    assert response.url == "http://testserver/success"
+
+    perm = user.user_permissions.get()
+    assert perm.codename == "add_invite"
 
 
 def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):

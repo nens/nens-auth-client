@@ -90,9 +90,12 @@ def authorize(request):
     token = client.authorize_access_token(request)
     claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
+    # Get the invite key from the session; use it if present
     invite_id = request.session.get(INVITE_ID_KEY)
     if invite_id:
-        user = Invite.objects.get(id=invite_id).user
+        invite = Invite.objects.select_related("user").get(id=invite_id)
+        invite.create_roles()
+        user = invite.user
     else:
         # The django authentication backend(s) should find a local user
         user = django_auth.authenticate(request, claims=claims)
