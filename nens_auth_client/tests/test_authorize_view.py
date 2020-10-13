@@ -48,12 +48,20 @@ def test_authorize_with_invite(id_token_generator, auth_req_generator, rq_mocker
         }]
     )
     request.session[views.INVITE_ID_KEY] = invite.id
+
+    # before the authorization, there are no roles yet:
+    assert user.user_permissions.count() == 0
+
     response = views.authorize(request)
     assert response.status_code == 302  # 302 redirect to success url: all checks passed
     assert response.url == "http://testserver/success"
 
+    # after authorization (with the correct invite key), the roles are assigned
     perm = user.user_permissions.get()
     assert perm.codename == "add_invite"
+
+    # the invite was cleaned up
+    assert not models.Invite.objects.filter(id=invite.id).exists()
 
 
 def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):

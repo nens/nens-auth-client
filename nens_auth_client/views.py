@@ -96,6 +96,7 @@ def authorize(request):
         invite = Invite.objects.select_related("user").get(id=invite_id)
         invite.create_roles()
         user = invite.user
+        invite.delete()
     else:
         # The django authentication backend(s) should find a local user
         user = django_auth.authenticate(request, claims=claims)
