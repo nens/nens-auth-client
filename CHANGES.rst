@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.2 (unreleased)
+0.2 (2020-10-16)
 ----------------
 
 - Removed the NENS_AUTH_REDIRECT_URI and NENS_AUTH_LOGOUT_REDIRECT_URI. Instead
