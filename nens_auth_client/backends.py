@@ -14,7 +14,7 @@ UserModel = get_user_model()
 
 
 class RemoteUserBackend(ModelBackend):
-    def authenticate(self, request, claims=None):
+    def authenticate(self, request, claims):
         """Authenticate a token through an existing RemoteUser
 
         Args:
@@ -26,9 +26,11 @@ class RemoteUserBackend(ModelBackend):
         """
         uid = claims["sub"]
         try:
-            return UserModel.objects.get(remote__external_user_id=uid)
+            user = UserModel.objects.get(remote__external_user_id=uid)
         except ObjectDoesNotExist:
             return
+
+        return user if self.user_can_authenticate(user) else None
 
 
 class EmailVerifiedBackend(ModelBackend):
@@ -56,7 +58,7 @@ class EmailVerifiedBackend(ModelBackend):
         except (ObjectDoesNotExist, MultipleObjectsReturned):
             return
 
-        return user
+        return user if self.user_can_authenticate(user) else None
 
 
 # for usage in create_remoteuser

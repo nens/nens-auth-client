@@ -23,6 +23,8 @@ Changelog of nens-auth-client
 
 - NENS_AUTH_TIMEOUT is used in the token requests.
 
+- Fix: inactive users can no longer log in.
+
 
 0.1 (2020-09-29)
 ----------------
