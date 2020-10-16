@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix reverse() usage when urls are used in a namespace in another app.
 
 
 0.2 (2020-10-16)
