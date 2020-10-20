@@ -1,6 +1,5 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-from .apps import NensAuthClientConfig
 from .backends import create_remoteuser
 from .oauth import get_oauth_client
 from django.conf import settings
@@ -8,7 +7,6 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.urls import reverse
-from django.urls import NoReverseMatch
 from django.utils.http import is_safe_url
 from django.views.decorators.cache import cache_control
 
@@ -17,23 +15,6 @@ import django.contrib.auth as django_auth
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
-
-
-def _reverse(viewname, *args, **kwargs):
-    """Reverse a view by first trying the namespaced viewname and falling
-    back to the normal viewname.
-
-    The viewname needs namespacing if the urls.py of nens_auth_client are
-    included in the urls of a different application.
-
-    The fallback makes sure that this also works when this app is tested
-    standalone.
-    """
-    namespaced_viewname = ":".join([NensAuthClientConfig.name, viewname])
-    try:
-        return reverse(namespaced_viewname, *args, **kwargs)
-    except NoReverseMatch:
-        return reverse(viewname, *args, **kwargs)
 
 
 def _get_redirect_from_next(request, default):
@@ -88,7 +69,9 @@ def login(request):
 
     # Redirect to the authorization server
     client = get_oauth_client()
-    redirect_uri = request.build_absolute_uri(_reverse("authorize"))
+    redirect_uri = request.build_absolute_uri(
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "authorize")
+    )
     return client.authorize_redirect(request, redirect_uri)
 
 
@@ -162,6 +145,8 @@ def logout(request):
     )
 
     # Redirect to authorization server
-    logout_uri = request.build_absolute_uri(_reverse("logout"))
+    logout_uri = request.build_absolute_uri(
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout")
+    )
     client = get_oauth_client()
     return client.logout_redirect(request, logout_uri)
