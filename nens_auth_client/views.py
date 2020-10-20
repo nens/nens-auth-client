@@ -69,7 +69,9 @@ def login(request):
 
     # Redirect to the authorization server
     client = get_oauth_client()
-    redirect_uri = request.build_absolute_uri(reverse(authorize))
+    redirect_uri = request.build_absolute_uri(
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "authorize")
+    )
     return client.authorize_redirect(request, redirect_uri)
 
 
@@ -143,6 +145,8 @@ def logout(request):
     )
 
     # Redirect to authorization server
-    logout_uri = request.build_absolute_uri(reverse(logout))
+    logout_uri = request.build_absolute_uri(
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout")
+    )
     client = get_oauth_client()
     return client.logout_redirect(request, logout_uri)

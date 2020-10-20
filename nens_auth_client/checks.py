@@ -31,6 +31,22 @@ def check_resource_server_id(app_configs=None, **kwargs):
 
 
 @register()
+def check_url_namespace(app_configs=None, **kwargs):
+    """Check NENS_AUTH_URL_NAMESPACE ends with a semicolon"""
+    namespace = settings.NENS_AUTH_URL_NAMESPACE
+    if not isinstance(namespace, str):
+        return [Error("The setting NENS_AUTH_URL_NAMESPACE should be a string")]
+    if namespace != "" and not namespace.endswith(":"):
+        return [
+            Error(
+                "The setting NENS_AUTH_URL_NAMESPACE should end with a "
+                "colon (:)."
+            )
+        ]
+    return []
+
+
+@register()
 def check_access_token_middleware_order(app_configs=None, **kwargs):
     """Check if AccessTokenMiddleware is after AuthenticationMiddleware"""
     mw = settings.MIDDLEWARE
