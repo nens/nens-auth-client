@@ -40,7 +40,7 @@ def check_url_namespace(app_configs=None, **kwargs):
         return [
             Error(
                 "The setting NENS_AUTH_URL_NAMESPACE should end with a "
-                "semicolon (:)."
+                "colon (:)."
             )
         ]
     return []
