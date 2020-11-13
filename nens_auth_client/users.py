@@ -1,8 +1,11 @@
-from django.contrib.auth import get_user_model
 from .models import RemoteUser
+from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db import transaction
-from django.core.exceptions import PermissionDenied
+
+
+User = get_user_model()
 
 
 def create_remoteuser(user, claims):
@@ -33,15 +36,12 @@ def create_user(claims):
     Returns:
       django User (created or, in case of a race condition, retrieved)
     """
-    User = get_user_model()
     username = claims["cognito:username"]
     external_id = claims["sub"]
     try:
         with transaction.atomic():
             user = User.objects.create_user(username=username, password=None)
-            RemoteUser.objects.create(
-                external_user_id=external_id, user=user
-            )
+            RemoteUser.objects.create(external_user_id=external_id, user=user)
         return user
     except IntegrityError:
         # A race condition is likely when the same user authorizes twice

@@ -1,9 +1,8 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-from .backends import create_remoteuser
+from . import users
 from .models import Invite
 from .oauth import get_oauth_client
-from .users import create_user, update_user, create_remoteuser
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
@@ -120,16 +119,16 @@ def authorize(request):
             raise PermissionDenied("Invalid invite key")
         if invite.user is not None:
             user = invite.user  # user was created at or before invite creation
-            create_remoteuser(user, claims)  # associate permanently
+            users.create_remoteuser(user, claims)  # associate permanently
         else:
-            user = create_user(claims)  # also creates RemoteUser
+            user = users.create_user(claims)  # also creates RemoteUser
 
     # No user, no login
     if user is None:
         raise PermissionDenied("No user found with this idenity")
 
     # Update the user's metadata fields
-    update_user(user, claims)
+    users.update_user(user, claims)
 
     # Log the user in
     django_auth.login(request, user)

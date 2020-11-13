@@ -1,6 +1,8 @@
+from .users import create_remoteuser
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 
 import logging
 
@@ -55,9 +57,7 @@ class SSOMigrationBackend(ModelBackend):
         """
         username = claims["cognito:username"]
         try:
-            user = UserModel.objects.get(
-                username=username, remote__exists=False
-            )
+            user = UserModel.objects.get(username=username, remote=None)
         except ObjectDoesNotExist:
             return
 
@@ -65,7 +65,6 @@ class SSOMigrationBackend(ModelBackend):
             raise PermissionDenied("User is inactive")
 
         # Create a permanent association
-        from nens_auth_client.users import create_remoteuser
         create_remoteuser(user, claims)
 
         return user if self.user_can_authenticate(user) else None
