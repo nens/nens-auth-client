@@ -132,6 +132,17 @@ If you application requires this logic to be appended, start with subclassing
 ``django.contrib.auth.backends.ModelBackend`` and overriding the ``authenticate``
 method with call signature ``(request: Request, claims: dict)``.
 
+
+Error handling
+--------------
+
+The ``authorize`` view may give several kinds of exceptions. See the relevant
+docstring. These errors are unhandled by nens_auth_client, so that django's
+built-in 403 or 500 templates are used.
+
+For overriding these views, see: https://docs.djangoproject.com/en/3.1/ref/views/#error-views
+
+
 Local development
 -----------------
 

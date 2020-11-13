@@ -74,7 +74,9 @@ def login(request):
 
     # Redirect to the authorization server
     client = get_oauth_client()
-    redirect_uri = request.build_absolute_uri(reverse(authorize))
+    redirect_uri = request.build_absolute_uri(
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "authorize")
+    )
     return client.authorize_redirect(request, redirect_uri)
 
 
@@ -84,10 +86,18 @@ def authorize(request):
 
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
-    TODO: Gracefully handle errors (instead of bare 403 / 500)
+    Raises:
+    - ``authlib.jose.errors.JoseError``: cryptographic errors
+      The error details must never be shown to the user.
+    - ``authlib.integrations.base_client.errors.OAuthError``: OAuth2 errors.
+      These are defined in https://tools.ietf.org/html/rfc6749#section-4.1.2.1.
+      The error descriptions can be shown to the user.
+    - ``django.core.exceptions.PermissionDenied``: authorization errors.
+      This error is raised when no user is present to log in.
     """
     client = get_oauth_client()
-    token = client.authorize_access_token(request)
+    client.check_error_in_query_params(request)
+    token = client.authorize_access_token(request, timeout=settings.NENS_AUTH_TIMEOUT)
     claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
     # Get the invite key from the session; use it if present
@@ -148,6 +158,8 @@ def logout(request):
     )
 
     # Redirect to authorization server
-    logout_uri = request.build_absolute_uri(reverse(logout))
+    logout_uri = request.build_absolute_uri(
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout")
+    )
     client = get_oauth_client()
     return client.logout_redirect(request, logout_uri)

@@ -2,7 +2,19 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.2 (unreleased)
+0.4 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
+0.3 (2020-10-20)
+----------------
+
+- Fix reverse() usage when urls are used in a namespace in another app.
+
+
+0.2 (2020-10-16)
 ----------------
 
 - Removed the NENS_AUTH_REDIRECT_URI and NENS_AUTH_LOGOUT_REDIRECT_URI. Instead
@@ -18,6 +30,12 @@ Changelog of nens-auth-client
   Servers.
 
 - Renamed "userinfo" to "claims" in the authentication backends.
+
+- Error query parameters are handled in the authorize endpoint.
+
+- NENS_AUTH_TIMEOUT is used in the token requests.
+
+- Fix: inactive users can no longer log in.
 
 
 0.1 (2020-09-29)

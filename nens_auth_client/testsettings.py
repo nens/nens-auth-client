@@ -129,6 +129,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 NENS_AUTH_STANDALONE = True  # for testing
+NENS_AUTH_URL_NAMESPACE = ""  # nens_auth_client urls.py is the root url conf
 NENS_AUTH_CLIENT_ID = "1f1rf3n93dnsvb6jinske1ccrl"
 NENS_AUTH_CLIENT_SECRET = "1eqdu9bffroptll5bt3lejetkusqaln0ve8ad6l8clg1igoo0728"
 NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV"

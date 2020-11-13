@@ -2,6 +2,7 @@ from django.conf import settings
 from authlib.jose import JsonWebToken
 from authlib.jose import jwk
 from authlib.integrations.django_client import DjangoRemoteApp
+from authlib.integrations.base_client.errors import OAuthError
 from django.http.response import HttpResponseRedirect
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
@@ -140,3 +141,18 @@ class CognitoOAuthClient(DjangoRemoteApp):
 
         claims.validate(leeway=leeway)
         return claims
+
+    def check_error_in_query_params(self, request):
+        """Handle errors in the query parameters
+
+        The authorization endpoint (on the authorization server) may respond
+        with a redirect (302) containing error information.
+
+        See: https://tools.ietf.org/html/rfc6749#section-4.1.2.1
+        """
+        error_type = request.GET.get("error")
+        if error_type:
+            raise OAuthError(
+                error_type,
+                description=request.GET.get("error_description", error_type),
+            )

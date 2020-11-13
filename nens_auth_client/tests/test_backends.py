@@ -39,6 +39,16 @@ def test_remoteuser_not_exists(user_getter):
     user_getter.assert_called_with(remote__external_user_id="remote-uid")
 
 
+def test_remoteuser_inactive(user_getter):
+    user_getter.return_value = User(username="testuser", is_active=False)
+
+    user = backends.RemoteUserBackend().authenticate(
+        request=None, claims={"sub": "remote-uid"}
+    )
+    assert user is None
+    user_getter.assert_called_with(remote__external_user_id="remote-uid")
+
+
 def test_emailverified_exists(user_getter):
     user_getter.return_value = User(username="testuser")
 
@@ -56,6 +66,21 @@ def test_emailverified_exists(user_getter):
 
 def test_emailverified_not_exists(user_getter):
     user_getter.side_effect = ObjectDoesNotExist
+
+    user = backends.EmailVerifiedBackend().authenticate(
+        request=None,
+        claims={
+            "sub": "remote-uid",
+            "email": "a@b.com",
+            "email_verified": True,
+        },
+    )
+    assert user is None
+    user_getter.assert_called_with(email__iexact="a@b.com")
+
+
+def test_emailverified_inactive(user_getter):
+    user_getter.return_value = User(username="testuser", is_active=False)
 
     user = backends.EmailVerifiedBackend().authenticate(
         request=None,
