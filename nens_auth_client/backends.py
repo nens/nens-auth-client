@@ -42,11 +42,11 @@ class SSOMigrationBackend(ModelBackend):
     def authenticate(self, request, claims):
         """Temporary backend for users that were migrated from SSO to AWS.
 
-        Previously, users were matched by username. Keep doing that for users
-        that came from the SSO and have not been associated yet.
+        Previously, users were matched by username. We keep doing that for
+        users that came from the SSO and have not been associated yet.
 
-        At AWS Cognito, there is a Sign Up trigger that checks if a username
-        already exists at the SSO. So this should be water tight.
+        At AWS Cognito, there should be a Sign Up trigger that checks if a
+        username already exists at the SSO. So this should be water tight.
 
         Args:
           request: the current request

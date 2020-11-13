@@ -44,17 +44,18 @@ def create_user(claims):
             RemoteUser.objects.create(external_user_id=external_id, user=user)
         return user
     except IntegrityError:
-        # A race condition is likely when the same user authorizes twice
+        # A race condition might occur when the same user authorizes twice
+        # at the same time.
         try:
             return User.objects.get(remote__external_user_id=external_id)
         except User.DoesNotExist:
             pass
 
-        # Another option is that the username is already taken
+        # Another option is that the username is already taken.
         if User.objects.filter(username=username).exists():
             raise PermissionDenied("This username is already taken")
 
-        # Unknown IntegrityErrors should be raised as such:
+        # Unknown IntegrityErrors should be raised.
         raise
 
 
