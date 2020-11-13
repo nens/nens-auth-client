@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 import logging
@@ -37,12 +36,15 @@ class RemoteUserBackend(ModelBackend):
         return user
 
 
-class EmailVerifiedBackend(ModelBackend):
+class SSOMigrationBackend(ModelBackend):
     def authenticate(self, request, claims):
-        """Authenticate a token by verified email address (case-insensitive).
+        """Temporary backend for users that were migrated from SSO to AWS.
 
-        When there are multiple users with the same email address, no user is
-        returned.
+        Previously, users were matched by username. Keep doing that for users
+        that came from the SSO and have not been associated yet.
+
+        At AWS Cognito, there is a Sign Up trigger that checks if a username
+        already exists at the SSO. So this should be water tight.
 
         Args:
           request: the current request
@@ -51,15 +53,19 @@ class EmailVerifiedBackend(ModelBackend):
         Returns:
           user or None
         """
-        if not claims.get("email_verified", False):
-            return
-        email = claims.get("email")
-        if not email:
+        username = claims["cognito:username"]
+        try:
+            user = UserModel.objects.get(
+                username=username, remote__exists=False
+            )
+        except ObjectDoesNotExist:
             return
 
-        try:
-            user = UserModel.objects.get(email__iexact=email)
-        except (ObjectDoesNotExist, MultipleObjectsReturned):
-            return
+        if not self.user_can_authenticate(user):
+            raise PermissionDenied("User is inactive")
+
+        # Create a permanent association
+        from nens_auth_client.users import create_remoteuser
+        create_remoteuser(user, claims)
 
         return user if self.user_can_authenticate(user) else None

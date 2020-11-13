@@ -124,6 +124,7 @@ ALLOWED_HOSTS = ["localhost"]
 
 AUTHENTICATION_BACKENDS = [
     "nens_auth_client.backends.RemoteUserBackend",
+    "nens_auth_client.backends.SSOMigrationBackend",
     "django.contrib.auth.backends.ModelBackend"
 ]
 
