@@ -1,13 +1,9 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 from django.conf import settings
-from django.contrib.auth.models import Permission
-from django.core import serializers
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
 from functools import partial
-
 # A known caveat of django-appconf is that we need to import the AppConf here
 from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 
@@ -101,63 +97,3 @@ class Invite(models.Model):
 
     def revoke(self):
         self._update_status(Invite.REVOKED)
-
-
-def validate_permissions(permissions):
-    """Validate invite permissions.
-
-    This function can be overriden by changing NENS_AUTH_VALIDATE_PERMISSIONS
-
-    It is validated that permissions is a dict and contains a key
-    "user_permissions" that has a list of  contain a list of
-        natural keys natural key (<codename>, <app>, <model>)
-
-      {"user_permissions":  [["add_invite", "nens_auth_client", "invite"]]}
-
-    Args:
-      permissions (dict): 
-    <model>), like for example:
-    """
-    if not isinstance(permissions, dict):
-        raise ValidationError("Invite permissions should be a dictionary")
-    try:
-        user_permission_keys = permissions["user_permissions"]
-    except KeyError:
-        raise ValidationError("Permissions do not contain 'user_permissions'")
-    non_existing = []
-    if not isinstance(user_permission_keys, list):
-        raise ValidationError("user_permissions is not a list")
-    for permission_key in user_permission_keys:
-        if not isinstance(permission_key, list) or len(permission_key) != 3:
-            raise ValidationError(
-                "A user_permission is not a length-3 list. Every user_permission should contain 3 elements: [<codename>, <app>, <model>]."
-            )
-        try:
-            Permission.objects.get_by_natural_key(*permission_key)
-        except (TypeError, ObjectDoesNotExist):
-            non_existing.append(permission_key)
-    if non_existing:
-        raise ValidationError("Permissions {} do not exist".format(non_existing))
-
-
-def assign_permissions(permissions, user):
-    """Assign permissions from an invite to a user.
-
-    This function can be overriden by changing NENS_AUTH_ASSIGN_PERMISSIONS
-
-    Args:
-      permissions (dict)
-      user (User)
-    """
-    user_permission_keys = permissions.get("user_permissions", [])
-    user_permission_objs = []
-    for permission_key in user_permission_keys:
-        try:
-            user_permission_objs.append(
-                Permission.objects.get_by_natural_key(permission_key)
-            )
-        except ObjectDoesNotExist:
-            logger.warning(
-                "Skipped assigning non-existing permission %s", permission_key
-            )
-    user.user_permissions.add(permissions)

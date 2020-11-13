@@ -15,8 +15,8 @@ class NensAuthClientAppConf(AppConf):
 
     RESOURCE_SERVER_ID = None  # For Access Tokens ("aud" should equal this)
 
-    ASSIGN_PERMISSIONS = "nens_auth_client.models.assign_permissions"
-    VALIDATE_PERMISSIONS = "nens_auth_client.models.validate_permissions"
+    ASSIGN_PERMISSIONS = "nens_auth_client.permissions.assign_permissions"
+    VALIDATE_PERMISSIONS = "nens_auth_client.permissions.validate_permissions"
 
     class Meta:
         prefix = "NENS_AUTH"
