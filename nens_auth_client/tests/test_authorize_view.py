@@ -8,6 +8,7 @@ from urllib.parse import parse_qs
 
 import pytest
 import time
+import json
 
 
 def test_authorize(
@@ -42,9 +43,9 @@ def test_authorize_with_invite(id_token_generator, auth_req_generator, rq_mocker
     # Create an Invite to give an existing user additional roles.
     # The added role is 'add_invite', but it could be anything.
     user = User.objects.create(username="testuser")
-    invite = models.Invite.create_invite(
+    invite = models.Invite.objects.create(
         user_id=user.id,
-        roles_dict=[{
+        permissions=json.dumps([{
             "model": "auth.user",
             "pk": user.id,
             "fields": {
@@ -52,7 +53,7 @@ def test_authorize_with_invite(id_token_generator, auth_req_generator, rq_mocker
                     ["add_invite", "nens_auth_client", "invite"],
                 ]
             }
-        }]
+        }])
     )
     request.session[views.INVITE_ID_KEY] = invite.id
 

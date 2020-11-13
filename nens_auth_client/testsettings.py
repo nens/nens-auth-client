@@ -123,9 +123,8 @@ INSTALLED_APPS = (
 ALLOWED_HOSTS = ["localhost"]
 
 AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
     "nens_auth_client.backends.RemoteUserBackend",
-    "nens_auth_client.backends.EmailVerifiedBackend",
+    "django.contrib.auth.backends.ModelBackend"
 ]
 
 NENS_AUTH_STANDALONE = True  # for testing

@@ -3,6 +3,7 @@
 from .backends import create_remoteuser
 from .models import Invite
 from .oauth import get_oauth_client
+from .users import create_user, update_user, create_remoteuser
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
@@ -40,9 +41,6 @@ def _get_redirect_from_next(request, default):
 def login(request):
     """Initiate authentication through OpenID Connect
 
-    The response is a redirect to AWS Cognito according to the OpenID Connect
-    standard.
-
     The full flow goes as follows:
 
     1. https://x.lizard.net/login/?next=/admin/
@@ -50,11 +48,20 @@ def login(request):
     3. https://x.lizard.net/authorize/
     4. https://x.lizard.net/admin/
 
+    Query parameters:
+      next: the URL to redirect to on authorization success. If absolute, it
+        must match the domain of this request. Optional, default is set by
+        settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+      invite: the id of an Invite. On authorization success, a user will be
+        created and permissions from the Invite are applied.
+
+    The response is a redirect to AWS Cognito according to the OpenID Connect
+    standard.
+
     Note that a list of all (absolute) redirect URIs
     (e.g. "https://auth.lizard.net/authorize/") need to be registered with
-    AWS Cognito. Wildcards are not allowed because of security reasons.
-
-    At the same time we need the redirect to go to the correct subdomain or
+    AWS Cognito. Wildcards are not allowed because of security reasons. At
+    the same time we need the redirect to go to the correct subdomain or
     else cookies will not be valid.
     """
     # Get the success redirect url
@@ -100,26 +107,32 @@ def authorize(request):
     token = client.authorize_access_token(request, timeout=settings.NENS_AUTH_TIMEOUT)
     claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
 
-    # Get the invite key from the session; use it if present
-    invite_id = request.session.get(INVITE_ID_KEY)
-    if invite_id:
-        invite = Invite.objects.select_related("user").get(id=invite_id)
-        invite.create_roles()
-        user = invite.user
-        invite.delete()
-    else:
-        # The django authentication backend(s) should find a local user
-        user = django_auth.authenticate(request, claims=claims)
+    # The RemoteUserBackend finds a local user through a RemoteUser
+    user = django_auth.authenticate(request, claims=claims)
 
+    # If nothing was found: only a valid invite warrants a new user association
+    if user is None and INVITE_ID_KEY in request.session:
+        try:
+            invite = Invite.objects.select_related("user").get(
+                id=request.session[INVITE_ID_KEY], status=Invite.PENDING
+            )
+        except Invite.DoesNotExist:
+            raise PermissionDenied("Invalid invite key")
+        if invite.user is not None:
+            user = invite.user  # user was created at or before invite creation
+            create_remoteuser(user, claims)  # associate permanently
+        else:
+            user = create_user(claims)  # also creates RemoteUser
+
+    # No user, no login
     if user is None:
         raise PermissionDenied("No user found with this idenity")
 
+    # Update the user's metadata fields
+    update_user(user, claims)
+
     # Log the user in
     django_auth.login(request, user)
-
-    # Create a permanent association between local and external users
-    if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
-        create_remoteuser(user, claims)
 
     return HttpResponseRedirect(request.session[LOGIN_REDIRECT_SESSION_KEY])
 
