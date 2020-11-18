@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('id', models.CharField(default=functools.partial(django.utils.crypto.get_random_string, *(32,), **{}), max_length=32, primary_key=True, serialize=False)),
                 ('status', models.SmallIntegerField(choices=[(0, 'Pending'), (1, 'Accepted'), (2, 'Rejected'), (3, 'Revoked'), (4, 'Failed')], default=0)),
                 ('expires', models.DateTimeField()),
-                ('permissions', models.TextField(default='{}', help_text='The permissions to be created after an invite is accepted, as a JSON object. In the default nens-auth-client implementation, django built-in user permissions are expected.', validators=[nens_auth_client.models._validate_permissions])),
+                ('permissions', models.TextField(default='{}', help_text='The permissions to be set after an invite is accepted, as a JSON object. The expected JSON fields depends on the setting NENS_AUTH_PERMISSION_BACKEND. See the project README.', validators=[nens_auth_client.models._validate_permissions])),
                 ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invites_sent', to=settings.AUTH_USER_MODEL)),
                 ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invites_received', to=settings.AUTH_USER_MODEL)),
             ],
