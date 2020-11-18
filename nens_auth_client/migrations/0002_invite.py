@@ -20,13 +20,13 @@ class Migration(migrations.Migration):
             name='Invitation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.CharField(db_index=True, default=functools.partial(django.utils.crypto.get_random_string, *(32,), **{}), help_text='The (secret) slug for end-users to use the invite.', max_length=32)),
+                ('slug', models.CharField(db_index=True, default=functools.partial(django.utils.crypto.get_random_string, *(32,), **{}), help_text='The (secret) slug for end-users to use the invitation.', max_length=32)),
                 ('status', models.SmallIntegerField(choices=[(0, 'Pending'), (1, 'Accepted'), (2, 'Rejected'), (3, 'Revoked'), (4, 'Failed')], default=0)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
-                ('permissions', models.TextField(default='{}', help_text='The permissions to be set after an invite is accepted, as a JSON object. The expected JSON fields depends on the setting NENS_AUTH_PERMISSION_BACKEND. See the project README.', validators=[nens_auth_client.models._validate_permissions])),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invites_sent', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invites_received', to=settings.AUTH_USER_MODEL)),
+                ('permissions', models.TextField(default='{}', help_text='The permissions to be set after an invitation is accepted, as a JSON object. The expected JSON fields depends on the setting NENS_AUTH_PERMISSION_BACKEND. See the project README.', validators=[nens_auth_client.models._validate_permissions])),
+                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invitations_sent', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invitations_received', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

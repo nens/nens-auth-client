@@ -44,7 +44,7 @@ class Invitation(models.Model):
         db_index=True,
         max_length=32,
         default=partial(get_random_string, 32),
-        help_text="The (secret) slug for end-users to use the invite.",
+        help_text="The (secret) slug for end-users to use the invitation.",
     )
     PENDING = 0
     ACCEPTED = 1
@@ -63,7 +63,7 @@ class Invitation(models.Model):
         user_model,
         null=True,
         blank=True,
-        related_name="invites_received",
+        related_name="invitations_received",
         on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -72,7 +72,7 @@ class Invitation(models.Model):
         user_model,
         null=True,
         blank=True,
-        related_name="invites_sent",
+        related_name="invitations_sent",
         on_delete=models.CASCADE,
     )
     # Note that we do not use postgres' JSONField. Some projects use sqlite.
@@ -80,7 +80,7 @@ class Invitation(models.Model):
         default="{}",
         validators=[_validate_permissions],
         help_text=(
-            "The permissions to be set after an invite is accepted, as a "
+            "The permissions to be set after an invitation is accepted, as a "
             "JSON object. The expected JSON fields depends on the setting "
             "NENS_AUTH_PERMISSION_BACKEND. See the project README."
         ),

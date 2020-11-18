@@ -18,7 +18,7 @@ import django.contrib.auth as django_auth
 
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
-INVITE_KEY = "nens_auth_invite_slug"
+INVITE_KEY = "nens_auth_invitation_slug"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
@@ -45,7 +45,7 @@ def login(request):
 
     The full flow goes as follows:
 
-    1. https://x.lizard.net/login/?next=/admin/&invite=1234abcd
+    1. https://x.lizard.net/login/?next=/admin/&invitation=1234abcd
     2. https://aws.cognito/login/?...&redirect_uri=https://x.lizard.net/authorize/
     3. https://x.lizard.net/authorize/
     4. https://x.lizard.net/admin/
@@ -54,7 +54,7 @@ def login(request):
       next: the URL to redirect to on authorization success. If absolute, it
         must match the domain of this request. Optional, default is set by
         settings.NENS_AUTH_DEFAULT_SUCCESS_URL
-      invite: an optional Invitation id. On authorization success, a user will be
+      invitation: an optional Invitation id. On authorization success, a user will be
         created and permissions from the Invitation are applied.
 
     The response is a redirect to AWS Cognito according to the OpenID Connect
@@ -78,8 +78,8 @@ def login(request):
     # Store the success_url in the session for later use
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
-    # Store the invite-key (if present)
-    request.session[INVITE_KEY] = request.GET.get("invite", None)
+    # Store the invitation-key (if present)
+    request.session[INVITE_KEY] = request.GET.get("invitation", None)
 
     # Redirect to the authorization server
     client = get_oauth_client()
@@ -112,17 +112,17 @@ def authorize(request):
     # The RemoteUserBackend finds a local user through a RemoteUser
     user = django_auth.authenticate(request, claims=claims)
 
-    # If nothing was found: only a valid invite warrants a new user association
+    # If nothing was found: only a valid invitation warrants a new user association
     if user is None and INVITE_KEY in request.session:
         try:
-            invite = Invitation.objects.select_related("user").get(
+            invitation = Invitation.objects.select_related("user").get(
                 slug=request.session[INVITE_KEY], status=Invitation.PENDING
             )
         except Invitation.DoesNotExist:
-            raise PermissionDenied("Invalid invite key")
-        if invite.user is not None:
+            raise PermissionDenied("Invalid invitation key")
+        if invitation.user is not None:
             # associate permanently
-            user = invite.user
+            user = invitation.user
             users.create_remote_user(user, claims)
         else:
             # create user and associate permanently
@@ -185,18 +185,18 @@ def logout(request):
 
 
 @cache_control(no_store=True)
-def accept_invite(request, invite):
+def accept_invitation(request, invitation):
     """Assign the permissions of an Invitation to the current user.
 
     If there is no current user, first redirect to the login view, adding
-    'next' and 'invite' query parameters. The 'invite' parameter makes sure
+    'next' and 'invitation' query parameters. The 'invitation' parameter makes sure
     that a user will be created if necessary. The 'next' parameter makes sure
     that the user will return here after successful login.
 
     The full flow goes as follows:
 
     1. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
-    2. https://xxx.lizard.net/login/?invite=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
+    2. https://xxx.lizard.net/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
     3. https://aws.cognito/login?...&redirect_uri=https://auth.lizard.net/authorize/
     4. https://xxx.lizard.net/authorize/
     5. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
@@ -207,11 +207,11 @@ def accept_invite(request, invite):
     # Redirect to login view if user is not authenticated
     if not request.user.is_authenticated:
         login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
-        query_params = {"invite": invite, "next": request.get_full_path()}
+        query_params = {"invitation": invitation, "next": request.get_full_path()}
         return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
 
-    invite = get_object_or_404(Invitation, slug=invite, status=Invitation.PENDING)
-    invite.accept(request.user)
+    invitation = get_object_or_404(Invitation, slug=invitation, status=Invitation.PENDING)
+    invitation.accept(request.user)
     success_url = _get_redirect_from_next(
         request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
     )

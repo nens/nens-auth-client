@@ -17,7 +17,7 @@ def test_invitation_accept(rf, get_object_or_404):
     request.user = mock.Mock()
     request.user.is_authenticated = True
 
-    response = views.accept_invite(request, "foo")
+    response = views.accept_invitation(request, "foo")
     assert response.status_code == 302
     assert response.url == "/success/"
 
@@ -32,12 +32,12 @@ def test_invitation_not_logged_in(rf, get_object_or_404):
     request.user = mock.Mock()
     request.user.is_authenticated = False
 
-    response = views.accept_invite(request, "foo")
+    response = views.accept_invitation(request, "foo")
     assert response.status_code == 302
     _, _, path, _, query, _ = urlparse(response.url)
     assert path == "/login/"
     query_parsed = parse_qs(query)
-    assert query_parsed["invite"] == ["foo"]
+    assert query_parsed["invitation"] == ["foo"]
     assert query_parsed["next"] == ["/some/url/"]
 
     assert not get_object_or_404.called

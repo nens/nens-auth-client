@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 class DjangoPermissionBackend:
-    """This class bundles functions to validate and assign invite permissions.
+    """This class bundles functions to validate and assign invitation permissions.
 
     This class serves as an example implementation. It can be overriden with
     the NENS_AUTH_PERMISSION_BACKEND setting.
     """
 
     def validate(self, permissions):
-        """Validate invite permissions.
+        """Validate invitation permissions.
 
         It is validated that permissions is a dict and contains a key
         "user_permissions" that has a list of Permission natural keys
@@ -27,7 +27,7 @@ class DjangoPermissionBackend:
           permissions (dict)
 
         Example:
-          {"user_permissions":  [["add_invite", "nens_auth_client", "invite"]]}
+          {"user_permissions":  [["add_invitation", "nens_auth_client", "invitation"]]}
         """
         if not isinstance(permissions, dict):
             raise ValidationError("Invitation permissions should be a dictionary")
@@ -49,7 +49,7 @@ class DjangoPermissionBackend:
             raise ValidationError("Permissions {} do not exist".format(non_existing))
 
     def assign(self, permissions, user):
-        """Assign permissions from an invite to a user.
+        """Assign permissions from an invitation to a user.
 
         Args:
           permissions (dict): see validate()
