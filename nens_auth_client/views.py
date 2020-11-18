@@ -184,33 +184,32 @@ def logout(request):
     return client.logout_redirect(request, logout_uri)
 
 
-def login_required_with_invite(view_func):
-    """Decorator to redirect the user to the login view if needed.
+@cache_control(no_store=True)
+def accept_invite(request, invite):
+    """Assign the permissions of an Invitation to the current user.
 
-    In addition to what django's ``login_required`` does, this decorator adds
-    the query parameter ``invite`` to the url.
+    If there is no current user, first redirect to the login view, adding
+    'next' and 'invite' query parameters. The 'invite' parameter makes sure
+    that a user will be created if necessary. The 'next' parameter makes sure
+    that the user will return here after successful login.
+
+    The full flow goes as follows:
+
+    1. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
+    2. https://xxx.lizard.net/login/?invite=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
+    3. https://aws.cognito/login?...&redirect_uri=https://auth.lizard.net/authorize/
+    4. https://xxx.lizard.net/authorize/
+    5. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
+    6. https://xxx.lizard.net/admin/
+
+    If the user was already logged in, only steps 5 and 6 are done.
     """
-
-    def wrapper(request, invite):
-        if request.user.is_authenticated:
-            return view_func(request, invite)
-
+    # Redirect to login view if user is not authenticated
+    if not request.user.is_authenticated:
         login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
         query_params = {"invite": invite, "next": request.get_full_path()}
         return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
 
-    return wrapper
-
-
-@cache_control(no_store=True)
-@login_required_with_invite
-def accept_invite(request, invite):
-    """Set the permissions of an Invitation object to the current user.
-
-    The status of the Invitation will become ACCEPTED.
-
-    This view requires login, but the login will auto-create a user.
-    """
     invite = get_object_or_404(Invitation, slug=invite, status=Invitation.PENDING)
     invite.accept(request.user)
     success_url = _get_redirect_from_next(
