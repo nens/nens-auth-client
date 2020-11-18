@@ -18,7 +18,7 @@ import django.contrib.auth as django_auth
 
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
-INVITE_KEY = "nens_auth_invitation_slug"
+INVITATION_KEY = "nens_auth_invitation_slug"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
@@ -79,7 +79,7 @@ def login(request):
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Store the invitation-key (if present)
-    request.session[INVITE_KEY] = request.GET.get("invitation", None)
+    request.session[INVITATION_KEY] = request.GET.get("invitation", None)
 
     # Redirect to the authorization server
     client = get_oauth_client()
@@ -113,10 +113,10 @@ def authorize(request):
     user = django_auth.authenticate(request, claims=claims)
 
     # If nothing was found: only a valid invitation warrants a new user association
-    if user is None and INVITE_KEY in request.session:
+    if user is None and INVITATION_KEY in request.session:
         try:
             invitation = Invitation.objects.select_related("user").get(
-                slug=request.session[INVITE_KEY], status=Invitation.PENDING
+                slug=request.session[INVITATION_KEY], status=Invitation.PENDING
             )
         except Invitation.DoesNotExist:
             raise PermissionDenied("Invalid invitation key")

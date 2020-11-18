@@ -51,14 +51,14 @@ class Invitation(models.Model):
     REJECTED = 2
     REVOKED = 3
     FAILED = 4
-    INVITE_STATUS_CHOICES = [
+    INVITATION_STATUS_CHOICES = [
         (PENDING, "Pending"),
         (ACCEPTED, "Accepted"),
         (REJECTED, "Rejected"),
         (REVOKED, "Revoked"),
         (FAILED, "Failed"),
     ]
-    status = models.SmallIntegerField(choices=INVITE_STATUS_CHOICES, default=PENDING)
+    status = models.SmallIntegerField(choices=INVITATION_STATUS_CHOICES, default=PENDING)
     user = models.ForeignKey(
         user_model,
         null=True,

@@ -79,7 +79,7 @@ def test_authorize_with_invitation_existing_user(
 
     user = User(username="testuser")
     invitation_getter.return_value = models.Invitation(slug="foo", user=user)
-    request.session[views.INVITE_KEY] = "foo"
+    request.session[views.INVITATION_KEY] = "foo"
 
     response = views.authorize(request)
     assert response.status_code == 302  # 302 redirect to success url: all checks passed
@@ -115,7 +115,7 @@ def test_authorize_with_invitation_new_user(
     user = User(username="testuser")
     invitation_getter.return_value = models.Invitation(slug="foo", user=None)
     users_m.create_user.return_value = user
-    request.session[views.INVITE_KEY] = "foo"
+    request.session[views.INVITATION_KEY] = "foo"
 
     response = views.authorize(request)
     assert response.status_code == 302  # 302 redirect to success url: all checks passed
