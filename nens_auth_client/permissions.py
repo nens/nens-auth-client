@@ -20,7 +20,7 @@ class DjangoPermissionBackend:
         """Validate invite permissions.
 
         It is validated that permissions is a dict and contains a key
-        "user_permissions" that has a list of Permission natural keys 
+        "user_permissions" that has a list of Permission natural keys
         (<<codename>, <app>, <model>)
 
         Args:
