@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Invite',
+            name='Invitation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('slug', models.CharField(db_index=True, default=functools.partial(django.utils.crypto.get_random_string, *(32,), **{}), help_text='The (secret) slug for end-users to use the invite.', max_length=32)),

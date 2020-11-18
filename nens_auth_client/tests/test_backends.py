@@ -50,9 +50,7 @@ def test_ssomigration_exists(user_getter, create_remote_user):
     claims = {"sub": "remote-uid", "cognito:username": "testuser"}
     user_getter.return_value = User(username="testuser")
 
-    user = backends.SSOMigrationBackend().authenticate(
-        request=None, claims=claims
-    )
+    user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user.username == "testuser"
     user_getter.assert_called_with(username="testuser", remote=None)
     create_remote_user.assert_called_with(user, claims)
@@ -82,7 +80,5 @@ def test_ssomigration_no_username_claim(user_getter, create_remote_user):
     claims = {"sub": "remote-uid"}
     user_getter.return_value = User(username="testuser")
 
-    user = backends.SSOMigrationBackend().authenticate(
-        request=None, claims=claims
-    )
+    user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user is None

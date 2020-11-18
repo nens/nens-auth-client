@@ -56,14 +56,14 @@ def test_assign_permissions(permissions, Permission_m):
     Permission_m.objects.get_by_natural_key.assert_called_with(
         "add_invite", "nens_auth_client", "invite"
     )
-    user.user_permissions.add.assert_called_with(["bar"])
+    user.user_permissions.add.assert_called_with("bar")
 
 
 def test_assign_permissions_skips_nonexisting(permissions, Permission_m, caplog):
     user = mock.Mock()
     Permission_m.objects.get_by_natural_key.side_effect = ObjectDoesNotExist
     DjangoPermissionBackend().assign(permissions, user)
-    user.user_permissions.add.assert_called_with([])
+    user.user_permissions.add.assert_called_with()
 
     assert caplog.record_tuples == [
         (

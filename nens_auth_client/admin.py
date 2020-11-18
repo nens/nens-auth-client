@@ -11,8 +11,8 @@ class RemoteUserAdmin(admin.ModelAdmin):
     readonly_fields = ["created", "last_modified"]
 
 
-@admin.register(models.Invite)
-class InviteAdmin(admin.ModelAdmin):
+@admin.register(models.Invitation)
+class InvitationAdmin(admin.ModelAdmin):
     list_display = ("id", "status", "user", "created_by", "created_at")
     list_select_related = ("user", "created_by")
     search_fields = [

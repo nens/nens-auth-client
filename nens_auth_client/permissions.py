@@ -30,7 +30,7 @@ class DjangoPermissionBackend:
           {"user_permissions":  [["add_invite", "nens_auth_client", "invite"]]}
         """
         if not isinstance(permissions, dict):
-            raise ValidationError("Invite permissions should be a dictionary")
+            raise ValidationError("Invitation permissions should be a dictionary")
         user_permission_keys = permissions.get("user_permissions", [])
         non_existing = []
         if not isinstance(user_permission_keys, list):

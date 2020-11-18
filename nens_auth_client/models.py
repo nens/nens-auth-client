@@ -1,8 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
-from datetime import timedelta
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
 from functools import partial
@@ -41,7 +39,7 @@ def _validate_permissions(value):
     backend.validate(permissions=json.loads(value))
 
 
-class Invite(models.Model):
+class Invitation(models.Model):
     slug = models.CharField(
         db_index=True,
         max_length=32,
@@ -102,14 +100,14 @@ class Invite(models.Model):
                 permissions=json.loads(self.permissions), user=user, **kwargs
             )
         except Exception:
-            self._update_status(Invite.FAILED)
+            self._update_status(Invitation.FAILED)
             raise
         else:
-            self._update_status(Invite.ACCEPTED)
+            self._update_status(Invitation.ACCEPTED)
             return result
 
     def reject(self):
-        self._update_status(Invite.REJECTED)
+        self._update_status(Invitation.REJECTED)
 
     def revoke(self):
-        self._update_status(Invite.REVOKED)
+        self._update_status(Invitation.REVOKED)
