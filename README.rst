@@ -150,3 +150,10 @@ Install package and run tests::
     (virtualenv)$ pip install django==2.2
     (virtualenv)$ pip install -e .[test]
     (virtualenv)$ pytest
+
+For testing against an actual User Pool, configure the following environment
+variables (for instance in an ``.env`` file)::
+
+    NENS_AUTH_CLIENT_ID=...
+    NENS_AUTH_CLIENT_SECRET=...
+    NENS_AUTH_ISSUER=https://cognito-idp.{region}.amazonaws.com/{pool-id}

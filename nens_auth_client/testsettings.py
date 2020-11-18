@@ -130,9 +130,9 @@ AUTHENTICATION_BACKENDS = [
 
 NENS_AUTH_STANDALONE = True  # for testing
 NENS_AUTH_URL_NAMESPACE = ""  # nens_auth_client urls.py is the root url conf
-NENS_AUTH_CLIENT_ID = "1f1rf3n93dnsvb6jinske1ccrl"
-NENS_AUTH_CLIENT_SECRET = "1eqdu9bffroptll5bt3lejetkusqaln0ve8ad6l8clg1igoo0728"
-NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV"
+NENS_AUTH_CLIENT_ID = os.environ.get("NENS_AUTH_CLIENT_ID", "test-id")
+NENS_AUTH_CLIENT_SECRET = os.environ.get("NENS_AUTH_CLIENT_SECRET", "test-secret")
+NENS_AUTH_ISSUER = os.environ.get("NENS_AUTH_ISSUER", "http://localhost/test-issuer")
 NENS_AUTH_DEFAULT_LOGOUT_URL = "/admin/"
 NENS_AUTH_DEFAULT_SUCCESS_URL = "/admin/"
 NENS_AUTH_RESOURCE_SERVER_ID = "http://localhost:8000/admin/"  # trailing slash
