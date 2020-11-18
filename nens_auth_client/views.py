@@ -5,17 +5,22 @@ from .models import Invite
 from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.http import is_safe_url
 from django.views.decorators.cache import cache_control
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 
 import django.contrib.auth as django_auth
 
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
-INVITE_ID_KEY = "nens_auth_invite_id"
+INVITE_KEY = "nens_auth_invite_slug"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
@@ -76,7 +81,7 @@ def login(request):
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Store the invite-key (if present)
-    request.session[INVITE_ID_KEY] = request.GET.get("invite", None)
+    request.session[INVITE_KEY] = request.GET.get("invite", None)
 
     # Redirect to the authorization server
     client = get_oauth_client()
@@ -110,18 +115,22 @@ def authorize(request):
     user = django_auth.authenticate(request, claims=claims)
 
     # If nothing was found: only a valid invite warrants a new user association
-    if user is None and INVITE_ID_KEY in request.session:
+    if user is None and INVITE_KEY in request.session:
         try:
             invite = Invite.objects.select_related("user").get(
-                id=request.session[INVITE_ID_KEY], status=Invite.PENDING
+                slug=request.session[INVITE_KEY], status=Invite.PENDING
             )
         except Invite.DoesNotExist:
             raise PermissionDenied("Invalid invite key")
         if invite.user is not None:
-            user = invite.user  # user was created at or before invite creation
-            users.create_remote_user(user, claims)  # associate permanently
+            # associate permanently
+            users.create_remote_user(invite.user, claims)
         else:
-            user = users.create_user(claims)  # also creates RemoteUser
+            # create user and associate permanently
+            users.create_user(claims)
+
+        # Re-authenticate (now the user should exist)
+        user = django_auth.authenticate(request, claims=claims)
 
     # No user, no login
     if user is None:
@@ -175,3 +184,106 @@ def logout(request):
     )
     client = get_oauth_client()
     return client.logout_redirect(request, logout_uri)
+
+
+@cache_control(no_store=True)
+def logout(request):
+    """Logout the user (locally and remotely)
+
+    The full flow goes as follows:
+
+    1. https://xxx.lizard.net/logout/?next=/admin/
+    2. https://aws.cognito/logout?...&redirect_uri=https://auth.lizard.net/logout/
+    3. https://auth.lizard.net/logout/
+    4. https://xxx.lizard.net/admin/
+
+    Note that this view is called twice in this flow.
+    """
+    if not request.user.is_authenticated:
+        # We are in step 3. (user is already logged out)
+        redirect_url = request.session.pop(LOGOUT_REDIRECT_SESSION_KEY, None)
+        if redirect_url is None:
+            # If there is nothing in the session, the user called /logout
+            # without being logged in in the first place. Just use the 'next'
+            # parameter.
+            redirect_url = _get_redirect_from_next(
+                request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+            )
+        return HttpResponseRedirect(redirect_url)
+
+    # Log the user out
+    django_auth.logout(request)
+
+    # Store the redirect_url in the session for later use
+    request.session[LOGOUT_REDIRECT_SESSION_KEY] = _get_redirect_from_next(
+        request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+    )
+
+    # Redirect to authorization server
+    logout_uri = request.build_absolute_uri(
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout")
+    )
+    client = get_oauth_client()
+    return client.logout_redirect(request, logout_uri)
+
+
+def login_required_with_invite(view_func):
+    """Decorator to redirect the user to the login view if needed.
+
+    In addition to what django's ``login_required`` does, this decorator adds
+    the query parameter ``invite`` to the url.
+    """
+
+    def wrapper(request, invite):
+        if request.user.is_authenticated:
+            return view_func(request, invite)
+
+        login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
+        query_params = {"invite": invite, "next": request.get_full_path()}
+        return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
+
+    return wrapper
+
+
+@cache_control(no_store=True)
+@login_required_with_invite
+def accept_invite(request, invite):
+    """Set the permissions of an Invite object to the current user.
+
+    The status of the Invite will become ACCEPTED.
+
+    This view requires login, but the login will auto-create a user.
+    """
+    invite = get_object_or_404(Invite, slug=invite, status=Invite.PENDING)
+    invite.accept(request.user)
+    success_url = _get_redirect_from_next(
+        request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    )
+    return HttpResponseRedirect(success_url)
+
+
+@cache_control(no_store=True)
+def reject_invite(request, invite):
+    """Reject an invite (for invited users).
+    """
+    invite = get_object_or_404(Invite, slug=invite, status=Invite.PENDING)
+    invite.reject()
+    success_url = _get_redirect_from_next(
+        request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    )
+    return HttpResponseRedirect(success_url)
+
+
+@cache_control(no_store=True)
+@login_required(login_url=settings.NENS_AUTH_URL_NAMESPACE + "login")
+def revoke_invite(request, invite):
+    """Revoke an invite (for invite creators)
+    """
+    invite = get_object_or_404(
+        Invite, slug=invite, status=Invite.PENDING, created_by=request.user
+    )
+    invite.revoke()
+    success_url = _get_redirect_from_next(
+        request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    )
+    return HttpResponseRedirect(success_url)

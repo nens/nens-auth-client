@@ -66,4 +66,4 @@ class DjangoPermissionBackend:
                 logger.warning(
                     "Skipped assigning non-existing permission %s", permission_key
                 )
-        user.user_permissions.add(user_permission_objs)
+        user.user_permissions.add(*user_permission_objs)

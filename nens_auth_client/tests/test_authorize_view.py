@@ -78,15 +78,15 @@ def test_authorize_with_invite_existing_user(
     request = auth_req_generator(id_token, user=None)
 
     user = User(username="testuser")
-    invite_getter.return_value = models.Invite(id="foo", user=user)
-    request.session[views.INVITE_ID_KEY] = "foo"
+    invite_getter.return_value = models.Invite(slug="foo", user=user)
+    request.session[views.INVITE_KEY] = "foo"
 
     response = views.authorize(request)
     assert response.status_code == 302  # 302 redirect to success url: all checks passed
     assert response.url == "http://testserver/success"
 
     # check if the invite was looked up
-    invite_getter.assert_called_with(id="foo", status=models.Invite.PENDING)
+    invite_getter.assert_called_with(slug="foo", status=models.Invite.PENDING)
 
     # check if create_remote_user was called
     users_m.create_remote_user.assert_called_with(user, claims)
