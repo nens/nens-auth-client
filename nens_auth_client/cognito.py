@@ -153,6 +153,5 @@ class CognitoOAuthClient(DjangoRemoteApp):
         error_type = request.GET.get("error")
         if error_type:
             raise OAuthError(
-                error_type,
-                description=request.GET.get("error_description", error_type),
+                error_type, description=request.GET.get("error_description", error_type)
             )

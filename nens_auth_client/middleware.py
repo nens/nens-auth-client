@@ -1,4 +1,4 @@
-from .backends import create_remoteuser
+from .backends import create_remote_user
 from .oauth import get_oauth_client
 from authlib.jose.errors import JoseError
 from django.conf import settings
@@ -53,6 +53,6 @@ class AccessTokenMiddleware:
 
         # Create a permanent association between local and external users
         if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
-            create_remoteuser(user, claims)
+            create_remote_user(user, claims)
 
         return self.get_response(request)

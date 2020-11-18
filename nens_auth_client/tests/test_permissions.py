@@ -1,7 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
-from nens_auth_client.permissions import assign_permissions
-from nens_auth_client.permissions import validate_permissions
+from nens_auth_client.permissions import DjangoPermissionBackend
 from unittest import mock
 
 import logging
@@ -20,7 +19,7 @@ def Permission_m(mocker):
 
 def test_validate_permissions(permissions, Permission_m):
     Permission_m.objects.get_by_natural_key.return_value = "bar"
-    validate_permissions(permissions)
+    DjangoPermissionBackend().validate(permissions)
     Permission_m.objects.get_by_natural_key.assert_called_with(
         "add_invite", "nens_auth_client", "invite"
     )
@@ -29,7 +28,7 @@ def test_validate_permissions(permissions, Permission_m):
 def test_validate_permissions_non_existing(permissions, Permission_m):
     Permission_m.objects.get_by_natural_key.side_effect = ObjectDoesNotExist
     with pytest.raises(ValidationError):
-        validate_permissions(permissions)
+        DjangoPermissionBackend().validate(permissions)
     Permission_m.objects.get_by_natural_key.assert_called_with(
         "add_invite", "nens_auth_client", "invite"
     )
@@ -47,13 +46,13 @@ def test_validate_permissions_non_existing(permissions, Permission_m):
 )
 def test_validate_permissions_fails(permissions):
     with pytest.raises(ValidationError):
-        validate_permissions(permissions)
+        DjangoPermissionBackend().validate(permissions)
 
 
 def test_assign_permissions(permissions, Permission_m):
     user = mock.Mock()
     Permission_m.objects.get_by_natural_key.return_value = "bar"
-    assign_permissions(permissions, user)
+    DjangoPermissionBackend().assign(permissions, user)
     Permission_m.objects.get_by_natural_key.assert_called_with(
         "add_invite", "nens_auth_client", "invite"
     )
@@ -63,7 +62,7 @@ def test_assign_permissions(permissions, Permission_m):
 def test_assign_permissions_skips_nonexisting(permissions, Permission_m, caplog):
     user = mock.Mock()
     Permission_m.objects.get_by_natural_key.side_effect = ObjectDoesNotExist
-    assign_permissions(permissions, user)
+    DjangoPermissionBackend().assign(permissions, user)
     user.user_permissions.add.assert_called_with([])
 
     assert caplog.record_tuples == [

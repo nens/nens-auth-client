@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import IntegrityError
-from nens_auth_client.users import create_remoteuser, create_user, update_user
+from nens_auth_client.users import create_remote_user, create_user, update_user
 
 import pytest
 from unittest import mock
@@ -23,7 +23,7 @@ def atomic_m(mocker):
 
 def test_create_remoteuser(remoteuser_mgr):
     user = User(id=42, username="testuser")
-    create_remoteuser(user, {"sub": "abc"})
+    create_remote_user(user, {"sub": "abc"})
 
     remoteuser_mgr.create.assert_called_with(user=user, external_user_id="abc")
 
@@ -32,7 +32,7 @@ def test_create_remoteuser_ignore_if_exists(remoteuser_mgr):
     user = User(id=42, username="testuser")
     remoteuser_mgr.create.side_effect = IntegrityError
     # ignores the IntegrityError:
-    create_remoteuser(user, {"sub": "abc"})
+    create_remote_user(user, {"sub": "abc"})
 
     remoteuser_mgr.create.assert_called_with(user=user, external_user_id="abc")
 

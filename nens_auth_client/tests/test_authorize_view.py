@@ -88,8 +88,8 @@ def test_authorize_with_invite_existing_user(
     # check if the invite was looked up
     invite_getter.assert_called_with(id="foo", status=models.Invite.PENDING)
 
-    # check if create_remoteuser was called
-    users_m.create_remoteuser.assert_called_with(user, claims)
+    # check if create_remote_user was called
+    users_m.create_remote_user.assert_called_with(user, claims)
 
     # check if login was called
     login_m.assert_called_with(request, user)

@@ -35,8 +35,8 @@ class RemoteUser(models.Model):
 
 
 def _validate_permissions(value):
-    func = import_string(settings.NENS_AUTH_VALIDATE_PERMISSIONS)
-    func(json.loads(value))
+    backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
+    backend.validate(permissions=json.loads(value))
 
 
 class Invite(models.Model):
@@ -68,9 +68,9 @@ class Invite(models.Model):
         default="{}",
         validators=[_validate_permissions],
         help_text=(
-            "The permissions to be created after an invite is accepted, as a "
-            "JSON object. In the default nens-auth-client implementation, "
-            "django built-in user permissions are expected."
+            "The permissions to be set after an invite is accepted, as a "
+            "JSON object. The expected JSON fields depends on the setting "
+            "NENS_AUTH_PERMISSION_BACKEND. See the project README."
         ),
     )
 
@@ -82,9 +82,11 @@ class Invite(models.Model):
         self.save(update_fields=["status"])
 
     def accept(self, user, **kwargs):
-        func = import_string(settings.NENS_AUTH_ASSIGN_PERMISSIONS)
+        backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
         try:
-            result = func(permissions=json.loads(self.permissions), user=user, **kwargs)
+            result = backend.assign(
+                permissions=json.loads(self.permissions), user=user, **kwargs
+            )
         except Exception:
             self._update_status(Invite.FAILED)
             raise

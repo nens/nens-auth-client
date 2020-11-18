@@ -12,11 +12,11 @@ def user_getter(mocker):
 
 
 @pytest.fixture
-def create_remoteuser(mocker):
-    return mocker.patch("nens_auth_client.backends.create_remoteuser")
+def create_remote_user(mocker):
+    return mocker.patch("nens_auth_client.backends.create_remote_user")
 
 
-def test_remoteuser_exists(user_getter):
+def test_remote_user_exists(user_getter):
     user_getter.return_value = User(username="testuser")
 
     user = backends.RemoteUserBackend().authenticate(
@@ -26,7 +26,7 @@ def test_remoteuser_exists(user_getter):
     user_getter.assert_called_with(remote__external_user_id="remote-uid")
 
 
-def test_remoteuser_not_exists(user_getter):
+def test_remote_user_not_exists(user_getter):
     user_getter.side_effect = ObjectDoesNotExist
 
     user = backends.RemoteUserBackend().authenticate(
@@ -36,7 +36,7 @@ def test_remoteuser_not_exists(user_getter):
     user_getter.assert_called_with(remote__external_user_id="remote-uid")
 
 
-def test_remoteuser_inactive(user_getter):
+def test_remote_user_inactive(user_getter):
     user_getter.return_value = User(username="testuser", is_active=False)
 
     with pytest.raises(PermissionDenied):
@@ -46,7 +46,7 @@ def test_remoteuser_inactive(user_getter):
     user_getter.assert_called_with(remote__external_user_id="remote-uid")
 
 
-def test_ssomigration_exists(user_getter, create_remoteuser):
+def test_ssomigration_exists(user_getter, create_remote_user):
     claims = {"sub": "remote-uid", "cognito:username": "testuser"}
     user_getter.return_value = User(username="testuser")
 
@@ -55,24 +55,24 @@ def test_ssomigration_exists(user_getter, create_remoteuser):
     )
     assert user.username == "testuser"
     user_getter.assert_called_with(username="testuser", remote=None)
-    create_remoteuser.assert_called_with(user, claims)
+    create_remote_user.assert_called_with(user, claims)
 
 
-def test_ssomigration_not_exists(user_getter, create_remoteuser):
+def test_ssomigration_not_exists(user_getter, create_remote_user):
     claims = {"sub": "remote-uid", "cognito:username": "testuser"}
     user_getter.side_effect = ObjectDoesNotExist
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user is None
     user_getter.assert_called_with(username="testuser", remote=None)
-    assert not create_remoteuser.called
+    assert not create_remote_user.called
 
 
-def test_ssomigration_inactive(user_getter, create_remoteuser):
+def test_ssomigration_inactive(user_getter, create_remote_user):
     claims = {"sub": "remote-uid", "cognito:username": "testuser"}
     user_getter.return_value = User(username="testuser", is_active=False)
 
     with pytest.raises(PermissionDenied):
         backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     user_getter.assert_called_with(username="testuser", remote=None)
-    assert not create_remoteuser.called
+    assert not create_remote_user.called

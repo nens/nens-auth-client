@@ -8,7 +8,7 @@ from django.db import transaction
 User = get_user_model()
 
 
-def create_remoteuser(user, claims):
+def create_remote_user(user, claims):
     """Create RemoteUser to permanently associate a User with an external one.
 
     Args:

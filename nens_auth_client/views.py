@@ -42,7 +42,7 @@ def login(request):
 
     The full flow goes as follows:
 
-    1. https://x.lizard.net/login/?next=/admin/
+    1. https://x.lizard.net/login/?next=/admin/?invite=1234abcd
     2. https://aws.cognito/login/?...&redirect_uri=https://x.lizard.net/authorize/
     3. https://x.lizard.net/authorize/
     4. https://x.lizard.net/admin/
@@ -51,7 +51,7 @@ def login(request):
       next: the URL to redirect to on authorization success. If absolute, it
         must match the domain of this request. Optional, default is set by
         settings.NENS_AUTH_DEFAULT_SUCCESS_URL
-      invite: the id of an Invite. On authorization success, a user will be
+      invite: an optional Invite id. On authorization success, a user will be
         created and permissions from the Invite are applied.
 
     The response is a redirect to AWS Cognito according to the OpenID Connect
@@ -119,7 +119,7 @@ def authorize(request):
             raise PermissionDenied("Invalid invite key")
         if invite.user is not None:
             user = invite.user  # user was created at or before invite creation
-            users.create_remoteuser(user, claims)  # associate permanently
+            users.create_remote_user(user, claims)  # associate permanently
         else:
             user = users.create_user(claims)  # also creates RemoteUser
 
