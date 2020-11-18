@@ -57,7 +57,10 @@ class SSOMigrationBackend(ModelBackend):
         Returns:
           user or None
         """
-        username = claims["cognito:username"]
+        username = claims.get("cognito:username")
+        if not username:
+            return
+
         try:
             user = UserModel.objects.get(username=username, remote=None)
         except ObjectDoesNotExist:
