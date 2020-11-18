@@ -1,9 +1,8 @@
-from .models import RemoteUser
+from .users import create_remote_user
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
+from django.core.exceptions import PermissionDenied
 
 import logging
 
@@ -16,6 +15,9 @@ UserModel = get_user_model()
 class RemoteUserBackend(ModelBackend):
     def authenticate(self, request, claims):
         """Authenticate a token through an existing RemoteUser
+
+        Unlike the django ModelBackend, this backend raises a PermissionDenied
+        if the user is inactive.
 
         Args:
           request: the current request
@@ -30,15 +32,23 @@ class RemoteUserBackend(ModelBackend):
         except ObjectDoesNotExist:
             return
 
-        return user if self.user_can_authenticate(user) else None
+        if not self.user_can_authenticate(user):
+            raise PermissionDenied(
+                "Cannot authenticate the local user because it is set to inactive."
+            )
+
+        return user
 
 
-class EmailVerifiedBackend(ModelBackend):
+class SSOMigrationBackend(ModelBackend):
     def authenticate(self, request, claims):
-        """Authenticate a token by verified email address (case-insensitive).
+        """Temporary backend for users that were migrated from SSO to AWS.
 
-        When there are multiple users with the same email address, no user is
-        returned.
+        Previously, users were matched by username. We keep doing that for
+        users that came from the SSO and have not been associated yet.
+
+        At AWS Cognito, there should be a Sign Up trigger that checks if a
+        username already exists at the SSO. So this should be water tight.
 
         Args:
           request: the current request
@@ -47,45 +57,21 @@ class EmailVerifiedBackend(ModelBackend):
         Returns:
           user or None
         """
-        if not claims.get("email_verified", False):
-            return
-        email = claims.get("email")
-        if not email:
+        username = claims.get("cognito:username")
+        if not username:
             return
 
         try:
-            user = UserModel.objects.get(email__iexact=email)
-        except (ObjectDoesNotExist, MultipleObjectsReturned):
+            user = UserModel.objects.get(username=username, remote=None)
+        except ObjectDoesNotExist:
             return
 
+        if not self.user_can_authenticate(user):
+            raise PermissionDenied(
+                "Cannot authenticate the local user because it is set to inactive."
+            )
+
+        # Create a permanent association
+        create_remote_user(user, claims)
+
         return user if self.user_can_authenticate(user) else None
-
-
-# for usage in create_remoteuser
-REMOTEUSERBACKEND_PATH = ".".join(
-    [RemoteUserBackend.__module__, RemoteUserBackend.__name__]
-)
-
-
-def create_remoteuser(user, claims):
-    """Permanently associate a user with an external id
-
-    Creates a RemoteUser object if it does not exist already
-
-    Args:
-      user (User): the user to be associated. It should have a 'backend'
-        attribute, which is set by django's authenticate() method.
-      claims (dict): the verified payload of the ID or Access token
-    """
-    # If the user authenticated using the RemoteUserBackend, there must
-    # already be a RemoteUser present. Do nothing in that case.
-    if user.backend == REMOTEUSERBACKEND_PATH:
-        return
-
-    # Create a permanent association between local and external user
-    try:
-        RemoteUser.objects.create(external_user_id=claims["sub"], user=user)
-    except IntegrityError:
-        # This race condition is expected to occur when the same user
-        # calls the authorize view multiple times.
-        pass

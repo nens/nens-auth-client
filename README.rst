@@ -28,14 +28,14 @@ Also, add the following setting to be able to connect remote users to the local
 Django user database::
 
     AUTHENTICATION_BACKENDS = [
-        "django.contrib.auth.backends.ModelBackend",
-        "nens_auth_client.backends.RemoteUserBackend",
-        "nens_auth_client.backends.EmailVerifiedBackend",
+        "nens_auth_client.backends.RemoteUserBackend",       
+        "nens_auth_client.backends.SSOMigrationBackend",  # only for apps with existing users (see below)
+        "django.contrib.auth.backends.ModelBackend",  # only if you still need local login (e.g. admin)
     ]
 
 Identify the authorization server (the "issuer")::
 
-    NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_9AyLE4ffV"
+    NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/...."
 
 
 Usage: login/logout views
@@ -66,6 +66,32 @@ Optionally set defaults for the redirect after successful login/logout::
     NENS_AUTH_DEFAULT_LOGOUT_URL = "/goodbye/"
 
 
+Usage: invites and user creation
+--------------------------------
+
+If a user logs in for the first time, it is only accepted if the user has a
+valid invite id. So: new users may be created exclusively through Invites. This
+is because there is no way to safely match local users to remote users.
+
+The exception to this rule is the ``SSOMigrationBackend``. If users came
+from our old SSO, they can be matched by username.
+
+After the user logs in successfully, a RemoteUser object is created to handle
+subsequent logins.
+
+Additionally, an invite contains ``permissions`` to be assigned to the new user.
+Permissions are assigned through a ``PermissionBackend``, that differs per app,
+because each app has its own authorization model. This project has an
+example implementation in ``permissions.py``. This is the default backend::
+
+    NENS_AUTH_PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"
+
+The default `DjangoPermissionBackend` expects natural keys of django's builtin
+``Permission`` objects like this::
+
+    {"user_permissions":  [["add_invite", "nens_auth_client", "invite"]]}
+
+
 Usage: bearer tokens
 --------------------
 
@@ -89,48 +115,15 @@ should match the one set in the AWS Cognito. It needs a trailing slash::
 
     NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this on AWS Cognito
 
-Note that the above AUTHENTICATION_BACKENDS have limited function here, because
-bearer tokens typically do not include much information about the user. In a
-default setup, a user should do a one-time login so that a ``RemoteUser`` is
-created. After that, the user can be found by the "sub" claim in the
-access token.
+Note that the external user ID (``"sub"`` claim) must already be registered in
+the app (as a ``RemoteUser``). There is not much you can do about that because
+bearer tokens typically do not include much information about the user. A user
+should do a one-time login so that a ``RemoteUser`` is created. After that,
+the user can be found by the "sub" claim in the access token.
 
 For the Client Credentials Flow there isn't any user. For that, a RemoteUser
 should be created manually (with ``external_user_id`` equaling the client_id.
-This could be attached to some service account.
-
-
-User association logic
-----------------------
-
-The OpenID Connect flow provides an ID token to your client application. What
-to do with that, is entirely up to the application. We like to use the built-in
-django User models. To associate the externally provided user-id with a local
-user, the django ``AUTHENTICATION_BACKENDS`` are used.
-See the `django docs <https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#customizing-authentication-in-django>`_.
-
-In the nens-auth-client ``authorize`` view, the ``authenticate`` function from
-django.contrib.auth is called with a keyword argument ``claims``. This
-``claims`` equals the decoded ID token. It is up to the authentication
-backends to return a ``user`` instance based on ``claims``.
-
-In the default implementation nens-auth-client associates external users to
-remote users via the ``RemoteUser`` model. If there is no existing association,
-a user is selected by email address (if it is verified). This logic is contained
-in the ``AUTHENTICATION_BACKENDS`` setting:
-
-- ``RemoteUserBackend`` produces a user if there is a RemoteUser present with
-  its ``external_user_id`` matching ``claims["sub"]``
-- ``EmailVerifiedBackend`` produces a user if there is one with an matching
-  ``claims["email"]`` and if ``claims["email_verified"]`` is True.
-
-At the end of the authentication chain, a ``RemoteUser`` object is created for
-next time usage. This is skipped when the user was authenticated via the
-``RemoteUserBackend``. Control this feature with ``NENS_AUTH_AUTO_CREATE_REMOTE_USER``.
-
-If you application requires this logic to be appended, start with subclassing
-``django.contrib.auth.backends.ModelBackend`` and overriding the ``authenticate``
-method with call signature ``(request: Request, claims: dict)``.
+This should be attached to some service account.
 
 
 Error handling

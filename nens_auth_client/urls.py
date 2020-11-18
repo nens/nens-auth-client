@@ -14,11 +14,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from .apps import NensAuthClientConfig
 from django.conf import settings
 from django.contrib import admin
 from nens_auth_client import views
 
-from .apps import NensAuthClientConfig
 
 try:
     from django.urls import re_path

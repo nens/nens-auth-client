@@ -6,7 +6,6 @@ class NensAuthClientAppConf(AppConf):
     SCOPE = ["openid", "email", "profile"]
     STANDALONE = False
     URL_NAMESPACE = "nens_auth_client:"  # prefixed to viewnames in reverse()
-    AUTO_CREATE_REMOTE_USER = True
     TIMEOUT = 10  # Timeout for token, JWKS and discovery requests (seconds)
     LEEWAY = 120  # Amount of seconds that a token's expiry can be off
 
@@ -14,6 +13,8 @@ class NensAuthClientAppConf(AppConf):
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout
 
     RESOURCE_SERVER_ID = None  # For Access Tokens ("aud" should equal this)
+
+    PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"
 
     class Meta:
         prefix = "NENS_AUTH"

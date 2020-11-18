@@ -26,7 +26,7 @@ def openid_configuration():
         "subject_types_supported": ["public"],
         "token_endpoint": host + "/oauth2/token",
         "token_endpoint_auth_methods_supported": ["client_secret_basic"],
-        "userinfo_endpoint": host + "/oauth2/userInfo"
+        "userinfo_endpoint": host + "/oauth2/userInfo",
     }
 
 
@@ -36,7 +36,7 @@ def mock_autodiscovery(openid_configuration):
     with requests_mock.Mocker(real_http=False) as m:
         m.get(
             settings.NENS_AUTH_ISSUER + "/.well-known/openid-configuration",
-            json=openid_configuration
+            json=openid_configuration,
         )
         yield
 
@@ -116,7 +116,7 @@ def id_token_generator(token_generator, id_token_template):
 
     def func(**extra_claims):
         claims = {**id_token_template, **extra_claims}
-        return token_generator(**claims)
+        return token_generator(**claims), claims
 
     return func
 
@@ -150,19 +150,21 @@ def access_token_generator(token_generator, access_token_template):
 
 
 @pytest.fixture
-def auth_req_generator(rf, mocker, rq_mocker, jwks_request, settings, openid_configuration):
+def auth_req_generator(
+    rf, mocker, rq_mocker, jwks_request, settings, openid_configuration
+):
     """Mock necessary functions and create an authorization request"""
 
-    def func(id_token, code="code", state="state", nonce="nonce"):
+    def func(id_token, user=None, code="code", state="state", nonce="nonce"):
         # Mock the call to the external token API
-        rq_mocker.post(openid_configuration["token_endpoint"], json={"id_token": id_token})
+        rq_mocker.post(
+            openid_configuration["token_endpoint"], json={"id_token": id_token}
+        )
         # Mock the user association call
         authenticate = mocker.patch("nens_auth_client.views.django_auth.authenticate")
-        authenticate.return_value = UserModel(username="testuser")
+        authenticate.return_value = user
         # Disable automatic RemoteUser creation
         settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER = False
-        # Mock the user login call
-        mocker.patch("nens_auth_client.views.django_auth.login")
 
         # Create the request
         request = rf.get(

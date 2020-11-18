@@ -38,10 +38,7 @@ def check_url_namespace(app_configs=None, **kwargs):
         return [Error("The setting NENS_AUTH_URL_NAMESPACE should be a string")]
     if namespace != "" and not namespace.endswith(":"):
         return [
-            Error(
-                "The setting NENS_AUTH_URL_NAMESPACE should end with a "
-                "colon (:)."
-            )
+            Error("The setting NENS_AUTH_URL_NAMESPACE should end with a " "colon (:).")
         ]
     return []
 
