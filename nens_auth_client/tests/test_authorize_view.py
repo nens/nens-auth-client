@@ -1,6 +1,7 @@
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from nens_auth_client import models
 from nens_auth_client import views
@@ -63,14 +64,21 @@ def test_authorize(
     users_m.update_user.assert_called_with(user, claims)
 
 
+def test_authorize_no_user(id_token_generator, auth_req_generator, users_m, login_m):
+    id_token, claims = id_token_generator()
+    request = auth_req_generator(id_token, user=None)
+
+    with pytest.raises(PermissionDenied, match="No user found.*"):
+        views.authorize(request)
+
+    assert not login_m.called
+    assert not users_m.create_user.called
+    assert not users_m.create_remote_user.called
+    assert not users_m.update_user.called
+
+
 def test_authorize_with_invitation_existing_user(
-    id_token_generator,
-    auth_req_generator,
-    rq_mocker,
-    openid_configuration,
-    users_m,
-    login_m,
-    invitation_getter,
+    id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
 ):
     # Attach an invitation that is associated to a user. That user should be
     # logged in and associated to the remote.
@@ -86,7 +94,7 @@ def test_authorize_with_invitation_existing_user(
     assert response.url == "http://testserver/success"
 
     # check if the invitation was looked up
-    invitation_getter.assert_called_with(slug="foo", status=models.Invitation.PENDING)
+    invitation_getter.assert_called_with(slug="foo")
 
     # check if create_remote_user was called
     users_m.create_remote_user.assert_called_with(user, claims)
@@ -122,7 +130,7 @@ def test_authorize_with_invitation_new_user(
     assert response.url == "http://testserver/success"
 
     # check if the invitation was looked up
-    invitation_getter.assert_called_with(slug="foo", status=models.Invitation.PENDING)
+    invitation_getter.assert_called_with(slug="foo")
 
     # check if create_remote_user was called
     users_m.create_user.assert_called_with(claims)
@@ -132,6 +140,46 @@ def test_authorize_with_invitation_new_user(
 
     # check if update_user was called
     users_m.update_user.assert_called_with(user, claims)
+
+
+def test_authorize_with_nonexisting_invitation(
+    id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
+):
+    id_token, claims = id_token_generator()
+    request = auth_req_generator(id_token, user=None)
+
+    request.session[views.INVITATION_KEY] = "foo"
+    invitation_getter.side_effect = models.Invitation.DoesNotExist
+
+    with pytest.raises(PermissionDenied, match="No invitation matches.*"):
+        views.authorize(request)
+
+    invitation_getter.assert_called_with(slug="foo")
+    assert not login_m.called
+    assert not users_m.create_user.called
+    assert not users_m.create_remote_user.called
+    assert not users_m.update_user.called
+
+
+def test_authorize_with_nonacceptable_invitation(
+    id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
+):
+    id_token, claims = id_token_generator()
+    request = auth_req_generator(id_token, user=None)
+
+    request.session[views.INVITATION_KEY] = "foo"
+    invitation_getter.return_value = models.Invitation(
+        status=models.Invitation.ACCEPTED
+    )
+
+    with pytest.raises(PermissionDenied, match=".*cannot be accepted.*"):
+        views.authorize(request)
+
+    invitation_getter.assert_called_with(slug="foo")
+    assert not login_m.called
+    assert not users_m.create_user.called
+    assert not users_m.create_remote_user.called
+    assert not users_m.update_user.called
 
 
 def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):
