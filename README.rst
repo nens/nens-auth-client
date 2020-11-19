@@ -92,7 +92,7 @@ The default `DjangoPermissionBackend` expects natural keys of django's builtin
     {"user_permissions":  [["add_invite", "nens_auth_client", "invite"]]}
 
 Invitations can be accepted by users through the ``accept_invitation`` url,
-which looks like this:
+which looks like this::
 
     /accept_invitation/{secret invitation slug}/accept/?next=/admin/
 

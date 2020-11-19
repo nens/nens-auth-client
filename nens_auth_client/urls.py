@@ -32,7 +32,7 @@ urlpatterns = [
     re_path("^login/$", views.login, name="login"),
     re_path("^logout/$", views.logout, name="logout"),
     re_path(
-        r"^invitations/(?P<invitation>\w+)/accept/",
+        r"^invitations/(?P<slug>\w+)/accept/",
         views.accept_invitation,
         name="accept_invitation",
     ),

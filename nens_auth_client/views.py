@@ -7,6 +7,7 @@ from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
+from django.http.response import HttpResponseNotFound
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -102,7 +103,8 @@ def authorize(request):
       These are defined in https://tools.ietf.org/html/rfc6749#section-4.1.2.1.
       The error descriptions can be shown to the user.
     - ``django.core.exceptions.PermissionDenied``: authorization errors.
-      This error is raised when no user is present to log in.
+      This error is raised when no user is present to log in and there is no
+      acceptable invitation.
     """
     client = get_oauth_client()
     client.check_error_in_query_params(request)
@@ -116,10 +118,15 @@ def authorize(request):
     if user is None and INVITATION_KEY in request.session:
         try:
             invitation = Invitation.objects.select_related("user").get(
-                slug=request.session[INVITATION_KEY], status=Invitation.PENDING
+                slug=request.session[INVITATION_KEY]
             )
         except Invitation.DoesNotExist:
-            raise PermissionDenied("Invalid invitation key")
+            raise PermissionDenied("No invitation matches the given query.")
+        if invitation.status != Invitation.PENDING:
+            raise PermissionDenied(
+                "The invitation cannot be accepted because it has status "
+                "'{}'.".format(invitation.get_status_display())
+            )
         if invitation.user is not None:
             # associate permanently
             user = invitation.user
@@ -185,7 +192,7 @@ def logout(request):
 
 
 @cache_control(no_store=True)
-def accept_invitation(request, invitation):
+def accept_invitation(request, slug):
     """Assign the permissions of an Invitation to the current user.
 
     If there is no current user, first redirect to the login view, adding
@@ -204,13 +211,20 @@ def accept_invitation(request, invitation):
 
     If the user was already logged in, only steps 5 and 6 are done.
     """
-    # Redirect to login view if user is not authenticated
+    # First check if the invitation is there and if it is still acceptable
+    invitation = get_object_or_404(Invitation, slug=slug)
+    if invitation.status != Invitation.PENDING:
+        return HttpResponseNotFound(
+            "The invitation cannot be accepted because it has "
+            "status '{}'.".format(invitation.get_status_display())
+        )
+
+    # We need a user - redirect to login view if user is not authenticated
     if not request.user.is_authenticated:
         login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
-        query_params = {"invitation": invitation, "next": request.get_full_path()}
+        query_params = {"invitation": slug, "next": request.get_full_path()}
         return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
 
-    invitation = get_object_or_404(Invitation, slug=invitation, status=Invitation.PENDING)
     invitation.accept(request.user)
     success_url = _get_redirect_from_next(
         request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
