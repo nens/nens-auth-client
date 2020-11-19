@@ -39,47 +39,59 @@ def _validate_permissions(value):
     backend.validate(permissions=json.loads(value))
 
 
-class Invite(models.Model):
-    id = models.CharField(
-        primary_key=True, max_length=32, default=partial(get_random_string, 32)
+class Invitation(models.Model):
+    slug = models.CharField(
+        db_index=True,
+        max_length=32,
+        default=partial(get_random_string, 32),
+        help_text="The (secret) slug for end-users to use the invitation.",
     )
     PENDING = 0
     ACCEPTED = 1
     REJECTED = 2
     REVOKED = 3
     FAILED = 4
-    INVITE_STATUS_CHOICES = [
+    INVITATION_STATUS_CHOICES = [
         (PENDING, "Pending"),
         (ACCEPTED, "Accepted"),
         (REJECTED, "Rejected"),
         (REVOKED, "Revoked"),
         (FAILED, "Failed"),
     ]
-    status = models.SmallIntegerField(choices=INVITE_STATUS_CHOICES, default=PENDING)
-    expires = models.DateTimeField()
+    status = models.SmallIntegerField(choices=INVITATION_STATUS_CHOICES, default=PENDING)
     user = models.ForeignKey(
-        user_model, null=True, related_name="invites_received", on_delete=models.CASCADE
+        user_model,
+        null=True,
+        blank=True,
+        related_name="invitations_received",
+        on_delete=models.CASCADE,
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
-        user_model, null=True, related_name="invites_sent", on_delete=models.CASCADE
+        user_model,
+        null=True,
+        blank=True,
+        related_name="invitations_sent",
+        on_delete=models.CASCADE,
     )
     # Note that we do not use postgres' JSONField. Some projects use sqlite.
     permissions = models.TextField(
         default="{}",
         validators=[_validate_permissions],
         help_text=(
-            "The permissions to be set after an invite is accepted, as a "
+            "The permissions to be set after an invitation is accepted, as a "
             "JSON object. The expected JSON fields depends on the setting "
             "NENS_AUTH_PERMISSION_BACKEND. See the project README."
         ),
     )
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
     def _update_status(self, status):
         self.status = status
-        self.save(update_fields=["status"])
+        self.save()
 
     def accept(self, user, **kwargs):
         backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
@@ -88,14 +100,14 @@ class Invite(models.Model):
                 permissions=json.loads(self.permissions), user=user, **kwargs
             )
         except Exception:
-            self._update_status(Invite.FAILED)
+            self._update_status(Invitation.FAILED)
             raise
         else:
-            self._update_status(Invite.ACCEPTED)
+            self._update_status(Invitation.ACCEPTED)
             return result
 
     def reject(self):
-        self._update_status(Invite.REJECTED)
+        self._update_status(Invitation.REJECTED)
 
     def revoke(self):
-        self._update_status(Invite.REVOKED)
+        self._update_status(Invitation.REVOKED)

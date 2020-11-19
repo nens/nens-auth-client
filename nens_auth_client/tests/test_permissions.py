@@ -9,7 +9,7 @@ import pytest
 
 @pytest.fixture
 def permissions():
-    return {"user_permissions": [["add_invite", "nens_auth_client", "invite"]]}
+    return {"user_permissions": [["add_invitation", "nens_auth_client", "invitation"]]}
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def test_validate_permissions(permissions, Permission_m):
     Permission_m.objects.get_by_natural_key.return_value = "bar"
     DjangoPermissionBackend().validate(permissions)
     Permission_m.objects.get_by_natural_key.assert_called_with(
-        "add_invite", "nens_auth_client", "invite"
+        "add_invitation", "nens_auth_client", "invitation"
     )
 
 
@@ -30,7 +30,7 @@ def test_validate_permissions_non_existing(permissions, Permission_m):
     with pytest.raises(ValidationError):
         DjangoPermissionBackend().validate(permissions)
     Permission_m.objects.get_by_natural_key.assert_called_with(
-        "add_invite", "nens_auth_client", "invite"
+        "add_invitation", "nens_auth_client", "invitation"
     )
 
 
@@ -39,9 +39,9 @@ def test_validate_permissions_non_existing(permissions, Permission_m):
     [
         [],
         {"user_permissions": "not a list"},
-        {"user_permissions": ["add_invite", "nens_auth_client", "invite"]},
-        {"user_permissions": [["add_invite", "nens_auth_client"]]},
-        {"user_permissions": [["add", "invite", "nens_auth_client", "invite"]]},
+        {"user_permissions": ["add_invitation", "nens_auth_client", "invitation"]},
+        {"user_permissions": [["add_invitation", "nens_auth_client"]]},
+        {"user_permissions": [["add", "invitation", "nens_auth_client", "invitation"]]},
     ],
 )
 def test_validate_permissions_fails(permissions):
@@ -54,21 +54,21 @@ def test_assign_permissions(permissions, Permission_m):
     Permission_m.objects.get_by_natural_key.return_value = "bar"
     DjangoPermissionBackend().assign(permissions, user)
     Permission_m.objects.get_by_natural_key.assert_called_with(
-        "add_invite", "nens_auth_client", "invite"
+        "add_invitation", "nens_auth_client", "invitation"
     )
-    user.user_permissions.add.assert_called_with(["bar"])
+    user.user_permissions.add.assert_called_with("bar")
 
 
 def test_assign_permissions_skips_nonexisting(permissions, Permission_m, caplog):
     user = mock.Mock()
     Permission_m.objects.get_by_natural_key.side_effect = ObjectDoesNotExist
     DjangoPermissionBackend().assign(permissions, user)
-    user.user_permissions.add.assert_called_with([])
+    user.user_permissions.add.assert_called_with()
 
     assert caplog.record_tuples == [
         (
             "nens_auth_client.permissions",
             logging.WARNING,
-            "Skipped assigning non-existing permission ['add_invite', 'nens_auth_client', 'invite']",
+            "Skipped assigning non-existing permission ['add_invitation', 'nens_auth_client', 'invitation']",
         )
     ]

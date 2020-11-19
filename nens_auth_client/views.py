@@ -1,21 +1,25 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
 from . import users
-from .models import Invite
+from .backends import RemoteUserBackend
+from .models import Invitation
 from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
+from django.http.response import HttpResponseNotFound
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.http import is_safe_url
 from django.views.decorators.cache import cache_control
+from urllib.parse import urlencode
 
 import django.contrib.auth as django_auth
 
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
-INVITE_ID_KEY = "nens_auth_invite_id"
+INVITATION_KEY = "nens_auth_invitation_slug"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
 
 
@@ -42,7 +46,7 @@ def login(request):
 
     The full flow goes as follows:
 
-    1. https://x.lizard.net/login/?next=/admin/?invite=1234abcd
+    1. https://x.lizard.net/login/?next=/admin/&invitation=1234abcd
     2. https://aws.cognito/login/?...&redirect_uri=https://x.lizard.net/authorize/
     3. https://x.lizard.net/authorize/
     4. https://x.lizard.net/admin/
@@ -51,8 +55,8 @@ def login(request):
       next: the URL to redirect to on authorization success. If absolute, it
         must match the domain of this request. Optional, default is set by
         settings.NENS_AUTH_DEFAULT_SUCCESS_URL
-      invite: an optional Invite id. On authorization success, a user will be
-        created and permissions from the Invite are applied.
+      invitation: an optional Invitation id. On authorization success, a user will be
+        created and permissions from the Invitation are applied.
 
     The response is a redirect to AWS Cognito according to the OpenID Connect
     standard.
@@ -75,8 +79,8 @@ def login(request):
     # Store the success_url in the session for later use
     request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
-    # Store the invite-key (if present)
-    request.session[INVITE_ID_KEY] = request.GET.get("invite", None)
+    # Store the invitation-key (if present)
+    request.session[INVITATION_KEY] = request.GET.get("invitation", None)
 
     # Redirect to the authorization server
     client = get_oauth_client()
@@ -99,7 +103,8 @@ def authorize(request):
       These are defined in https://tools.ietf.org/html/rfc6749#section-4.1.2.1.
       The error descriptions can be shown to the user.
     - ``django.core.exceptions.PermissionDenied``: authorization errors.
-      This error is raised when no user is present to log in.
+      This error is raised when no user is present to log in and there is no
+      acceptable invitation.
     """
     client = get_oauth_client()
     client.check_error_in_query_params(request)
@@ -109,19 +114,28 @@ def authorize(request):
     # The RemoteUserBackend finds a local user through a RemoteUser
     user = django_auth.authenticate(request, claims=claims)
 
-    # If nothing was found: only a valid invite warrants a new user association
-    if user is None and INVITE_ID_KEY in request.session:
+    # If nothing was found: only a valid invitation warrants a new user association
+    if user is None and INVITATION_KEY in request.session:
         try:
-            invite = Invite.objects.select_related("user").get(
-                id=request.session[INVITE_ID_KEY], status=Invite.PENDING
+            invitation = Invitation.objects.select_related("user").get(
+                slug=request.session[INVITATION_KEY]
             )
-        except Invite.DoesNotExist:
-            raise PermissionDenied("Invalid invite key")
-        if invite.user is not None:
-            user = invite.user  # user was created at or before invite creation
-            users.create_remote_user(user, claims)  # associate permanently
+        except Invitation.DoesNotExist:
+            raise PermissionDenied("No invitation matches the given query.")
+        if invitation.status != Invitation.PENDING:
+            raise PermissionDenied(
+                "The invitation cannot be accepted because it has status "
+                "'{}'.".format(invitation.get_status_display())
+            )
+        if invitation.user is not None:
+            # associate permanently
+            user = invitation.user
+            users.create_remote_user(user, claims)
         else:
-            user = users.create_user(claims)  # also creates RemoteUser
+            # create user and associate permanently
+            user = users.create_user(claims)
+
+        user.backend = RemoteUserBackend  # needed for login
 
     # No user, no login
     if user is None:
@@ -175,3 +189,44 @@ def logout(request):
     )
     client = get_oauth_client()
     return client.logout_redirect(request, logout_uri)
+
+
+@cache_control(no_store=True)
+def accept_invitation(request, slug):
+    """Assign the permissions of an Invitation to the current user.
+
+    If there is no current user, first redirect to the login view, adding
+    'next' and 'invitation' query parameters. The 'invitation' parameter makes sure
+    that a user will be created if necessary. The 'next' parameter makes sure
+    that the user will return here after successful login.
+
+    The full flow goes as follows:
+
+    1. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
+    2. https://xxx.lizard.net/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
+    3. https://aws.cognito/login?...&redirect_uri=https://auth.lizard.net/authorize/
+    4. https://xxx.lizard.net/authorize/
+    5. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
+    6. https://xxx.lizard.net/admin/
+
+    If the user was already logged in, only steps 5 and 6 are done.
+    """
+    # First check if the invitation is there and if it is still acceptable
+    invitation = get_object_or_404(Invitation, slug=slug)
+    if invitation.status != Invitation.PENDING:
+        return HttpResponseNotFound(
+            "The invitation cannot be accepted because it has "
+            "status '{}'.".format(invitation.get_status_display())
+        )
+
+    # We need a user - redirect to login view if user is not authenticated
+    if not request.user.is_authenticated:
+        login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
+        query_params = {"invitation": slug, "next": request.get_full_path()}
+        return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
+
+    invitation.accept(request.user)
+    success_url = _get_redirect_from_next(
+        request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    )
+    return HttpResponseRedirect(success_url)

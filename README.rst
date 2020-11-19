@@ -66,8 +66,8 @@ Optionally set defaults for the redirect after successful login/logout::
     NENS_AUTH_DEFAULT_LOGOUT_URL = "/goodbye/"
 
 
-Usage: invites and user creation
---------------------------------
+Usage: invitations and user creation
+------------------------------------
 
 If a user logs in for the first time, it is only accepted if the user has a
 valid invite id. So: new users may be created exclusively through Invites. This
@@ -90,6 +90,15 @@ The default `DjangoPermissionBackend` expects natural keys of django's builtin
 ``Permission`` objects like this::
 
     {"user_permissions":  [["add_invite", "nens_auth_client", "invite"]]}
+
+Invitations can be accepted by users through the ``accept_invitation`` url,
+which looks like this::
+
+    /accept_invitation/{secret invitation slug}/accept/?next=/admin/
+
+If the user is logged in, the invitation is accepted and the user is redirected
+to (in this example) `/admin/`. If not, the user is first redirected to the
+login view.
 
 
 Usage: bearer tokens

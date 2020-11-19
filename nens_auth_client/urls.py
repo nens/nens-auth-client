@@ -31,6 +31,11 @@ urlpatterns = [
     re_path("^authorize/$", views.authorize, name="authorize"),
     re_path("^login/$", views.login, name="login"),
     re_path("^logout/$", views.logout, name="logout"),
+    re_path(
+        r"^invitations/(?P<slug>\w+)/accept/",
+        views.accept_invitation,
+        name="accept_invitation",
+    ),
 ]
 
 if settings.NENS_AUTH_STANDALONE:
