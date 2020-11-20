@@ -1,5 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
@@ -58,7 +59,9 @@ class Invitation(models.Model):
         (REVOKED, "Revoked"),
         (FAILED, "Failed"),
     ]
-    status = models.SmallIntegerField(choices=INVITATION_STATUS_CHOICES, default=PENDING)
+    status = models.SmallIntegerField(
+        choices=INVITATION_STATUS_CHOICES, default=PENDING
+    )
     user = models.ForeignKey(
         user_model,
         null=True,
@@ -95,6 +98,10 @@ class Invitation(models.Model):
 
     def accept(self, user, **kwargs):
         backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
+        if self.user_id and self.user_id != user.id:
+            raise PermissionDenied(
+                "This invitation was not intended for the current user"
+            )
         try:
             result = backend.assign(
                 permissions=json.loads(self.permissions), user=user, **kwargs
