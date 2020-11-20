@@ -1,7 +1,6 @@
-from nens_auth_client.models import Invitation
-from unittest import mock
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from nens_auth_client.models import Invitation
 
 import json
 import pytest
@@ -54,11 +53,18 @@ def test_no_accept_user_mismatch(m_permission_backend, user, invitation):
     assert not m_permission_backend.assign.called
 
 
-def test_reject(m_permission_backend, invitation):
+def test_reject(invitation):
     invitation.reject()
     assert invitation.status == Invitation.REJECTED
 
 
-def test_revoke(m_permission_backend, invitation):
+def test_revoke(invitation):
     invitation.revoke()
     assert invitation.status == Invitation.REVOKED
+
+
+def test_get_accept_url(rf, invitation):
+    request = rf.get("http://testserver/x/y/z")
+    actual = invitation.get_accept_url(request)
+    expected = "http://testserver/invitations/{}/accept/".format(invitation.slug)
+    assert actual == expected

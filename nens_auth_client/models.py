@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
 from functools import partial
@@ -118,3 +119,10 @@ class Invitation(models.Model):
 
     def revoke(self):
         self._update_status(Invitation.REVOKED)
+
+    def get_accept_url(self, request):
+        """Return the absolute accept_invitation URL"""
+        relative_url = reverse(
+            settings.NENS_AUTH_URL_NAMESPACE + "accept_invitation", args=(self.slug,)
+        )
+        return request.build_absolute_uri(relative_url)
