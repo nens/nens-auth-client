@@ -86,6 +86,7 @@ def test_send_email(rf, invitation, m_send_email, settings):
 
     url = invitation.get_accept_url(request)
     send_email_kwargs = m_send_email.call_args[1]
+    assert send_email_kwargs["from_email"] is None
     assert send_email_kwargs["subject"] == "Test Subject"
     assert url in send_email_kwargs["message"]
     assert '<a href="{}">'.format(url) in send_email_kwargs["html_message"]

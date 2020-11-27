@@ -19,7 +19,7 @@ class DjangoPermissionBackend:
     def validate(self, permissions):
         """Validate invitation permissions.
 
-        It is validated that permissions is a dict and contains a key
+        It is validated that permissions is a dict and contains only the key
         "user_permissions" that has a list of Permission natural keys
         (<<codename>, <app>, <model>)
 
@@ -31,7 +31,13 @@ class DjangoPermissionBackend:
         """
         if not isinstance(permissions, dict):
             raise ValidationError("Invitation permissions should be a dictionary")
-        user_permission_keys = permissions.get("user_permissions", [])
+        if len(permissions) == 0:
+            return  # no keys is OK
+        elif permissions.keys() != {"user_permissions"}:
+            raise ValidationError(
+                "Invitation permissions should contain only 'user_permissions'"
+            )
+        user_permission_keys = permissions["user_permissions"]
         non_existing = []
         if not isinstance(user_permission_keys, list):
             raise ValidationError("user_permissions is not a list")

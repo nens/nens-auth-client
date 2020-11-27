@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -42,7 +43,11 @@ class RemoteUser(models.Model):
 
 def _validate_permissions(value):
     backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
-    backend.validate(permissions=json.loads(value))
+    try:
+        value = json.loads(value)
+    except json.JSONDecodeError:
+        raise ValidationError("'permissions' is not a valid JSON")
+    backend.validate(permissions=value)
 
 
 class Invitation(models.Model):
