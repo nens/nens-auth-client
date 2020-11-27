@@ -1,4 +1,5 @@
 from .models import RemoteUser
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
@@ -28,7 +29,8 @@ def create_user(claims):
     """Create User and associate it with an external one through RemoteUser.
 
     Raises a PermissionDenied if the username already exists. The username
-    is taken from the "cognito:username" field.
+    is taken from the "cognito:username" field. Change this by adapting the
+    NENS_AUTH_USERNAME_CLAIM setting.
 
     Args:
       claims (dict): the (verified) payload of an AWS Cognito ID token
@@ -36,7 +38,7 @@ def create_user(claims):
     Returns:
       django User (created or, in case of a race condition, retrieved)
     """
-    username = claims["cognito:username"]
+    username = claims[settings.NENS_AUTH_USERNAME_CLAIM]
     external_id = claims["sub"]
     try:
         with transaction.atomic():

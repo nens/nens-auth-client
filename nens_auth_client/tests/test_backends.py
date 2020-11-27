@@ -46,8 +46,32 @@ def test_remote_user_inactive(user_getter):
     user_getter.assert_called_with(remote__external_user_id="remote-uid")
 
 
-def test_ssomigration_exists(user_getter, create_remote_user):
+def test_ssomigration_no_from_sso_claim(user_getter, create_remote_user):
     claims = {"sub": "remote-uid", "cognito:username": "testuser"}
+    user_getter.return_value = User(username="testuser")
+
+    user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
+    assert user is None
+
+
+def test_ssomigration_wrong_from_sso_claim(user_getter, create_remote_user):
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "testuser",
+        "custom:from_sso": "0",
+    }
+    user_getter.return_value = User(username="testuser")
+
+    user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
+    assert user is None
+
+
+def test_ssomigration_exists(user_getter, create_remote_user):
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "testuser",
+        "custom:from_sso": "1",
+    }
     user_getter.return_value = User(username="testuser")
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
@@ -57,7 +81,11 @@ def test_ssomigration_exists(user_getter, create_remote_user):
 
 
 def test_ssomigration_not_exists(user_getter, create_remote_user):
-    claims = {"sub": "remote-uid", "cognito:username": "testuser"}
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "testuser",
+        "custom:from_sso": "1",
+    }
     user_getter.side_effect = ObjectDoesNotExist
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
@@ -67,7 +95,11 @@ def test_ssomigration_not_exists(user_getter, create_remote_user):
 
 
 def test_ssomigration_inactive(user_getter, create_remote_user):
-    claims = {"sub": "remote-uid", "cognito:username": "testuser"}
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "testuser",
+        "custom:from_sso": "1",
+    }
     user_getter.return_value = User(username="testuser", is_active=False)
 
     with pytest.raises(PermissionDenied):
@@ -77,7 +109,7 @@ def test_ssomigration_inactive(user_getter, create_remote_user):
 
 
 def test_ssomigration_no_username_claim(user_getter, create_remote_user):
-    claims = {"sub": "remote-uid"}
+    claims = {"sub": "remote-uid", "custom:from_sso": "1"}
     user_getter.return_value = User(username="testuser")
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
