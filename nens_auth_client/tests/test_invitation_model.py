@@ -13,6 +13,11 @@ def m_permission_backend(mocker):
 
 
 @pytest.fixture
+def m_send_email(mocker):
+    return mocker.patch("nens_auth_client.models.send_mail")
+
+
+@pytest.fixture
 def invitation(mocker):
     invitation = Invitation(permissions=json.dumps({"foo": "bar"}))
     mocker.patch.object(invitation, "save")
@@ -68,3 +73,19 @@ def test_get_accept_url(rf, invitation):
     actual = invitation.get_accept_url(request)
     expected = "http://testserver/invitations/{}/accept/".format(invitation.slug)
     assert actual == expected
+
+
+def test_send_email(rf, invitation, m_send_email, settings):
+    request = rf.get("http://testserver/x/y/z")
+    settings.NENS_AUTH_INVITATION_EMAIL_SUBJECT = "Test Subject"
+    invitation.send_email(
+        "testuser@test.com", request, send_email_options={"foo": "bar"}
+    )
+
+    url = invitation.get_accept_url(request)
+    send_email_kwargs = m_send_email.call_args[1]
+    assert send_email_kwargs["subject"] == "Test Subject"
+    assert url in send_email_kwargs["message"]
+    assert '<a href="{}">'.format(url) in send_email_kwargs["html_message"]
+    assert send_email_kwargs["recipient_list"] == ["testuser@test.com"]
+    assert send_email_kwargs["foo"] == "bar"

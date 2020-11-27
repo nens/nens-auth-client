@@ -1,11 +1,14 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 from django.conf import settings
+from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
 from functools import partial
+
 # A known caveat of django-appconf is that we need to import the AppConf here
 from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 
@@ -126,3 +129,49 @@ class Invitation(models.Model):
             settings.NENS_AUTH_URL_NAMESPACE + "accept_invitation", args=(self.slug,)
         )
         return request.build_absolute_uri(relative_url)
+
+    def send_email(self, recipient, request, context=None, send_email_options=None):
+        """Send the invitation email to given email address.
+
+        Note that if this invite is already associated to a user, the email
+        address should be of that user. This is not checked here.
+
+        Emails are formatted using the invitation.txt and invitation.html
+        templates. These templates can be overriden. Available template context
+        fields are: "accept_url" and "permissions". The email subject is
+        configured through the NENS_AUTH_INVITATION_EMAIL_SUBJECT setting.
+
+        Emails are sent through Django's built-in email framework. Consult
+        the Django documentation on how to set up this framework (notably,
+        DEFAULT_FROM_EMAIL and EMAIL_HOST)::
+
+          https://docs.djangoproject.com/en/2.2/topics/email/
+
+        Args:
+          recipient (str): the email of the invited user
+          context (dict): this is passed as extra context into the email
+            rendering process
+          request (HttpRequest): the request object is mandatory to extract
+            the domain name from
+          send_email_options (dict): an optional dict for custom send_email
+            arguments. see django's docs on send_email.
+        """
+        assert self.status == self.PENDING, "The invite must be PENDING"
+
+        context = {
+            "accept_url": self.get_accept_url(request),
+            "permissions": self.permissions,
+            "host": request.get_host(),
+            **(context or {}),
+        }
+
+        text = render_to_string("nens_auth_client/invitation.txt", context=context)
+        html = render_to_string("nens_auth_client/invitation.html", context=context)
+
+        send_mail(
+            subject=settings.NENS_AUTH_INVITATION_EMAIL_SUBJECT,
+            message=text,
+            html_message=html,
+            recipient_list=[recipient],
+            **(send_email_options or {})
+        )

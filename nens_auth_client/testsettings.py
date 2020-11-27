@@ -16,9 +16,6 @@ DATABASES = {
     }
 }
 
-# Almost always set to 1.  Django allows multiple sites in one database.
-SITE_ID = 1
-
 # Required for django.contrib.staticfiles
 STATIC_URL = "/static_media/"
 

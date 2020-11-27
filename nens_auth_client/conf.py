@@ -16,6 +16,8 @@ class NensAuthClientAppConf(AppConf):
 
     PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"
 
+    INVITATION_EMAIL_SUBJECT = "Invitation"
+
     class Meta:
         prefix = "NENS_AUTH"
         required = (
