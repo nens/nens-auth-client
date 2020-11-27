@@ -70,9 +70,9 @@ First-time logins
 
 For first-time logins, there is no RemoteUser object to match the external
 user ID with a local django user. In this case, users are accepted only if the
-user presents a valid invitation slug which is sent to the user by email.
-So: new users may be created exclusively through Invitations. This is because
-there is no way to safely match external user ids to local django users.
+user presents a valid invitation slug. So: new users may be created exclusively
+through Invitations. This is because there is no way to safely match external
+user ids to local django users.
 
 After the user logs in for the first time a RemoteUser object is created to handle
 subsequent logins.
@@ -106,6 +106,22 @@ The complete first-time user flow goes like this:
 4. https://xxx.lizard.net/authorize/
 5. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
 6. https://xxx.lizard.net/admin/
+
+
+Creating invitations
+--------------------
+
+Invitation objects can be created with and without an associated user. If an
+invitation is accepted that has no associated user, a user will be created
+automatically.
+
+Creation via the admin: create an Invitation object. Either use the built-in
+"Send invitation email" action in the list view, or copy the accept_url link from
+the admin and send it to the invited user yourself.
+
+Programmatic creation: create an Invitation object using `Invitation.objects.create`.
+Send the email using `invitation.send_email`, or build your own logic using
+`invitation.get_accept_url` to get the accept URL.
 
 
 Migrating existing users
