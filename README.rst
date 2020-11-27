@@ -7,13 +7,14 @@ Introduction
 This library defines the necessary views and models to connect the AWS Cognito
 user pool to the local django user database.
 
-General usage
--------------
+Required settings
+-----------------
 
 The nens-auth-client library exposes one django application: ``nens_auth_client``.
 The django built-in apps ``auth``, ``sessions`` and ``contenttypes`` are
 also required, but they probably are already there.
-Add these to the ``INSTALLED_APPS`` setting. The order is not important::
+Add these to the ``INSTALLED_APPS`` setting. Make sure your project's app is
+listed *before* nens_auth_client::
 
     INSTALLED_APPS = (
         ...
@@ -40,11 +41,7 @@ Identify your application as a unique OpenID Connect Client::
 
     NENS_AUTH_CLIENT_ID = "..."  # generate one on AWS Cognito
     NENS_AUTH_CLIENT_SECRET = "..."  # generate one on AWS Cognito
- 
 
-Login and logout views
-----------------------
- 
 Include the ``nens-auth-client`` urls in your application's urls.py::
 
     from django.conf.urls import include
@@ -59,7 +56,42 @@ You must register the absolute ``authorize`` and ``logout`` URIs in AWS Cognito.
 If the site runs on multiple domains, they all have to be registered. Wildcards
 are not possible because of security reasons.
 
-Optionally set defaults for the redirect after successful login/logout::
+If not done already for your project, set up a working email backend and a
+sender ('from') email address::
+
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = ...
+    DEFAULT_FROM_EMAIL = ...
+
+See https://docs.djangoproject.com/en/2.2/topics/email/ for further information.
+
+
+Login & logout
+--------------
+
+The login flow follows the OpenID Connect flow. A summary:
+
+1. The user accesses the "login" view
+2. The user is redirected to the Authorization Server (AWS Cognito)
+3. The user logs in on the Authorization server
+4. The user is redirected to the "authorize" view with an authorization code
+5. The "authorize" view contains code to exchange the code for an ID Token (at the Authorization Server).
+6. The ID token contains a "sub" claim, which is a unique identifier of the user.
+   A RemoteUser is looked up with a matching "external_user_id". The associated
+   Django user is logged in. If the user does not exist, the server responds with a
+   403 Permission Denied, unless an invitation was included in step 1. (see First-time login section)
+7. The User's metadata (email, first_name, last_name) is updated from the claims in the ID token.
+8. The user is redirected to the 'next' URL provided in step 1.
+
+The logout flow follows a similar flow:
+
+1. The user accesses the "logout" view
+2. The user is logged out locally and is redirected to the Authorization Server's logout view
+3. The Authorization Server logs the user out
+4. The user is redirected to the "logout" view
+5. The user is redirected to the 'next' URL provided in step 1.
+
+Optionally set defaults for the redirects after successful login/logout::
 
     NENS_AUTH_DEFAULT_SUCCESS_URL = "/welcome/"
     NENS_AUTH_DEFAULT_LOGOUT_URL = "/goodbye/"
@@ -70,14 +102,16 @@ First-time logins
 
 For first-time logins, there is no RemoteUser object to match the external
 user ID with a local django user. In this case, users are accepted only if the
-user presents a valid invitation slug. So: new users may be created exclusively
-through Invitations. This is because there is no way to safely match external
-user ids to local django users.
+user presents a valid invitation. This is because there is no way to safely
+match external user ids to local django users.
 
-After the user logs in for the first time a RemoteUser object is created to handle
-subsequent logins.
+There are two kinds of invitations: invitations with user, and invitations
+without. If the invitation has a user set, the external user id will be
+connected to that user (through a RemoteUser). If the invitation has no user
+set, a new User + RemoteUser will be created. The local username will equal the 
+Cognito username field (``"cognito:username"``).
 
-Additionally, an invitation contains ``permissions`` to be assigned to the new user.
+Additionally, an invitation contains ``permissions`` to be assigned to the user.
 Permissions are assigned through a ``PermissionBackend``, that differs per app,
 because each app has its own authorization model. This project has an
 example implementation in ``permissions.py``. This is the default backend::
@@ -96,7 +130,7 @@ which looks like this::
 
 If the user is logged in, the invitation is accepted and the user is redirected
 to (in this example) `/admin/`. If not, the user is first redirected to the
-login view (adding the `invite` query parameter to do the first-time login).
+login view (adding the `invitation` query parameter to do the first-time login).
 
 The complete first-time user flow goes like this:
 
@@ -108,34 +142,51 @@ The complete first-time user flow goes like this:
 6. https://xxx.lizard.net/admin/
 
 
-Creating invitations
---------------------
+Creating and sending invitations
+---------------------------------
 
-Invitation objects can be created with and without an associated user. If an
-invitation is accepted that has no associated user, a user will be created
-automatically.
+Invitation objects can be created with and without an associated user. For
+invitations that have no associated user, a user will be created
+automatically when the invite is accepted.
 
-Creation via the admin: create an Invitation object. Either use the built-in
-"Send invitation email" action in the list view, or copy the accept_url link from
-the admin and send it to the invited user yourself.
+Creation via the admin:
 
-Programmatic creation: create an Invitation object using `Invitation.objects.create`.
-Send the email using `invitation.send_email`, or build your own logic using
-`invitation.get_accept_url` to get the accept URL.
+1. Create an invitation. The "email" field is mandatory. Optionally
+   provide "user", "permissions" and "created_by". The form of "permissions"
+   depends on the permission backend. Note that the "email" is independent from
+   the "user.email".
+2. Select the newly created invitation and use "(Re)send selected invitations"
+   in the dropdown at the top. This will send the invitation email.
+   Another option is to copy the ``accept_url`` and supply that to the
+   invited user by other means.
+
+Programmatic creation:
+
+1. Create an Invitation object using ``Invitation.objects.create``.
+2. Send the email using ``invitation.send_email``, or build your own logic
+   using ``invitation.get_accept_url(request)`` to get the accept URL.
+
+The invitation email can be changed by overriding the ``nens_auth_client/invitation.txt``
+and ``nens_auth_client/invitation.html`` templates. For this, your project's app
+needs to be listed *before* nens_auth_client in the ``INSTALLED_APPS``.
+The default email subject is ``"Invitation"`` is the default subject.
+Change the invitation email subject as follows::
+
+    NENS_AUTH_INVITATION_EMAIL_SUBJECT = "My-custom-subject"  # this is the default
 
 
 Migrating existing users
 ------------------------
 
-For apps with an existing user database, we do not want every user to go through
-the invitation process (described above). For this we have the
-``SSOMigrationBackend``. If the user's ID Token has `"custom:from_sso": "1"`,
+For apps with an existing user database, it may not be desirable to have every
+user going through the invitation process (described above). For this we have the
+``SSOMigrationBackend``. If the user's ID Token has ``"custom:from_sso": "1"``,
 users are matched by username. On first-time login, a RemoteUser object is
 created to link the external and local users permanently.
 
 
-Bearer tokens
--------------
+Bearer tokens (optional)
+------------------------
 
 If your web application acts as a Resource Server in the Authorization Code
 or Client Credentials Flow, then it will need to accept Bearer tokens in

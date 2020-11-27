@@ -152,7 +152,7 @@ class Invitation(models.Model):
 
         Emails are formatted using the invitation.txt and invitation.html
         templates. These templates can be overriden. Available template context
-        fields are: "accept_url" and "permissions". The email subject is
+        fields are: "accept_url", "invitation", and "host". The email subject is
         configured through the NENS_AUTH_INVITATION_EMAIL_SUBJECT setting.
 
         Emails are sent through Django's built-in email framework. Consult
@@ -172,8 +172,8 @@ class Invitation(models.Model):
         assert self.status == self.PENDING, "The invite must be PENDING"
 
         context = {
+            "invitation": self,
             "accept_url": self.get_accept_url(request),
-            "permissions": self.permissions,
             "host": request.get_host(),
             **(context or {}),
         }
