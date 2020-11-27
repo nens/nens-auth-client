@@ -134,12 +134,12 @@ login view (adding the `invitation` query parameter to do the first-time login).
 
 The complete first-time user flow goes like this:
 
-1. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
-2. https://xxx.lizard.net/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
+1. https://my.site/invitations/abc123/accept/?next=/admin/
+2. https://my.site/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
 3. https://aws.cognito/login?...&redirect_uri=https://auth.lizard.net/authorize/
-4. https://xxx.lizard.net/authorize/
-5. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
-6. https://xxx.lizard.net/admin/
+4. https://my.site/authorize/
+5. https://my.site/invitations/abc123/accept/?next=/admin/
+6. https://my.site/admin/
 
 
 Creating and sending invitations

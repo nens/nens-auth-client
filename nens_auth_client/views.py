@@ -46,10 +46,10 @@ def login(request):
 
     The full flow goes as follows:
 
-    1. https://x.lizard.net/login/?next=/admin/&invitation=1234abcd
-    2. https://aws.cognito/login/?...&redirect_uri=https://x.lizard.net/authorize/
-    3. https://x.lizard.net/authorize/
-    4. https://x.lizard.net/admin/
+    1. https://my.site/login/?next=/admin/&invitation=1234abcd
+    2. https://aws.cognito/login/?...&redirect_uri=https://my.site/authorize/
+    3. https://my.site/authorize/
+    4. https://my.site/admin/
 
     Query parameters:
       next: the URL to redirect to on authorization success. If absolute, it
@@ -62,7 +62,7 @@ def login(request):
     standard.
 
     Note that a list of all (absolute) redirect URIs
-    (e.g. "https://auth.lizard.net/authorize/") need to be registered with
+    (e.g. "https://my.site/authorize/") need to be registered with
     AWS Cognito. Wildcards are not allowed because of security reasons. At
     the same time we need the redirect to go to the correct subdomain or
     else cookies will not be valid.
@@ -156,10 +156,10 @@ def logout(request):
 
     The full flow goes as follows:
 
-    1. https://xxx.lizard.net/logout/?next=/admin/
-    2. https://aws.cognito/logout?...&redirect_uri=https://auth.lizard.net/logout/
-    3. https://auth.lizard.net/logout/
-    4. https://xxx.lizard.net/admin/
+    1. https://my.site/logout/?next=/admin/
+    2. https://aws.cognito/logout?...&redirect_uri=https://my.site/logout/
+    3. https://my.site/logout/
+    4. https://my.site/admin/
 
     Note that this view is called twice in this flow.
     """
@@ -202,12 +202,12 @@ def accept_invitation(request, slug):
 
     The full flow goes as follows:
 
-    1. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
-    2. https://xxx.lizard.net/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
-    3. https://aws.cognito/login?...&redirect_uri=https://auth.lizard.net/authorize/
-    4. https://xxx.lizard.net/authorize/
-    5. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
-    6. https://xxx.lizard.net/admin/
+    1. https://my.site/invitations/abc123/accept/?next=/admin/
+    2. https://my.site/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
+    3. https://aws.cognito/login?...&redirect_uri=https://my.site/authorize/
+    4. https://my.site/authorize/
+    5. https://my.site/invitations/abc123/accept/?next=/admin/
+    6. https://my.site/admin/
 
     If the user was already logged in, only steps 5 and 6 are done.
     """
