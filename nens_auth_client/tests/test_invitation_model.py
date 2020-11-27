@@ -19,7 +19,9 @@ def m_send_email(mocker):
 
 @pytest.fixture
 def invitation(mocker):
-    invitation = Invitation(permissions=json.dumps({"foo": "bar"}))
+    invitation = Invitation(
+        email="testuser@testserver.nl", permissions=json.dumps({"foo": "bar"})
+    )
     mocker.patch.object(invitation, "save")
     return invitation
 
@@ -79,7 +81,7 @@ def test_send_email(rf, invitation, m_send_email, settings):
     request = rf.get("http://testserver/x/y/z")
     settings.NENS_AUTH_INVITATION_EMAIL_SUBJECT = "Test Subject"
     invitation.send_email(
-        "testuser@test.com", request, send_email_options={"foo": "bar"}
+        request, send_email_options={"foo": "bar"}
     )
 
     url = invitation.get_accept_url(request)
@@ -87,5 +89,7 @@ def test_send_email(rf, invitation, m_send_email, settings):
     assert send_email_kwargs["subject"] == "Test Subject"
     assert url in send_email_kwargs["message"]
     assert '<a href="{}">'.format(url) in send_email_kwargs["html_message"]
-    assert send_email_kwargs["recipient_list"] == ["testuser@test.com"]
+    assert send_email_kwargs["recipient_list"] == [invitation.email]
     assert send_email_kwargs["foo"] == "bar"
+
+    assert invitation.email_sent_at is not None

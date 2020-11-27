@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
 from functools import partial
@@ -72,8 +73,17 @@ class Invitation(models.Model):
         blank=True,
         related_name="invitations_received",
         on_delete=models.CASCADE,
+        help_text=(
+            "Optionally associate this invitation to an existing local user. "
+            "If set, the external user will be associated to this local user"
+            "user. Otherwise, a new user will be created."
+        ),
+    )
+    email = models.EmailField(
+        help_text=("The email address to which this invitation is / will be sent")
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    email_sent_at = models.DateTimeField(null=True, blank=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
         user_model,
@@ -130,11 +140,10 @@ class Invitation(models.Model):
         )
         return request.build_absolute_uri(relative_url)
 
-    def send_email(self, recipient, request, context=None, send_email_options=None):
-        """Send the invitation email to given email address.
+    def send_email(self, request, context=None, send_email_options=None):
+        """Send the invitation email.
 
-        Note that if this invite is already associated to a user, the email
-        address should be of that user. This is not checked here.
+        The email address is taken from invitation.email.
 
         Emails are formatted using the invitation.txt and invitation.html
         templates. These templates can be overriden. Available template context
@@ -148,7 +157,6 @@ class Invitation(models.Model):
           https://docs.djangoproject.com/en/2.2/topics/email/
 
         Args:
-          recipient (str): the email of the invited user
           context (dict): this is passed as extra context into the email
             rendering process
           request (HttpRequest): the request object is mandatory to extract
@@ -172,6 +180,9 @@ class Invitation(models.Model):
             subject=settings.NENS_AUTH_INVITATION_EMAIL_SUBJECT,
             message=text,
             html_message=html,
-            recipient_list=[recipient],
+            recipient_list=[self.email],
             **(send_email_options or {})
         )
+
+        self.email_sent_at = timezone.now()
+        self.save()
