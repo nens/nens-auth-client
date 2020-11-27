@@ -177,6 +177,7 @@ class Invitation(models.Model):
         html = render_to_string("nens_auth_client/invitation.html", context=context)
 
         send_mail(
+            from_email=None,  # uses DEFAULT_FROM_EMAIL setting
             subject=settings.NENS_AUTH_INVITATION_EMAIL_SUBJECT,
             message=text,
             html_message=html,

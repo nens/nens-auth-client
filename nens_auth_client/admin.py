@@ -26,3 +26,10 @@ class InvitationAdmin(admin.ModelAdmin):
     readonly_fields = ["id", "slug", "created_at"]
     raw_id_fields = ["user", "created_by"]
     filter_fields = ["status"]
+    actions = ["send_email"]
+
+    def send_email(self, request, queryset):
+        for invitation in queryset:
+            invitation.send_email(request)
+
+    send_email.short_description = "Send selected invitations by email"

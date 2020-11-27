@@ -1,6 +1,6 @@
 Dear madam, sir,
 
-You have been invited to access {{ request.get_host }}.
+You have been invited to access {{ host }}.
 Use the following link to accept this invitation:
 
 {{ accept_url }}

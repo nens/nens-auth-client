@@ -125,6 +125,8 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend"
 ]
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 NENS_AUTH_STANDALONE = True  # for testing
 NENS_AUTH_URL_NAMESPACE = ""  # nens_auth_client urls.py is the root url conf
 NENS_AUTH_CLIENT_ID = os.environ.get("NENS_AUTH_CLIENT_ID", "test-id")
