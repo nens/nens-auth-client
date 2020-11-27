@@ -7,8 +7,8 @@ Introduction
 This library defines the necessary views and models to connect the AWS Cognito
 user pool to the local django user database.
 
-Usage: general
---------------
+General usage
+-------------
 
 The nens-auth-client library exposes one django application: ``nens_auth_client``.
 The django built-in apps ``auth``, ``sessions`` and ``contenttypes`` are
@@ -24,8 +24,7 @@ Add these to the ``INSTALLED_APPS`` setting. The order is not important::
         ...
     )
 
-Also, add the following setting to be able to connect remote users to the local
-Django user database::
+Modify the authentication backends as follows::
 
     AUTHENTICATION_BACKENDS = [
         "nens_auth_client.backends.RemoteUserBackend",       
@@ -33,18 +32,18 @@ Django user database::
         "django.contrib.auth.backends.ModelBackend",  # only if you still need local login (e.g. admin)
     ]
 
-Identify the authorization server (the "issuer")::
+Set the authorization server (the "issuer")::
 
     NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/...."
 
-
-Usage: login/logout views
--------------------------
-
-Some settings that identify your application as an OpenID Connect Client::
+Identify your application as a unique OpenID Connect Client::
 
     NENS_AUTH_CLIENT_ID = "..."  # generate one on AWS Cognito
     NENS_AUTH_CLIENT_SECRET = "..."  # generate one on AWS Cognito
+ 
+
+Login and logout views
+----------------------
  
 Include the ``nens-auth-client`` urls in your application's urls.py::
 
@@ -66,20 +65,19 @@ Optionally set defaults for the redirect after successful login/logout::
     NENS_AUTH_DEFAULT_LOGOUT_URL = "/goodbye/"
 
 
-Usage: invitations and user creation
-------------------------------------
+First-time logins
+-----------------
 
-If a user logs in for the first time, it is only accepted if the user has a
-valid invite id. So: new users may be created exclusively through Invites. This
-is because there is no way to safely match local users to remote users.
+For first-time logins, there is no RemoteUser object to match the external
+user ID with a local django user. In this case, users are accepted only if the
+user presents a valid invitation slug which is sent to the user by email.
+So: new users may be created exclusively through Invitations. This is because
+there is no way to safely match external user ids to local django users.
 
-The exception to this rule is the ``SSOMigrationBackend``. If users came
-from our old SSO, they can be matched by username.
-
-After the user logs in successfully, a RemoteUser object is created to handle
+After the user logs in for the first time a RemoteUser object is created to handle
 subsequent logins.
 
-Additionally, an invite contains ``permissions`` to be assigned to the new user.
+Additionally, an invitation contains ``permissions`` to be assigned to the new user.
 Permissions are assigned through a ``PermissionBackend``, that differs per app,
 because each app has its own authorization model. This project has an
 example implementation in ``permissions.py``. This is the default backend::
@@ -98,11 +96,30 @@ which looks like this::
 
 If the user is logged in, the invitation is accepted and the user is redirected
 to (in this example) `/admin/`. If not, the user is first redirected to the
-login view.
+login view (adding the `invite` query parameter to do the first-time login).
+
+The complete first-time user flow goes like this:
+
+1. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
+2. https://xxx.lizard.net/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
+3. https://aws.cognito/login?...&redirect_uri=https://auth.lizard.net/authorize/
+4. https://xxx.lizard.net/authorize/
+5. https://xxx.lizard.net/invitations/abc123/accept/?next=/admin/
+6. https://xxx.lizard.net/admin/
 
 
-Usage: bearer tokens
---------------------
+Migrating existing users
+------------------------
+
+For apps with an existing user database, we do not want every user to go through
+the invitation process (described above). For this we have the
+``SSOMigrationBackend``. If the user's ID Token has `"custom:from_sso": "1"`,
+users are matched by username. On first-time login, a RemoteUser object is
+created to link the external and local users permanently.
+
+
+Bearer tokens
+-------------
 
 If your web application acts as a Resource Server in the Authorization Code
 or Client Credentials Flow, then it will need to accept Bearer tokens in
