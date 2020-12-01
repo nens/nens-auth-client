@@ -45,10 +45,9 @@ class SSOMigrationBackend(ModelBackend):
         """Temporary backend for users that were migrated from SSO to AWS.
 
         Previously, users were matched by username. We keep doing that for
-        users that came from the SSO and have not been associated yet.
-
-        At AWS Cognito, there should be a Sign Up trigger that checks if a
-        username already exists at the SSO. So this should be water tight.
+        users that came from the SSO and have not been associated yet. Users
+        that are migrated from the SSO are recognized by the claim
+        "custom:from_sso" being 1.
 
         Args:
           request: the current request
@@ -59,6 +58,9 @@ class SSOMigrationBackend(ModelBackend):
         """
         username = claims.get("cognito:username")
         if not username:
+            return
+        allow_username_match = claims.get("custom:from_sso", 0)
+        if int(allow_username_match) != 1:  # AWS formats integers as strings
             return
 
         try:
