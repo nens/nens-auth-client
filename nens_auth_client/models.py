@@ -200,7 +200,7 @@ class Invitation(models.Model):
 
 
 def clean_invitations(days=90):
-    """Delete Invitations that are older than given amount of days
+    """Delete invitations that are older than given amount of days.
 
     Args:
       days (int)
@@ -209,7 +209,7 @@ def clean_invitations(days=90):
       the number of Invitations deleted (int)
 
     Note that ``days`` must be >= NENS_AUTH_INVITATION_EXPIRY_DAYS, and
-    preferably significantly larger to be able to be able to inform the user
+    preferably significantly larger to be able to inform the user
     that an Invitation has expired (as opposed to 'not found').
     """
     if days < settings.NENS_AUTH_INVITATION_EXPIRY_DAYS:
