@@ -143,7 +143,7 @@ The complete first-time user flow goes like this:
 
 
 Creating and sending invitations
----------------------------------
+--------------------------------
 
 Invitation objects can be created with and without an associated user. For
 invitations that have no associated user, a user will be created
@@ -174,6 +174,14 @@ Change the invitation email subject as follows::
 
     NENS_AUTH_INVITATION_EMAIL_SUBJECT = "My-custom-subject"  # this is the default
 
+
+Cleaning invitations
+--------------------
+
+Invitation objects need to be cleaned periodically, or else the database table
+will keep growing. Use the management command `clean_invitations` for that, or
+wrap the `nens_auth_client.models.clean_invitations` function in a celery task
+and schedule it every day.
 
 Migrating existing users
 ------------------------
