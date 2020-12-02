@@ -35,7 +35,7 @@ class DjangoPermissionBackend:
             return  # no keys is OK
         elif permissions.keys() != {"user_permissions"}:
             raise ValidationError(
-                "Invitation permissions should contain only 'user_permissions'"
+                "Invitation permissions json should contain only the key 'user_permissions'"
             )
         user_permission_keys = permissions["user_permissions"]
         non_existing = []

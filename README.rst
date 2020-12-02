@@ -71,12 +71,12 @@ Login & logout
 
 The login flow follows the OpenID Connect flow. A summary:
 
-1. The user accesses the "login" view
-2. The user is redirected to the Authorization Server (AWS Cognito)
-3. The user logs in on the Authorization server
-4. The user is redirected to the "authorize" view with an authorization code
+1. The user accesses the "login" view (optionally with a ``next`` query parameter).
+2. The user is redirected to the Authorization Server (AWS Cognito).
+3. The user logs in on the Authorization server.
+4. The user is redirected to the "authorize" view with an authorization code.
 5. The "authorize" view contains code to exchange the code for an ID Token (at the Authorization Server).
-6. The ID token contains a "sub" claim, which is a unique identifier of the user.
+6. The ID token contains a "sub" (subject) claim, which is a unique identifier of the user.
    A RemoteUser is looked up with a matching "external_user_id". The associated
    Django user is logged in. If the user does not exist, the server responds with a
    403 Permission Denied, unless an invitation was included in step 1. (see First-time login section)
@@ -85,10 +85,10 @@ The login flow follows the OpenID Connect flow. A summary:
 
 The logout flow follows a similar flow:
 
-1. The user accesses the "logout" view
-2. The user is logged out locally and is redirected to the Authorization Server's logout view
-3. The Authorization Server logs the user out
-4. The user is redirected to the "logout" view
+1. The user accesses the "logout" view (optionally with a ``next`` query parameter).
+2. The user is logged out locally and is redirected to the Authorization Server's logout view.
+3. The Authorization Server logs the user out.
+4. The user is redirected to the "logout" view.
 5. The user is redirected to the 'next' URL provided in step 1.
 
 Optionally set defaults for the redirects after successful login/logout::

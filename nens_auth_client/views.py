@@ -42,14 +42,9 @@ def _get_redirect_from_next(request, default):
 
 @cache_control(no_store=True)
 def login(request):
-    """Initiate authentication through OpenID Connect
+    """Initiate authentication through OpenID Connect.
 
-    The full flow goes as follows:
-
-    1. https://my.site/login/?next=/admin/&invitation=1234abcd
-    2. https://aws.cognito/login/?...&redirect_uri=https://my.site/authorize/
-    3. https://my.site/authorize/
-    4. https://my.site/admin/
+    See the README for a description of the OpenID Connect login flow.
 
     Query parameters:
       next: the URL to redirect to on authorization success. If absolute, it
@@ -58,11 +53,12 @@ def login(request):
       invitation: an optional Invitation id. On authorization success, a user will be
         created and permissions from the Invitation are applied.
 
-    The response is a redirect to AWS Cognito according to the OpenID Connect
-    standard.
+    Response:
+      HTTP 302 Redirect to AWS Cognito (according to the OpenID Connect standard)
+      A session cookie will be included.
 
     Note that a list of all (absolute) redirect URIs
-    (e.g. "https://my.site/authorize/") need to be registered with
+    (e.g. "https://my.site/authorize/") must be registered with
     AWS Cognito. Wildcards are not allowed because of security reasons. At
     the same time we need the redirect to go to the correct subdomain or
     else cookies will not be valid.
@@ -94,7 +90,11 @@ def login(request):
 def authorize(request):
     """Authorizes a user that authenticated through OpenID Connect.
 
+    See the README for a description of the OpenID Connect login flow.
     This is the callback url (a.k.a. redirect_uri) from the login view.
+
+    Response:
+      HTTP 302 Redirect to the 'next' query parameter (see login view)
 
     Raises:
     - ``authlib.jose.errors.JoseError``: cryptographic errors
@@ -154,14 +154,18 @@ def authorize(request):
 def logout(request):
     """Logout the user (locally and remotely)
 
-    The full flow goes as follows:
+    See the README for a description of the logout flow. Note that this view
+    is called twice in this flow.
 
-    1. https://my.site/logout/?next=/admin/
-    2. https://aws.cognito/logout?...&redirect_uri=https://my.site/logout/
-    3. https://my.site/logout/
-    4. https://my.site/admin/
+    Query parameters:
+      next: the URL to redirect to after logout. If absolute, it
+        must match the domain of this request. Optional, default is set by
+        settings.NENS_AUTH_DEFAULT_LOGOUT_URL
 
-    Note that this view is called twice in this flow.
+    Response:
+    - if user is logged in locally: HTTP 302 Redirect to the remote logout URL.
+      The user is logged out and the 'next' query parameter is stored in the session.
+    - if user is logged out locally: HTTP 302 Redirect to the 'next' query parameter
     """
     if not request.user.is_authenticated:
         # We are in step 3. (user is already logged out)
@@ -200,16 +204,7 @@ def accept_invitation(request, slug):
     that a user will be created if necessary. The 'next' parameter makes sure
     that the user will return here after successful login.
 
-    The full flow goes as follows:
-
-    1. https://my.site/invitations/abc123/accept/?next=/admin/
-    2. https://my.site/login/?invitation=abc123&next=%2Finvitations%2Fabc123%2Faccept%2F%3Fnext%3D%2Fadmin%2F
-    3. https://aws.cognito/login?...&redirect_uri=https://my.site/authorize/
-    4. https://my.site/authorize/
-    5. https://my.site/invitations/abc123/accept/?next=/admin/
-    6. https://my.site/admin/
-
-    If the user was already logged in, only steps 5 and 6 are done.
+    The full flow is described in the README.
     """
     # First check if the invitation is there and if it is still acceptable
     invitation = get_object_or_404(Invitation, slug=slug)
