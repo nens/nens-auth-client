@@ -214,7 +214,7 @@ def accept_invitation(request, slug):
             "This invitation cannot be accepted because it has "
             "status '{}'.".format(invitation.get_status_display())
         )
-    if invitation.expires_at > timezone.now():
+    if invitation.expires_at < timezone.now():
         return HttpResponseNotFound("This invitation has expired")
 
     # We need a user - redirect to login view if user is not authenticated
