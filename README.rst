@@ -174,6 +174,10 @@ Change the invitation email subject as follows::
 
     NENS_AUTH_INVITATION_EMAIL_SUBJECT = "My-custom-subject"  # this is the default
 
+By default, an invitation is valid for 14 days. Change this as follows::
+
+    NENS_AUTH_INVITATION_EXPIRY_DAYS = 7
+
 
 Cleaning invitations
 --------------------
