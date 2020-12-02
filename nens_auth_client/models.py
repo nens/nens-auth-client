@@ -120,6 +120,20 @@ class Invitation(models.Model):
     def expires_at(self):
         return self.created_at + timedelta(days=settings.NENS_AUTH_INVITATION_EXPIRY_DAYS)
 
+    def check_acceptable(self):
+        """Checks if this invitation is PENDING and if it has not expired
+
+        Raises PermissionDenied if the invitation is not acceptable
+        """
+        if self.status != Invitation.PENDING:
+            raise PermissionDenied(
+                "This invitation cannot be accepted because it has status "
+                "'{}'.".format(self.get_status_display())
+            )
+        if self.expires_at < timezone.now():
+            raise PermissionDenied("This invitation has expired")
+        return True
+
     def accept(self, user, **kwargs):
         backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
         if self.user_id and self.user_id != user.id:

@@ -11,7 +11,6 @@ from django.http.response import HttpResponseNotFound
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.views.decorators.cache import cache_control
 from urllib.parse import urlencode
@@ -123,11 +122,7 @@ def authorize(request):
             )
         except Invitation.DoesNotExist:
             raise PermissionDenied("No invitation matches the given query.")
-        if invitation.status != Invitation.PENDING:
-            raise PermissionDenied(
-                "The invitation cannot be accepted because it has status "
-                "'{}'.".format(invitation.get_status_display())
-            )
+        invitation.check_acceptable()  # May raise PermissionDenied
         if invitation.user is not None:
             # associate permanently
             user = invitation.user
@@ -209,13 +204,11 @@ def accept_invitation(request, slug):
     """
     # First check if the invitation is there and if it is still acceptable
     invitation = get_object_or_404(Invitation, slug=slug)
-    if invitation.status != Invitation.PENDING:
-        return HttpResponseNotFound(
-            "This invitation cannot be accepted because it has "
-            "status '{}'.".format(invitation.get_status_display())
-        )
-    if invitation.expires_at < timezone.now():
-        return HttpResponseNotFound("This invitation has expired")
+
+    try:
+        invitation.check_acceptable()  # May raise PermissionDenied
+    except PermissionDenied as e:
+        return HttpResponseNotFound(str(e))
 
     # We need a user - redirect to login view if user is not authenticated
     if not request.user.is_authenticated:
