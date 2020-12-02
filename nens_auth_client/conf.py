@@ -17,6 +17,7 @@ class NensAuthClientAppConf(AppConf):
     PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"
 
     INVITATION_EMAIL_SUBJECT = "Invitation"
+    INVITATION_EXPIRY_DAYS = 14  # change this to change the default expiry
 
     class Meta:
         prefix = "NENS_AUTH"

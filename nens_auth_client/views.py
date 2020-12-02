@@ -11,6 +11,7 @@ from django.http.response import HttpResponseNotFound
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.views.decorators.cache import cache_control
 from urllib.parse import urlencode
@@ -210,9 +211,11 @@ def accept_invitation(request, slug):
     invitation = get_object_or_404(Invitation, slug=slug)
     if invitation.status != Invitation.PENDING:
         return HttpResponseNotFound(
-            "The invitation cannot be accepted because it has "
+            "This invitation cannot be accepted because it has "
             "status '{}'.".format(invitation.get_status_display())
         )
+    if invitation.expires_at > timezone.now():
+        return HttpResponseNotFound("This invitation has expired")
 
     # We need a user - redirect to login view if user is not authenticated
     if not request.user.is_authenticated:

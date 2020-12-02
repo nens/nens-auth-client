@@ -14,6 +14,7 @@ from functools import partial
 # A known caveat of django-appconf is that we need to import the AppConf here
 from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 
+from datetime import timedelta
 import json
 import logging
 
@@ -115,6 +116,10 @@ class Invitation(models.Model):
         self.status = status
         self.save()
 
+    @property
+    def expires_at(self):
+        return self.created_at + timedelta(days=settings.NENS_AUTH_INVITATION_EXPIRY_DAYS)
+
     def accept(self, user, **kwargs):
         backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
         if self.user_id and self.user_id != user.id:
@@ -192,3 +197,26 @@ class Invitation(models.Model):
 
         self.email_sent_at = timezone.now()
         self.save()
+
+
+def clean_invitations(days=90):
+    """Delete Invitations that are older than given amount of days
+
+    Args:
+      days (int)
+
+    Returns:
+      the number of Invitations deleted (int)
+
+    Note that ``days`` must be >= NENS_AUTH_INVITATION_EXPIRY_DAYS, and
+    preferably significantly larger to be able to be able to inform the user
+    that an Invitation has expired (as opposed to 'not found').
+    """
+    if days < settings.NENS_AUTH_INVITATION_EXPIRY_DAYS:
+        raise ValueError(
+            "The 'days' argument cannot be less than the Invitation expiry "
+            "setting ({}).".format(settings.NENS_AUTH_INVITATION_EXPIRY_DAYS)
+        )
+    return Invitation.objects.filter(
+        created_at__lt=timezone.now() - timedelta(days=days)
+    ).delete()[0]
