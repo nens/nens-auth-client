@@ -16,9 +16,6 @@ DATABASES = {
     }
 }
 
-# Almost always set to 1.  Django allows multiple sites in one database.
-SITE_ID = 1
-
 # Required for django.contrib.staticfiles
 STATIC_URL = "/static_media/"
 
@@ -127,6 +124,8 @@ AUTHENTICATION_BACKENDS = [
     "nens_auth_client.backends.SSOMigrationBackend",
     "django.contrib.auth.backends.ModelBackend"
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 NENS_AUTH_STANDALONE = True  # for testing
 NENS_AUTH_URL_NAMESPACE = ""  # nens_auth_client urls.py is the root url conf
