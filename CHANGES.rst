@@ -5,7 +5,21 @@ Changelog of nens-auth-client
 0.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added Invitation model.
+
+- The authorize view accepts an "invitation" query parameter. If the invitation
+  is valid, a new user will be created. Or, if present, invitation.user will
+  be used to log in.
+
+- Added accept_invitation view.
+
+- Added invitation expiry and a management command "clean_invitations".
+
+- Removed the EmailVerifiedBackend.
+
+- Added SSOMigrationBackend.
+
+- Removed all secrets from the repository to be able to make it public.
 
 
 0.3 (2020-10-20)
