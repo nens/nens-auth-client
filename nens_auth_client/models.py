@@ -120,7 +120,7 @@ class Invitation(models.Model):
     def expires_at(self):
         return self.created_at + timedelta(days=settings.NENS_AUTH_INVITATION_EXPIRY_DAYS)
 
-    def check_acceptable(self):
+    def check_acceptability(self):
         """Checks if this invitation is PENDING and if it has not expired
 
         Raises PermissionDenied if the invitation is not acceptable
@@ -213,7 +213,7 @@ class Invitation(models.Model):
         self.save()
 
 
-def clean_invitations(days=90):
+def clean_invitations(days):
     """Delete invitations that are older than given amount of days.
 
     Args:

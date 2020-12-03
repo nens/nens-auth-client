@@ -122,7 +122,7 @@ def authorize(request):
             )
         except Invitation.DoesNotExist:
             raise PermissionDenied("No invitation matches the given query.")
-        invitation.check_acceptable()  # May raise PermissionDenied
+        invitation.check_acceptability()  # May raise PermissionDenied
         if invitation.user is not None:
             # associate permanently
             user = invitation.user
@@ -206,7 +206,7 @@ def accept_invitation(request, slug):
     invitation = get_object_or_404(Invitation, slug=slug)
 
     try:
-        invitation.check_acceptable()  # May raise PermissionDenied
+        invitation.check_acceptability()  # May raise PermissionDenied
     except PermissionDenied as e:
         return HttpResponseNotFound(str(e))
 

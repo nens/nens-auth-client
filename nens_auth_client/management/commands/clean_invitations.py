@@ -4,7 +4,7 @@ from nens_auth_client.models import clean_invitations
 
 
 class Command(BaseCommand):
-    help = "Cleans invitations older than n days."
+    help = "Clean (expired) invitations older than n days."
 
     def add_arguments(self, parser):
         parser.add_argument("days", type=int, default=90)
@@ -21,5 +21,5 @@ class Command(BaseCommand):
         if count == 0:
             msg = "No invitations to delete"
         else:
-            msg = "Successfully deleted {} invitations"
+            msg = "Successfully deleted {} invitations".format(count)
         self.stdout.write(self.style.SUCCESS(msg))
