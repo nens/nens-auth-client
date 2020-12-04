@@ -122,11 +122,7 @@ def authorize(request):
             )
         except Invitation.DoesNotExist:
             raise PermissionDenied("No invitation matches the given query.")
-        if invitation.status != Invitation.PENDING:
-            raise PermissionDenied(
-                "The invitation cannot be accepted because it has status "
-                "'{}'.".format(invitation.get_status_display())
-            )
+        invitation.check_acceptability()  # May raise PermissionDenied
         if invitation.user is not None:
             # associate permanently
             user = invitation.user
@@ -208,11 +204,11 @@ def accept_invitation(request, slug):
     """
     # First check if the invitation is there and if it is still acceptable
     invitation = get_object_or_404(Invitation, slug=slug)
-    if invitation.status != Invitation.PENDING:
-        return HttpResponseNotFound(
-            "The invitation cannot be accepted because it has "
-            "status '{}'.".format(invitation.get_status_display())
-        )
+
+    try:
+        invitation.check_acceptability()  # May raise PermissionDenied
+    except PermissionDenied as e:
+        return HttpResponseNotFound(str(e))
 
     # We need a user - redirect to login view if user is not authenticated
     if not request.user.is_authenticated:

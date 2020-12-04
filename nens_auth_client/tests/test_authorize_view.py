@@ -3,12 +3,14 @@ from authlib.jose.errors import JoseError
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
+from django.utils import timezone
 from nens_auth_client import models
 from nens_auth_client import views
 from urllib.parse import parse_qs
 
 import pytest
 import time
+from datetime import timedelta
 
 
 @pytest.fixture
@@ -86,7 +88,9 @@ def test_authorize_with_invitation_existing_user(
     request = auth_req_generator(id_token, user=None)
 
     user = User(username="testuser")
-    invitation_getter.return_value = models.Invitation(slug="foo", user=user)
+    invitation_getter.return_value = models.Invitation(
+        slug="foo", user=user, created_at=timezone.now()
+    )
     request.session[views.INVITATION_KEY] = "foo"
 
     response = views.authorize(request)
@@ -121,7 +125,9 @@ def test_authorize_with_invitation_new_user(
     request = auth_req_generator(id_token, user=None)
 
     user = User(username="testuser")
-    invitation_getter.return_value = models.Invitation(slug="foo", user=None)
+    invitation_getter.return_value = models.Invitation(
+        slug="foo", user=None, created_at=timezone.now()
+    )
     users_m.create_user.return_value = user
     request.session[views.INVITATION_KEY] = "foo"
 
@@ -173,6 +179,27 @@ def test_authorize_with_nonacceptable_invitation(
     )
 
     with pytest.raises(PermissionDenied, match=".*cannot be accepted.*"):
+        views.authorize(request)
+
+    invitation_getter.assert_called_with(slug="foo")
+    assert not login_m.called
+    assert not users_m.create_user.called
+    assert not users_m.create_remote_user.called
+    assert not users_m.update_user.called
+
+
+def test_authorize_with_expired_invitation(
+    id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
+):
+    id_token, claims = id_token_generator()
+    request = auth_req_generator(id_token, user=None)
+
+    request.session[views.INVITATION_KEY] = "foo"
+    invitation_getter.return_value = models.Invitation(
+        created_at=timezone.now() - timedelta(days=14)
+    )
+
+    with pytest.raises(PermissionDenied, match=".*has expired.*"):
         views.authorize(request)
 
     invitation_getter.assert_called_with(slug="foo")
