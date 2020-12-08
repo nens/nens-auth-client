@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.4 (unreleased)
+0.4 (2020-12-08)
 ----------------
 
 - Added Invitation model.
