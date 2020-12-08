@@ -105,6 +105,7 @@ def test_authorize_with_invitation_existing_user(
 
     # check if login was called
     login_m.assert_called_with(request, user)
+    assert user.backend == "nens_auth_client.backends.RemoteUserBackend"
 
     # check if update_user was called
     users_m.update_user.assert_called_with(user, claims)
@@ -143,6 +144,7 @@ def test_authorize_with_invitation_new_user(
 
     # check if login was called
     login_m.assert_called_with(request, user)
+    assert user.backend == "nens_auth_client.backends.RemoteUserBackend"
 
     # check if update_user was called
     users_m.update_user.assert_called_with(user, claims)
