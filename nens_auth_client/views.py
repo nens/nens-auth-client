@@ -21,6 +21,9 @@ import django.contrib.auth as django_auth
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 INVITATION_KEY = "nens_auth_invitation_slug"
 LOGOUT_REDIRECT_SESSION_KEY = "nens_auth_logout_redirect_to"
+REMOTE_USER_BACKEND_PATH = ".".join(
+    [RemoteUserBackend.__module__, RemoteUserBackend.__name__]
+)
 
 
 def _get_redirect_from_next(request, default):
@@ -131,7 +134,7 @@ def authorize(request):
             # create user and associate permanently
             user = users.create_user(claims)
 
-        user.backend = RemoteUserBackend  # needed for login
+        user.backend = REMOTE_USER_BACKEND_PATH  # needed for login
 
     # No user, no login
     if user is None:

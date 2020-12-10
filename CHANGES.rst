@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed error when using authorize view with "invitation" query parameter.
 
 
 0.4 (2020-12-08)
