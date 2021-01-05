@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Store tokens on the RemoteUser object and display them in the admin.
 
 
 0.5 (2020-12-10)
