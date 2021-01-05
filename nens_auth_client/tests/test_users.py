@@ -74,8 +74,7 @@ def test_update_user(user_mgr, remoteuser_mgr, atomic_m):
 
 def test_update_remote_user(remoteuser_mgr):
     update_remote_user(
-        claims={"sub": "test-id"},
-        tokens={"id_token": "foo", "access_token": "bar"}
+        claims={"sub": "test-id"}, tokens={"id_token": "foo", "access_token": "bar"}
     )
     remoteuser_mgr.filter.assert_called_with(external_user_id="test-id")
     args, kwargs = remoteuser_mgr.filter.return_value.update.call_args

@@ -39,15 +39,15 @@ class RemoteUser(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     id_token = models.TextField(
         blank=True,
-        help_text="The most recent ID token provided by the external identity provider."
+        help_text="The most recent ID token provided by the external identity provider.",
     )
     access_token = models.TextField(
         blank=True,
-        help_text="The most access token provided by the external identity provider."
+        help_text="The most access token provided by the external identity provider.",
     )
     refresh_token = models.TextField(
         blank=True,
-        help_text="The most refresh token provided by the external identity provider."
+        help_text="The most refresh token provided by the external identity provider.",
     )
 
     def __str__(self):
@@ -130,7 +130,9 @@ class Invitation(models.Model):
 
     @property
     def expires_at(self):
-        return self.created_at + timedelta(days=settings.NENS_AUTH_INVITATION_EXPIRY_DAYS)
+        return self.created_at + timedelta(
+            days=settings.NENS_AUTH_INVITATION_EXPIRY_DAYS
+        )
 
     def check_acceptability(self):
         """Checks if this invitation is PENDING and if it has not expired

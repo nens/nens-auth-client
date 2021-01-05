@@ -20,7 +20,14 @@ class RemoteUserAdmin(admin.ModelAdmin):
     list_display = ("external_user_id", "user", "created")
     list_select_related = ("user",)
     search_fields = ["external_user_id", "user__username", "user__email"]
-    readonly_fields = ["created", "last_modified", "id_token_payload", "id_token", "access_token", "refresh_token"]
+    readonly_fields = [
+        "created",
+        "last_modified",
+        "id_token_payload",
+        "id_token",
+        "access_token",
+        "refresh_token",
+    ]
 
     fieldsets = [
         (
@@ -35,11 +42,19 @@ class RemoteUserAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Tokens (raw)", {"classes": ("collapse",), "fields": ("id_token", "access_token", "refresh_token")}),
+        (
+            "Tokens (raw)",
+            {
+                "classes": ("collapse",),
+                "fields": ("id_token", "access_token", "refresh_token"),
+            },
+        ),
     ]
 
     def id_token_payload(self, obj):
-        content = json.dumps(display_jwt_payload(obj.id_token), indent=2, sort_keys=True)
+        content = json.dumps(
+            display_jwt_payload(obj.id_token), indent=2, sort_keys=True
+        )
         return mark_safe("<pre>{}</pre>".format(content))
 
 
