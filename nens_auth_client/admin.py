@@ -1,6 +1,18 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 from django.contrib import admin
 from nens_auth_client import models
+import base64
+from django.utils.html import mark_safe
+import json
+
+
+def display_jwt_payload(token):
+    if not token:
+        return
+    split_token = token.split(".")
+    if len(split_token) != 3:
+        return "<token contains {} parts>".format(len(split_token))
+    return json.loads(base64.b64decode(split_token[1]))
 
 
 @admin.register(models.RemoteUser)
@@ -8,7 +20,27 @@ class RemoteUserAdmin(admin.ModelAdmin):
     list_display = ("external_user_id", "user", "created")
     list_select_related = ("user",)
     search_fields = ["external_user_id", "user__username", "user__email"]
-    readonly_fields = ["created", "last_modified"]
+    readonly_fields = ["created", "last_modified", "id_token_payload", "id_token", "access_token", "refresh_token"]
+
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": (
+                    "external_user_id",
+                    "user",
+                    "created",
+                    "last_modified",
+                    "id_token_payload",
+                )
+            },
+        ),
+        ("Tokens (raw)", {"classes": ("collapse",), "fields": ("id_token", "access_token", "refresh_token")}),
+    ]
+
+    def id_token_payload(self, obj):
+        content = json.dumps(display_jwt_payload(obj.id_token), indent=2, sort_keys=True)
+        return mark_safe("<pre>{}</pre>".format(content))
 
 
 @admin.register(models.Invitation)
