@@ -1,9 +1,13 @@
 from django.contrib.auth.models import User
 from django.db import IntegrityError
-from nens_auth_client.users import create_remote_user, create_user, update_user
+from nens_auth_client.users import create_remote_user
+from nens_auth_client.users import create_user
+from nens_auth_client.users import update_remote_user
+from nens_auth_client.users import update_user
+from unittest import mock
 
 import pytest
-from unittest import mock
+import datetime
 
 
 @pytest.fixture
@@ -66,3 +70,16 @@ def test_update_user(user_mgr, remoteuser_mgr, atomic_m):
     assert user.first_name == "Lizard"
     assert user.last_name == "People"
     assert user.save.called
+
+
+def test_update_remote_user(remoteuser_mgr):
+    update_remote_user(
+        claims={"sub": "test-id"},
+        tokens={"id_token": "foo", "access_token": "bar"}
+    )
+    remoteuser_mgr.filter.assert_called_with(external_user_id="test-id")
+    args, kwargs = remoteuser_mgr.filter.return_value.update.call_args
+    assert kwargs["id_token"] == "foo"
+    assert kwargs["access_token"] == "bar"
+    assert kwargs["refresh_token"] == ""
+    assert isinstance(kwargs["last_modified"], datetime.datetime)

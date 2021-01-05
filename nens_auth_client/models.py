@@ -37,6 +37,18 @@ class RemoteUser(models.Model):
     )
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    id_token = models.TextField(
+        blank=True,
+        help_text="The most recent ID token provided by the external identity provider."
+    )
+    access_token = models.TextField(
+        blank=True,
+        help_text="The most access token provided by the external identity provider."
+    )
+    refresh_token = models.TextField(
+        blank=True,
+        help_text="The most refresh token provided by the external identity provider."
+    )
 
     def __str__(self):
         return self.external_user_id
