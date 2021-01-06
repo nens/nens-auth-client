@@ -25,6 +25,33 @@ try:
 except ImportError:  # Django 1.11 compatibility
     from django.conf.urls import url as re_path
 
+
+def override_admin_auth(admin_path="admin"):
+    """This should be included in the urlpatterns of the root site before
+    the admin urls are included.
+
+    The login and logout paths are overriden. An admin/local_login/ path is
+    added for backdoor access with local accounts.
+    """
+    return [
+        url("^{}/login/".format(admin_path), views.login, name="admin-login-override"),
+        url("^{}/logout/".format(admin_path), views.logout, name="admin-logout-override"),
+        url("^{}/local_login/".format(admin_path), admin.site.login, name="admin-local-login")
+    ]
+
+
+def override_rest_framework_auth(drf_path="api-auth"):
+    """This should be included in the urlpatterns of the root site before
+    the rest_framework urls are included.
+
+    The login and logout paths are overriden.
+    """
+    return [
+        url("^{}/login/".format(drf_path), login, name="drf-login-override"),
+        url("^{}/logout/".format(drf_path), logout, name="drf-logout-override"),
+    ]
+
+
 app_name = NensAuthClientConfig.name
 
 urlpatterns = [
