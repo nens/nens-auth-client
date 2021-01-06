@@ -7,6 +7,8 @@ Changelog of nens-auth-client
 
 - Added an invitation_accepted signal.
 
+- Store tokens on the RemoteUser object and display them in the admin.
+
 
 0.5 (2020-12-10)
 ----------------
