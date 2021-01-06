@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added an invitation_accepted signal.
 
 
 0.5 (2020-12-10)
