@@ -1,4 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
+from .signals import invitation_accepted
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
@@ -166,6 +168,9 @@ class Invitation(models.Model):
             raise
         else:
             self._update_status(Invitation.ACCEPTED)
+            invitation_accepted.send(
+                sender=self.__class__, obj=self, user=user
+            )
             return result
 
     def reject(self):

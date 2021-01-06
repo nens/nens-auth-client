@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from nens_auth_client.models import Invitation
+from nens_auth_client.signals import invitation_accepted
+from unittest import mock
 
 import json
 import pytest
@@ -48,6 +50,24 @@ def test_accept_matching_user(m_permission_backend, user, invitation):
     m_permission_backend.assign.assert_called_with(
         permissions={"foo": "bar"}, user=user, extra="something"
     )
+
+
+def test_accept_signal_called(m_permission_backend, user, invitation):
+    signal_handler = mock.Mock()
+    invitation_accepted.connect(signal_handler)
+    invitation.accept(user)
+
+    assert signal_handler.called
+
+
+def test_accept_signal_kwargs(m_permission_backend, user, invitation):
+    def signal_handler(sender, **kwargs):
+        assert sender is Invitation
+        assert kwargs["obj"] == invitation
+        assert kwargs["user"] == user
+
+    invitation_accepted.connect(signal_handler)
+    invitation.accept(user)
 
 
 def test_no_accept_user_mismatch(m_permission_backend, user, invitation):
