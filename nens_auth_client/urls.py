@@ -30,13 +30,13 @@ def override_admin_auth(admin_path="admin"):
     """This should be included in the urlpatterns of the root site before
     the admin urls are included.
 
-    The login and logout paths are overriden. An admin/local_login/ path is
+    The login and logout paths are overriden. An admin/local-login/ path is
     added for backdoor access with local accounts.
     """
     return [
-        url("^{}/login/".format(admin_path), views.login, name="admin-login-override"),
-        url("^{}/logout/".format(admin_path), views.logout, name="admin-logout-override"),
-        url("^{}/local_login/".format(admin_path), admin.site.login, name="admin-local-login")
+        re_path("^{}/login/".format(admin_path), views.login, name="admin-login-override"),
+        re_path("^{}/logout/".format(admin_path), views.logout, name="admin-logout-override"),
+        re_path("^{}/local-login/".format(admin_path), admin.site.login, name="admin-local-login")
     ]
 
 
@@ -47,8 +47,8 @@ def override_rest_framework_auth(drf_path="api-auth"):
     The login and logout paths are overriden.
     """
     return [
-        url("^{}/login/".format(drf_path), login, name="drf-login-override"),
-        url("^{}/logout/".format(drf_path), logout, name="drf-logout-override"),
+        re_path("^{}/login/".format(drf_path), views.login, name="drf-login-override"),
+        re_path("^{}/logout/".format(drf_path), views.logout, name="drf-logout-override"),
     ]
 
 
@@ -66,4 +66,7 @@ urlpatterns = [
 ]
 
 if settings.NENS_AUTH_STANDALONE:
-    urlpatterns += [re_path("^admin/", admin.site.urls)]
+    urlpatterns += [
+        *override_admin_auth(),
+        re_path("^admin/", admin.site.urls)
+    ]

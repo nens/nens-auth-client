@@ -76,6 +76,7 @@ Achieve this as follows (in urls.py)::
 The override always goes before the corresponding include.
 Note that if you use a non-standard path it should be given as argument to
 the override, e.g. ``override_admin_auth("my-custom-admin-path")``.
+The path admin/local-login is added for emergency access.
 
 If not done already for your project, set up a working email backend and a
 sender ('from') email address::
