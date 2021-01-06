@@ -36,18 +36,21 @@ class RemoteUser(models.Model):
         help_text="The user ID in the external identity provider, which is present as the 'sub' field in tokens.",
     )
     created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
+    last_modified = models.DateTimeField(
+        auto_now=True,
+        help_text="The last time this remote user logged in.",
+    )
     id_token = models.TextField(
         blank=True,
         help_text="The most recent ID token provided by the external identity provider.",
     )
     access_token = models.TextField(
         blank=True,
-        help_text="The most access token provided by the external identity provider.",
+        help_text="The most recent access token provided by the external identity provider.",
     )
     refresh_token = models.TextField(
         blank=True,
-        help_text="The most refresh token provided by the external identity provider.",
+        help_text="The most recent refresh token provided by the external identity provider.",
     )
 
     def __str__(self):
