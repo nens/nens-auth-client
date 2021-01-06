@@ -7,7 +7,6 @@ from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
-from django.http.response import HttpResponseNotFound
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -124,7 +123,7 @@ def authorize(request):
                 slug=request.session[INVITATION_KEY]
             )
         except Invitation.DoesNotExist:
-            raise PermissionDenied("No invitation matches the given query.")
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_DOES_NOT_EXIST)
         invitation.check_acceptability()  # May raise PermissionDenied
         if invitation.user is not None:
             # associate permanently
@@ -138,7 +137,7 @@ def authorize(request):
 
     # No user, no login
     if user is None:
-        raise PermissionDenied("No user found with this idenity")
+        raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_DOES_NOT_EXIST)
 
     # Update the user's metadata fields
     users.update_user(user, claims)
@@ -207,11 +206,7 @@ def accept_invitation(request, slug):
     """
     # First check if the invitation is there and if it is still acceptable
     invitation = get_object_or_404(Invitation, slug=slug)
-
-    try:
-        invitation.check_acceptability()  # May raise PermissionDenied
-    except PermissionDenied as e:
-        return HttpResponseNotFound(str(e))
+    invitation.check_acceptability()  # May raise PermissionDenied
 
     # We need a user - redirect to login view if user is not authenticated
     if not request.user.is_authenticated:

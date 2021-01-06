@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 0.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Made all 403 error messages configurable. Some errors from the accept_invitation
+  view are now a 403 instead of a 404.
 
 
 0.5 (2020-12-10)

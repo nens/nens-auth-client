@@ -1,5 +1,6 @@
 from django.http import Http404
 from django.utils import timezone
+from django.core.exceptions import PermissionDenied
 from nens_auth_client import views
 from nens_auth_client.models import Invitation
 from unittest import mock
@@ -53,9 +54,8 @@ def test_invitation_expired(rf, get_object_or_404, invitation):
     get_object_or_404.return_value = invitation
     invitation.created_at = timezone.now() - timedelta(days=15)
 
-    response = views.accept_invitation(request, "foo")
-    assert response.status_code == 404
-    assert response.content == b"This invitation has expired"
+    with pytest.raises(PermissionDenied, match=".*has expired.*"):
+        views.accept_invitation(request, "foo")
 
     get_object_or_404.assert_called_with(Invitation, slug="foo")
 
@@ -66,9 +66,8 @@ def test_invitation_not_acceptable(rf, get_object_or_404, invitation):
     get_object_or_404.return_value = invitation
     invitation.status = Invitation.ACCEPTED
 
-    response = views.accept_invitation(request, "foo")
-    assert response.status_code == 404
-    assert response.content == b"This invitation cannot be accepted because it has status 'Accepted'."
+    with pytest.raises(PermissionDenied, match=".*has been used already.*"):
+        views.accept_invitation(request, "foo")
 
     get_object_or_404.assert_called_with(Invitation, slug="foo")
     assert not invitation.accept.called

@@ -1,4 +1,5 @@
 from .users import create_remote_user
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,9 +34,7 @@ class RemoteUserBackend(ModelBackend):
             return
 
         if not self.user_can_authenticate(user):
-            raise PermissionDenied(
-                "Cannot authenticate the local user because it is set to inactive."
-            )
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
 
         return user
 
@@ -69,9 +68,7 @@ class SSOMigrationBackend(ModelBackend):
             return
 
         if not self.user_can_authenticate(user):
-            raise PermissionDenied(
-                "Cannot authenticate the local user because it is set to inactive."
-            )
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
 
         # Create a permanent association
         create_remote_user(user, claims)
