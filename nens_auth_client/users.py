@@ -2,6 +2,7 @@ from .models import RemoteUser
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db import transaction
+from django.utils import timezone
 
 
 User = get_user_model()
@@ -37,6 +38,7 @@ def create_user(claims):
 
     Returns:
       django User (created or, in case of a race condition, retrieved)
+      RemoteUser (created or, in case of a race condition, retrieved)
     """
     username = claims["cognito:username"]
     external_id = claims["sub"]
@@ -68,3 +70,20 @@ def update_user(user, claims):
     user.last_name = claims.get("family_name", "")
     user.email = claims["email"] if claims["email_verified"] else ""
     user.save()
+
+
+def update_remote_user(claims, tokens):
+    """Update a RemoteUser's metadata from the tokens
+
+    Args:
+      claims (dict): the (verified) payload of an AWS Cognito ID token
+      tokens (dict): the tokens (id_token, access_token, refresh_token)
+    """
+    external_id = claims["sub"]
+
+    RemoteUser.objects.filter(external_user_id=external_id).update(
+        id_token=tokens.get("id_token", ""),
+        access_token=tokens.get("access_token", ""),
+        refresh_token=tokens.get("refresh_token", ""),
+        last_modified=timezone.now(),
+    )

@@ -8,6 +8,10 @@ Changelog of nens-auth-client
 - Made all 403 error messages configurable. Some errors from the accept_invitation
   view are now a 403 instead of a 404.
 
+- Added an invitation_accepted signal.
+
+- Store tokens on the RemoteUser object and display them in the admin.
+
 
 0.5 (2020-12-10)
 ----------------

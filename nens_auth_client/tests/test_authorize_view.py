@@ -64,6 +64,9 @@ def test_authorize(
 
     # check if update_user was called
     users_m.update_user.assert_called_with(user, claims)
+    args, kwargs = users_m.update_remote_user.call_args
+    assert args[0] == claims
+    assert args[1].keys() == {"id_token"}
 
 
 def test_authorize_no_user(id_token_generator, auth_req_generator, users_m, login_m):
@@ -109,6 +112,9 @@ def test_authorize_with_invitation_existing_user(
 
     # check if update_user was called
     users_m.update_user.assert_called_with(user, claims)
+    args, kwargs = users_m.update_remote_user.call_args
+    assert args[0] == claims
+    assert args[1].keys() == {"id_token"}
 
 
 def test_authorize_with_invitation_new_user(
@@ -148,6 +154,9 @@ def test_authorize_with_invitation_new_user(
 
     # check if update_user was called
     users_m.update_user.assert_called_with(user, claims)
+    args, kwargs = users_m.update_remote_user.call_args
+    assert args[0] == claims
+    assert args[1].keys() == {"id_token"}
 
 
 def test_authorize_with_nonexisting_invitation(

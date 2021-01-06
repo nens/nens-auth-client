@@ -110,8 +110,8 @@ def authorize(request):
     """
     client = get_oauth_client()
     client.check_error_in_query_params(request)
-    token = client.authorize_access_token(request, timeout=settings.NENS_AUTH_TIMEOUT)
-    claims = client.parse_id_token(request, token, leeway=settings.NENS_AUTH_LEEWAY)
+    tokens = client.authorize_access_token(request, timeout=settings.NENS_AUTH_TIMEOUT)
+    claims = client.parse_id_token(request, tokens, leeway=settings.NENS_AUTH_LEEWAY)
 
     # The RemoteUserBackend finds a local user through a RemoteUser
     user = django_auth.authenticate(request, claims=claims)
@@ -141,6 +141,7 @@ def authorize(request):
 
     # Update the user's metadata fields
     users.update_user(user, claims)
+    users.update_remote_user(claims, tokens)
 
     # Log the user in
     django_auth.login(request, user)
