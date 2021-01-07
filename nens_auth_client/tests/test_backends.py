@@ -122,7 +122,7 @@ def test_ssomigration_google_nens_ok(user_getter, create_remote_user):
         "cognito:username": "foo",
         "email": "testuser@nelen-schuurmans.nl",
         "email_verified": True,
-        "identities": [{"providerName": "Google"}]
+        "identities": [{"providerName": "Google"}],
     }
     user_getter.return_value = User(username="testuser")
 
@@ -132,21 +132,43 @@ def test_ssomigration_google_nens_ok(user_getter, create_remote_user):
     create_remote_user.assert_called_with(user, claims)
 
 
-@pytest.mark.parametrize("claims", [
-    {"email": "testuser@nelen-schuurmans.nl", "identities": [{"providerName": "Google"}]}, 
-    {"email": "testuser@nelen-schuurmans.nl", "email_verified": False, "identities": [{"providerName": "Google"}]}, 
-    {"email": "testuser@other-domain.nl", "email_verified": True, "identities": [{"providerName": "Google"}]}, 
-    {"email": "testuser@nelen-schuurmans.nl", "email_verified": True},
-    {"email": "testuser@nelen-schuurmans.nl", "email_verified": True, "identities": []}, 
-    {"email": "testuser@nelen-schuurmans.nl", "email_verified": True, "identities": [{}]}, 
-    {"email": "testuser@nelen-schuurmans.nl", "email_verified": True, "identities": [{"providerName": "NotGoogle"}]}, 
-])
-def test_ssomigration_google_unverified(user_getter, create_remote_user, claims):
-    claims = {
-        "sub": "remote-uid",
-        "cognito:username": "foo",
-        **claims,
-    }
+@pytest.mark.parametrize(
+    "claims",
+    [
+        {
+            "email": "testuser@nelen-schuurmans.nl",
+            "identities": [{"providerName": "Google"}],
+        },
+        {
+            "email": "testuser@nelen-schuurmans.nl",
+            "email_verified": False,
+            "identities": [{"providerName": "Google"}],
+        },
+        {
+            "email": "testuser@other-domain.nl",
+            "email_verified": True,
+            "identities": [{"providerName": "Google"}],
+        },
+        {"email": "testuser@nelen-schuurmans.nl", "email_verified": True},
+        {
+            "email": "testuser@nelen-schuurmans.nl",
+            "email_verified": True,
+            "identities": [],
+        },
+        {
+            "email": "testuser@nelen-schuurmans.nl",
+            "email_verified": True,
+            "identities": [{}],
+        },
+        {
+            "email": "testuser@nelen-schuurmans.nl",
+            "email_verified": True,
+            "identities": [{"providerName": "NotGoogle"}],
+        },
+    ],
+)
+def test_ssomigration_google_nens_not_ok(user_getter, create_remote_user, claims):
+    claims = {"sub": "remote-uid", "cognito:username": "foo", **claims}
     user_getter.return_value = User(username="testuser")
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)

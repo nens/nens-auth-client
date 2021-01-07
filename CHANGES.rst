@@ -9,6 +9,9 @@ Changelog of nens-auth-client
 
 - Store tokens on the RemoteUser object and display them in the admin.
 
+- Extend SSOMigrationBackend so that it matches external users by username
+  (from email) if it is a Google account ending with @nelen-schuurmans.nl.
+
 
 0.5 (2020-12-10)
 ----------------
