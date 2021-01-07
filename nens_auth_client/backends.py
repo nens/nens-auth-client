@@ -45,9 +45,13 @@ class SSOMigrationBackend(ModelBackend):
         """Temporary backend for users that were migrated from SSO to AWS.
 
         Previously, users were matched by username. We keep doing that for
-        users that came from the SSO and have not been associated yet. Users
-        that are migrated from the SSO are recognized by the claim
-        "custom:from_sso" being 1.
+        users that came from the SSO and have not been associated yet.
+
+        Users that are migrated from the SSO are recognized by one of two
+        things:
+
+        - (normal accounts) "custom:from_sso" being 1.
+        - (AD acounts) IDP = Google and email domain = @nelen-schuurmans.nl
 
         Args:
           request: the current request
@@ -56,11 +60,20 @@ class SSOMigrationBackend(ModelBackend):
         Returns:
           user or None
         """
+        allow_username_match = int(claims.get("custom:from_sso", 0)) == 1
         username = claims.get("cognito:username")
-        if not username:
-            return
-        allow_username_match = claims.get("custom:from_sso", 0)
-        if int(allow_username_match) != 1:  # AWS formats integers as strings
+        if not allow_username_match:
+            try:
+                assert claims["identities"][0]["providerName"] == "Google"
+                assert claims["email_verified"]
+                username, domain = claims["email"].split("@")
+                assert domain == "nelen-schuurmans.nl"
+            except (KeyError, IndexError, AssertionError, ValueError):
+                pass
+            else:
+                allow_username_match = True
+
+        if not allow_username_match or not username:
             return
 
         try:
