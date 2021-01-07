@@ -27,7 +27,9 @@ except ImportError:  # Django 1.11 compatibility
 
 
 def override_admin_auth(admin_path="admin"):
-    """This should be included in the urlpatterns of the root site before
+    """Return login/logout url paths to enable cognito-based authentication.
+    
+    This should be included in the urlpatterns of the root site before
     the admin urls are included.
 
     The login and logout paths are overriden. An admin/local-login/ path is
@@ -41,7 +43,9 @@ def override_admin_auth(admin_path="admin"):
 
 
 def override_rest_framework_auth(drf_path="api-auth"):
-    """This should be included in the urlpatterns of the root site before
+    """Return login/logout url paths to enable cognito-based authentication.
+    
+    This should be included in the urlpatterns of the root site before
     the rest_framework urls are included.
 
     The login and logout paths are overriden.
