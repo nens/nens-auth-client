@@ -56,6 +56,28 @@ You must register the absolute ``authorize`` and ``logout`` URIs in AWS Cognito.
 If the site runs on multiple domains, they all have to be registered. Wildcards
 are not possible because of security reasons.
 
+The admin and djangorestframework login / logout views should be overridden.
+Otherwise these views still try to authenticate in the local (Django) database.
+Achieve this as follows (in urls.py)::
+
+    from nens_auth_client.urls import override_admin_auth
+    from nens_auth_client.urls import override_rest_framework_auth
+
+    urlpatterns = [
+        ...
+        *override_admin_auth(),
+        url(r"^admin/", admin.site.urls),  # is probably already there
+        ...
+        *override_rest_framework_auth(),  # only if you use rest_framework
+        url(r"^api-auth/", include("rest_framework.urls"), namespace="rest_framework"),
+        ...
+    ]
+
+The override always goes before the corresponding include.
+Note that if you use a non-standard path it should be given as argument to
+the override, e.g. ``override_admin_auth("my-custom-admin-path")``.
+The path admin/local-login is added (by the override) for emergency access.
+
 If not done already for your project, set up a working email backend and a
 sender ('from') email address::
 
