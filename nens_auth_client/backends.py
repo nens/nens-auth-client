@@ -86,7 +86,7 @@ class SSOMigrationBackend(ModelBackend):
           user or None
         """
         username = None
-        if int(claims.get("custom:from_sso", 0)):
+        if int(claims.get("custom:from_sso", 0)) == 1:
             username = claims.get("cognito:username")
         else:
             username = _nens_user_extract_username(claims)
