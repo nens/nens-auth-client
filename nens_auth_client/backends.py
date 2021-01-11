@@ -39,14 +39,43 @@ class RemoteUserBackend(ModelBackend):
         return user
 
 
+def _nens_user_extract_username(claims):
+    """Return the username from the email claim if the user is a N&S user.
+
+    A N&S user is characterized by 1) coming from "Google" identity provider
+    and 2) having (verified) email domain @nelen-schuurmans.nl.
+    """
+    # Get the provider name, return False if not present
+    try:
+        provider_name = claims["identities"][0]["providerName"]
+    except (KeyError, IndexError):
+        return
+
+    if provider_name != "Google":
+        return
+    if not claims.get("email_verified", False):
+        return
+
+    # Unpack email
+    username, domain = claims.get("email", "a@b").split("@", 1)
+    if domain != "nelen-schuurmans.nl":
+        return
+
+    return username
+
+
 class SSOMigrationBackend(ModelBackend):
     def authenticate(self, request, claims):
         """Temporary backend for users that were migrated from SSO to AWS.
 
         Previously, users were matched by username. We keep doing that for
-        users that came from the SSO and have not been associated yet. Users
-        that are migrated from the SSO are recognized by the claim
-        "custom:from_sso" being 1.
+        users that came from the SSO and have not been associated yet.
+
+        Users that are migrated from the SSO are recognized by one of two
+        things:
+
+        - (normal accounts) "custom:from_sso" being 1.
+        - (AD acounts) IDP = Google and email domain = @nelen-schuurmans.nl
 
         Args:
           request: the current request
@@ -55,11 +84,13 @@ class SSOMigrationBackend(ModelBackend):
         Returns:
           user or None
         """
-        username = claims.get("cognito:username")
-        if not username:
-            return
-        allow_username_match = claims.get("custom:from_sso", 0)
-        if int(allow_username_match) != 1:  # AWS formats integers as strings
+        username = None
+        if int(claims.get("custom:from_sso", 0)) == 1:
+            username = claims.get("cognito:username")
+        else:
+            username = _nens_user_extract_username(claims)
+
+        if username is None:
             return
 
         try:
