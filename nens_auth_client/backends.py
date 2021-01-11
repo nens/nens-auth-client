@@ -40,6 +40,31 @@ class RemoteUserBackend(ModelBackend):
         return user
 
 
+def _nens_user_extract_username(claims):
+    """Return the username from the email claim if the user is a N&S user.
+
+    A N&S user is characterized by 1) coming from "Google" identity provider
+    and 2) having (verified) email domain @nelen-schuurmans.nl.
+    """
+    # Get the provider name, return False if not present
+    try:
+        provider_name = claims["identities"][0]["providerName"]
+    except (KeyError, IndexError):
+        return
+
+    if provider_name != "Google":
+        return
+    if not claims.get("email_verified", False):
+        return
+
+    # Unpack email
+    username, domain = claims.get("email", "").split("@", 1)
+    if domain != "nelen-schuurmans.nl":
+        return
+
+    return username
+
+
 class SSOMigrationBackend(ModelBackend):
     def authenticate(self, request, claims):
         """Temporary backend for users that were migrated from SSO to AWS.
@@ -60,20 +85,12 @@ class SSOMigrationBackend(ModelBackend):
         Returns:
           user or None
         """
-        allow_username_match = int(claims.get("custom:from_sso", 0)) == 1
-        username = claims.get("cognito:username")
-        if not allow_username_match:
-            try:
-                assert claims["identities"][0]["providerName"] == "Google"
-                assert claims["email_verified"]
-                username, domain = claims["email"].split("@")
-                assert domain == "nelen-schuurmans.nl"
-            except (KeyError, IndexError, AssertionError, ValueError):
-                pass
-            else:
-                allow_username_match = True
+        if int(claims.get("custom:from_sso", 0)):
+            username = claims.get("cognito:username")
+        else:
+            username = _nens_user_extract_username(claims)
 
-        if not allow_username_match or not username:
+        if username is None:
             return
 
         try:
