@@ -85,6 +85,7 @@ class SSOMigrationBackend(ModelBackend):
         Returns:
           user or None
         """
+        username = None
         if int(claims.get("custom:from_sso", 0)):
             username = claims.get("cognito:username")
         else:
