@@ -145,6 +145,10 @@ def test_ssomigration_google_nens_ok(user_getter, create_remote_user):
             "identities": [{"providerName": "Google"}],
         },
         {
+            "email_verified": True,
+            "identities": [{"providerName": "Google"}],
+        },
+        {
             "email": "testuser@other-domain.nl",
             "email_verified": True,
             "identities": [{"providerName": "Google"}],
