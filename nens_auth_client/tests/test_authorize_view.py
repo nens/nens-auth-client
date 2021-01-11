@@ -73,7 +73,7 @@ def test_authorize_no_user(id_token_generator, auth_req_generator, users_m, logi
     id_token, claims = id_token_generator()
     request = auth_req_generator(id_token, user=None)
 
-    with pytest.raises(PermissionDenied, match="No user found.*"):
+    with pytest.raises(PermissionDenied, match="No user account available.*"):
         views.authorize(request)
 
     assert not login_m.called
@@ -168,7 +168,7 @@ def test_authorize_with_nonexisting_invitation(
     request.session[views.INVITATION_KEY] = "foo"
     invitation_getter.side_effect = models.Invitation.DoesNotExist
 
-    with pytest.raises(PermissionDenied, match="No invitation matches.*"):
+    with pytest.raises(PermissionDenied, match=".*invitation does not exist.*"):
         views.authorize(request)
 
     invitation_getter.assert_called_with(slug="foo")
@@ -189,7 +189,7 @@ def test_authorize_with_nonacceptable_invitation(
         status=models.Invitation.ACCEPTED
     )
 
-    with pytest.raises(PermissionDenied, match=".*cannot be accepted.*"):
+    with pytest.raises(PermissionDenied, match=".*has been used already.*"):
         views.authorize(request)
 
     invitation_getter.assert_called_with(slug="foo")

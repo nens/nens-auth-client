@@ -1,6 +1,5 @@
 from .models import RemoteUser
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils import timezone
@@ -28,8 +27,11 @@ def create_remote_user(user, claims):
 def create_user(claims):
     """Create User and associate it with an external one through RemoteUser.
 
-    Raises a PermissionDenied if the username already exists. The username
-    is taken from the "cognito:username" field.
+    The username is taken from the "cognito:username" field.
+
+    Raises an IntegrityError if this username already exists. This is expected
+    to happen very rarely, in which case we do want to see this in our bug
+    tracker.
 
     Args:
       claims (dict): the (verified) payload of an AWS Cognito ID token
@@ -52,10 +54,6 @@ def create_user(claims):
             return User.objects.get(remote__external_user_id=external_id)
         except User.DoesNotExist:
             pass
-
-        # Another option is that the username is already taken.
-        if User.objects.filter(username=username).exists():
-            raise PermissionDenied("This username is already taken")
 
         # Unknown IntegrityErrors should be raised.
         raise

@@ -145,20 +145,15 @@ class Invitation(models.Model):
         Raises PermissionDenied if the invitation is not acceptable
         """
         if self.status != Invitation.PENDING:
-            raise PermissionDenied(
-                "This invitation cannot be accepted because it has status "
-                "'{}'.".format(self.get_status_display())
-            )
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_UNUSABLE)
         if self.expires_at < timezone.now():
-            raise PermissionDenied("This invitation has expired")
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_EXPIRED)
         return True
 
     def accept(self, user, **kwargs):
         backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
         if self.user_id and self.user_id != user.id:
-            raise PermissionDenied(
-                "This invitation was not intended for the current user"
-            )
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_WRONG_USER)
         try:
             result = backend.assign(
                 permissions=json.loads(self.permissions), user=user, **kwargs

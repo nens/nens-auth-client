@@ -258,10 +258,18 @@ Error handling
 
 The ``authorize`` view may give several kinds of exceptions. See the relevant
 docstring. These errors are unhandled by nens_auth_client, so that django's
-built-in 403 or 500 templates are used.
+built-in 403, 404, and 500 templates are used.
 
 For overriding these views, see: https://docs.djangoproject.com/en/3.1/ref/views/#error-views
 
+The error detail messages can be modified with the following settings:
+
+- NENS_AUTH_ERROR_USER_DOES_NOT_EXIST
+- NENS_AUTH_ERROR_USER_INACTIVE
+- NENS_AUTH_ERROR_INVITATION_DOES_NOT_EXIST
+- NENS_AUTH_ERROR_INVITATION_UNUSABLE
+- NENS_AUTH_ERROR_INVITATION_EXPIRED
+- NENS_AUTH_ERROR_INVITATION_WRONG_USER
 
 Local development
 -----------------
