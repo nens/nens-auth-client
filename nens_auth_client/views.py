@@ -117,7 +117,7 @@ def authorize(request):
     user = django_auth.authenticate(request, claims=claims)
 
     # If nothing was found: only a valid invitation warrants a new user association
-    if user is None and INVITATION_KEY in request.session:
+    if user is None and request.session.get(INVITATION_KEY):
         try:
             invitation = Invitation.objects.select_related("user").get(
                 slug=request.session[INVITATION_KEY]
