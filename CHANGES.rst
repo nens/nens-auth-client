@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed faulty error message if user does not exist.
 
 
 0.6 (2021-01-11)
