@@ -82,6 +82,23 @@ def test_authorize_no_user(id_token_generator, auth_req_generator, users_m, logi
     assert not users_m.update_user.called
 
 
+def test_authorize_no_redirect_in_session(
+    id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
+):
+    id_token, claims = id_token_generator(testclaim="bar")
+    user = User(username="testuser")
+    request = auth_req_generator(id_token, user=user)
+
+    # delete the redirect from the session
+    del request.session[views.LOGIN_REDIRECT_SESSION_KEY]
+
+    response = views.authorize(request)
+
+    # successful authorize should redirect to the default success url:
+    assert response.status_code == 302
+    assert response.url == settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+
+
 def test_authorize_with_invitation_existing_user(
     id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
 ):

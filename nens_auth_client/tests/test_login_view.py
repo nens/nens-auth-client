@@ -40,21 +40,47 @@ def test_login_when_already_logged_in(rf):
     request.user = User()
     response = views.login(request)
 
-    # login generated a redirect to the (absolutized) 'next' parameter
+    # login generated a redirect to the 'next' parameter
     assert response.status_code == 302
     assert response.url == "/a"
+
+    # login did not add anything to the session
+    assert request.session == {}
+
+
+def test_login_no_next_url(rf):
+    # The login view redirects to DEFAULT_SUCCESS_URL if already logged in
+    request = rf.get("http://testserver/login/")
+    request.session = {}
+    request.user = User()
+    views.login(request)
+
+    # login did not add a redirect url to the session
+    assert views.LOGIN_REDIRECT_SESSION_KEY not in request.session
+
+
+def test_login_no_next_url_already_logged_in(rf):
+    # The login view redirects to DEFAULT_SUCCESS_URL if already logged in
+    request = rf.get("http://testserver/login/")
+    request.session = {}
+    request.user = User()
+    response = views.login(request)
+
+    # login generated a redirect to the default redirect setting
+    assert response.status_code == 302
+    assert response.url == settings.NENS_AUTH_DEFAULT_SUCCESS_URL
 
 
 @pytest.mark.parametrize(
     "url,expected",
     [
-        ("login/", "/x"),
+        ("login/", None),
         ("login/?next=/a", "/a"),
         ("login/?next=https://testserver/a", "https://testserver/a"),
-        ("login/?next=https://testserver2/a", "/x"),  # different domain
-        ("login/?next=http://testserver/a", "/x"),  # https to http
+        ("login/?next=https://testserver2/a", None),  # different domain
+        ("login/?next=http://testserver/a", None),  # https to http
     ],
 )
 def test_get_redirect_from_next(rf, url, expected):
     request = rf.get(url, secure=True)
-    assert views._get_redirect_from_next(request, default="/x") == expected
+    assert views._get_redirect_from_next(request) == expected

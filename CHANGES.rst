@@ -7,6 +7,11 @@ Changelog of nens-auth-client
 
 - Fixed faulty error message if user does not exist.
 
+- Fixed authorize if there is no redirect in the session.
+
+- Stop storing the default redirect urls in the session. This prevents creating
+  a session in the login or logout flows if no 'next' url param is used.
+
 
 0.6 (2021-01-11)
 ----------------
