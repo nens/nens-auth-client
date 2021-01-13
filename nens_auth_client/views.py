@@ -26,9 +26,9 @@ REMOTE_USER_BACKEND_PATH = ".".join(
 
 
 def _get_redirect_from_next(request):
-    """Return redirect url from the "next" parameter in the url
+    """Return redirect url from the "next" parameter in the url.
 
-    Returns the default if there is no "next" parameter or if it is unsafe.
+    Returns None if there is no "next" parameter or if it is unsafe.
     """
     if REDIRECT_FIELD_NAME in request.GET:
         redirect_to = request.GET[REDIRECT_FIELD_NAME]
