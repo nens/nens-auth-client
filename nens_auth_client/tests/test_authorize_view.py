@@ -205,7 +205,7 @@ def test_authorize_with_nonacceptable_invitation(
 
     request.session[views.INVITATION_KEY] = "foo"
     invitation_getter.return_value = models.Invitation(
-        status=models.Invitation.ACCEPTED,
+        status=models.Invitation.ACCEPTED
     )
 
     with pytest.raises(PermissionDenied, match=".*has been used already.*"):
@@ -226,7 +226,7 @@ def test_authorize_with_expired_invitation(
 
     request.session[views.INVITATION_KEY] = "foo"
     invitation_getter.return_value = models.Invitation(
-        created_at=timezone.now() - timedelta(days=14),
+        created_at=timezone.now() - timedelta(days=14)
     )
 
     with pytest.raises(PermissionDenied, match=".*has expired.*"):
@@ -250,7 +250,10 @@ def test_authorize_with_mismatching_invitation(
         created_at=timezone.now(), email="some@other.email"
     )
 
-    with pytest.raises(PermissionDenied, match=".*intended for a user with email 'some@other.email'.*"):
+    with pytest.raises(
+        PermissionDenied,
+        match=".*intended for a user with email 'some@other.email'.*"
+    ):
         views.authorize(request)
 
     invitation_getter.assert_called_with(slug="foo")

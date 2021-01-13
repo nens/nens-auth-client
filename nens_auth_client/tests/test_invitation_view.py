@@ -45,7 +45,9 @@ def test_invitation_accept(rf, get_object_or_404, invitation, invited_user):
     invitation.accept.assert_called_with(request.user)
 
 
-def test_invitation_accept_no_verified_email(rf, get_object_or_404, invitation, invited_user):
+def test_invitation_accept_no_verified_email(
+    rf, get_object_or_404, invitation, invited_user
+):
     request = rf.get("/?next=/success/")
     request.user = invited_user
     invited_user.email = ""  # no verified email results in a blank user.email
@@ -103,7 +105,10 @@ def test_invitation_email_mismatch(
     request.user = invited_user
     get_object_or_404.return_value = invitation
 
-    with pytest.raises(PermissionDenied, match=".*was intended for a user with email 'a@b.com'.*"):
+    with pytest.raises(
+        PermissionDenied,
+        match=".*was intended for a user with email 'a@b.com'.*"
+    ):
         views.accept_invitation(request, "foo")
 
     get_object_or_404.assert_called_with(Invitation, slug="foo")

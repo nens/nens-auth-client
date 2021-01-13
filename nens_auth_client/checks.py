@@ -66,7 +66,7 @@ def check_access_token_middleware_order(app_configs=None, **kwargs):
 
 @register()
 def check_error_message_formatting(app_configs=None, **kwargs):
-    """Check ERROR_INVITATION_WRONG_USER for error formatting placeholders
+    """Check ERROR_INVITATION_WRONG_USER and _EMAIL for correct formatting.
 
     'Error message' is accepted, but 'Error message {invalid_placeholder} not.
     """
