@@ -7,6 +7,9 @@ Changelog of nens-auth-client
 
 - Fixed faulty error message if user does not exist.
 
+- Added a check if the user's and invitation's email match. It does not matter
+  whether the user's email was verified.
+
 
 0.6 (2021-01-11)
 ----------------
