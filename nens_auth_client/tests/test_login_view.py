@@ -40,9 +40,35 @@ def test_login_when_already_logged_in(rf):
     request.user = User()
     response = views.login(request)
 
-    # login generated a redirect to the (absolutized) 'next' parameter
+    # login generated a redirect to the 'next' parameter
     assert response.status_code == 302
     assert response.url == "/a"
+
+    # login did not alter the session
+    assert request.session == {}
+
+
+def test_login_no_next_url(rf):
+    # The login view redirects to DEFAULT_SUCCESS_URL if already logged in
+    request = rf.get("http://testserver/login/")
+    request.session = {}
+    request.user = User()
+    views.login(request)
+
+    # login did not alter the session
+    assert request.session == {}
+
+
+def test_login_no_next_url_already_logged_in(rf):
+    # The login view redirects to DEFAULT_SUCCESS_URL if already logged in
+    request = rf.get("http://testserver/login/")
+    request.session = {}
+    request.user = User()
+    response = views.login(request)
+
+    # login generated a redirect to the default redirect setting
+    assert response.status_code == 302
+    assert response.url == settings.NENS_AUTH_DEFAULT_SUCCESS_URL
 
 
 @pytest.mark.parametrize(

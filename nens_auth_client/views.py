@@ -25,7 +25,7 @@ REMOTE_USER_BACKEND_PATH = ".".join(
 )
 
 
-def _get_redirect_from_next(request, default):
+def _get_redirect_from_next(request, default=None):
     """Return redirect url from the "next" parameter in the url
 
     Returns the default if there is no "next" parameter or if it is unsafe.
@@ -66,19 +66,22 @@ def login(request):
     else cookies will not be valid.
     """
     # Get the success redirect url
-    success_url = _get_redirect_from_next(
-        request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
-    )
+    success_url = _get_redirect_from_next(request)
 
     # If the user was already authenticated, redirect to the success url
     if request.user.is_authenticated:
-        return HttpResponseRedirect(success_url)
+        return HttpResponseRedirect(
+            success_url or settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+        )
 
-    # Store the success_url in the session for later use
-    request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
+    # Store the success_url in the session for later use (if present)
+    if success_url:
+        request.session[LOGIN_REDIRECT_SESSION_KEY] = success_url
 
     # Store the invitation-key (if present)
-    request.session[INVITATION_KEY] = request.GET.get("invitation", None)
+    invitation = request.GET.get("invitation")
+    if invitation:
+        request.session[INVITATION_KEY] = invitation
 
     # Redirect to the authorization server
     client = get_oauth_client()
@@ -120,7 +123,7 @@ def authorize(request):
     if user is None and request.session.get(INVITATION_KEY):
         try:
             invitation = Invitation.objects.select_related("user").get(
-                slug=request.session[INVITATION_KEY]
+                slug=request.session.pop(INVITATION_KEY)
             )
         except Invitation.DoesNotExist:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_DOES_NOT_EXIST)
@@ -146,7 +149,11 @@ def authorize(request):
     # Log the user in
     django_auth.login(request, user)
 
-    return HttpResponseRedirect(request.session[LOGIN_REDIRECT_SESSION_KEY])
+    # Redirect to the success url stored in session (or use default)
+    success_url = request.session.get(
+        LOGIN_REDIRECT_SESSION_KEY, settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    )
+    return HttpResponseRedirect(success_url)
 
 
 @cache_control(no_store=True)
@@ -168,7 +175,7 @@ def logout(request):
     """
     if not request.user.is_authenticated:
         # We are in step 3. (user is already logged out)
-        redirect_url = request.session.pop(LOGOUT_REDIRECT_SESSION_KEY, None)
+        redirect_url = request.session.get(LOGOUT_REDIRECT_SESSION_KEY, None)
         if redirect_url is None:
             # If there is nothing in the session, the user called /logout
             # without being logged in in the first place. Just use the 'next'
@@ -181,10 +188,10 @@ def logout(request):
     # Log the user out
     django_auth.logout(request)
 
-    # Store the redirect_url in the session for later use
-    request.session[LOGOUT_REDIRECT_SESSION_KEY] = _get_redirect_from_next(
-        request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
-    )
+    # Store the redirect_url in the session for later use (if present)
+    redirect_url = _get_redirect_from_next(request)
+    if redirect_url:
+        request.session[LOGOUT_REDIRECT_SESSION_KEY] = redirect_url
 
     # Redirect to authorization server
     logout_uri = request.build_absolute_uri(
