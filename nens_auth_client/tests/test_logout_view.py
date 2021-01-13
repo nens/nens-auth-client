@@ -34,7 +34,7 @@ def test_logout(rf, mocker, openid_configuration):
 def test_logout_as_callback(rf, mocker):
     django_logout = mocker.patch("nens_auth_client.views.django_auth.logout")
 
-    request = rf.get("http://testserver/logout/")
+    request = rf.get("http://testserver/logout/?next=/a")
     request.session = {views.LOGOUT_REDIRECT_SESSION_KEY: "/b"}
     request.user = AnonymousUser()  # user is not logged in anymore
     response = views.logout(request)
@@ -75,7 +75,7 @@ def test_logout_no_next_url(rf, mocker, openid_configuration):
     request.user = User()  # user is logged in initially
     views.logout(request)
 
-    # there is no 'next' param stored in the session
+    # there is no redirect url stored in the session
     assert request.session == {}
 
 
@@ -85,7 +85,7 @@ def test_logout_as_callback_no_session(rf, mocker, openid_configuration):
     request.user = AnonymousUser()  # user is not logged in anymore
     response = views.logout(request)
 
-    # logout generated a redirect to the url stored in the session
+    # logout generated a redirect to the default logout url
     assert response.status_code == 302
     assert response.url == settings.NENS_AUTH_DEFAULT_LOGOUT_URL
 
@@ -96,6 +96,6 @@ def test_logout_not_logged_in_no_next_url(rf, mocker):
     request.user = AnonymousUser()  # user is not logged in initially
     response = views.logout(request)
 
-    # logout generated a redirect to the 'next' URL
+    # logout generated a redirect to the default logout url
     assert response.status_code == 302
     assert response.url == settings.NENS_AUTH_DEFAULT_LOGOUT_URL
