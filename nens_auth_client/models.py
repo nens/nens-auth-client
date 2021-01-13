@@ -162,7 +162,10 @@ class Invitation(models.Model):
         # Check if email matches (skip if email is None)
         if email is not None and self.email.lower() != email.lower():
             raise PermissionDenied(
-                settings.NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL.format(email)
+                settings.NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL.format(
+                    actual_email=email,
+                    expected_email=self.email,
+                )
             )
         return True
 
@@ -170,7 +173,10 @@ class Invitation(models.Model):
         backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
         if self.user_id and self.user_id != user.id:
             raise PermissionDenied(
-                settings.NENS_AUTH_ERROR_INVITATION_WRONG_USER
+                settings.NENS_AUTH_ERROR_INVITATION_WRONG_USER.format(
+                    actual_user=user.username,
+                    expected_user=self.user.username,
+                )
             )
         try:
             result = backend.assign(

@@ -247,10 +247,10 @@ def test_authorize_with_mismatching_invitation(
 
     request.session[views.INVITATION_KEY] = "foo"
     invitation_getter.return_value = models.Invitation(
-        created_at=timezone.now(), email=claims["email"][:-1]
+        created_at=timezone.now(), email="some@other.email"
     )
 
-    with pytest.raises(PermissionDenied, match=".*not intended for the current user.*"):
+    with pytest.raises(PermissionDenied, match=".*intended for a user with email 'some@other.email'.*"):
         views.authorize(request)
 
     invitation_getter.assert_called_with(slug="foo")

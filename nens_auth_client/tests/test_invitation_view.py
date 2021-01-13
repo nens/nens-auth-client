@@ -26,6 +26,7 @@ def invitation():
 @pytest.fixture
 def invited_user(invitation):
     user = mock.Mock()
+    user.id = 42
     user.is_authenticated = True
     user.email = invitation.email
     return user
@@ -102,7 +103,7 @@ def test_invitation_email_mismatch(
     request.user = invited_user
     get_object_or_404.return_value = invitation
 
-    with pytest.raises(PermissionDenied, match=".*was not intended for the current user.*"):
+    with pytest.raises(PermissionDenied, match=".*was intended for a user with email 'a@b.com'.*"):
         views.accept_invitation(request, "foo")
 
     get_object_or_404.assert_called_with(Invitation, slug="foo")
