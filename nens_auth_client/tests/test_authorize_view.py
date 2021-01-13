@@ -88,11 +88,14 @@ def test_authorize_no_redirect_in_session(
     id_token, claims = id_token_generator(testclaim="bar")
     user = User(username="testuser")
     request = auth_req_generator(id_token, user=user)
+
+    # delete the redirect from the session
     del request.session[views.LOGIN_REDIRECT_SESSION_KEY]
 
     response = views.authorize(request)
 
-    assert response.status_code == 302  # 302 redirect to success url: all checks passed
+    # successful authorize should redirect to the default success url:
+    assert response.status_code == 302
     assert response.url == settings.NENS_AUTH_DEFAULT_SUCCESS_URL
 
 

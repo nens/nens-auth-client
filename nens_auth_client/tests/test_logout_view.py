@@ -76,10 +76,10 @@ def test_logout_no_next_url(rf, mocker, openid_configuration):
     views.logout(request)
 
     # there is no redirect url stored in the session
-    assert request.session == {}
+    assert views.LOGOUT_REDIRECT_SESSION_KEY not in request.session
 
 
-def test_logout_as_callback_no_session(rf, mocker, openid_configuration):
+def test_logout_as_callback_empty_session(rf, mocker, openid_configuration):
     request = rf.get("http://testserver/logout/")
     request.session = {}
     request.user = AnonymousUser()  # user is not logged in anymore

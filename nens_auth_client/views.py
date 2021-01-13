@@ -25,7 +25,7 @@ REMOTE_USER_BACKEND_PATH = ".".join(
 )
 
 
-def _get_redirect_from_next(request, default=None):
+def _get_redirect_from_next(request):
     """Return redirect url from the "next" parameter in the url
 
     Returns the default if there is no "next" parameter or if it is unsafe.
@@ -38,8 +38,6 @@ def _get_redirect_from_next(request, default=None):
             require_https=request.is_secure(),
         ):
             return redirect_to
-
-    return default
 
 
 @cache_control(no_store=True)
@@ -119,11 +117,18 @@ def authorize(request):
     # The RemoteUserBackend finds a local user through a RemoteUser
     user = django_auth.authenticate(request, claims=claims)
 
-    # If nothing was found: only a valid invitation warrants a new user association
-    if user is None and request.session.get(INVITATION_KEY):
+    if user is None:
+        # Get the invitation from the session. Also remove it as an invitation
+        # may be used only once. So it should not remain in the session.
+        invitation_slug = request.session.pop(INVITATION_KEY, None)
+
+        # No user and no invitation: no login
+        if not invitation_slug:
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_DOES_NOT_EXIST)
+
         try:
             invitation = Invitation.objects.select_related("user").get(
-                slug=request.session.pop(INVITATION_KEY)
+                slug=invitation_slug
             )
         except Invitation.DoesNotExist:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_DOES_NOT_EXIST)
@@ -137,10 +142,6 @@ def authorize(request):
             user = users.create_user(claims)
 
         user.backend = REMOTE_USER_BACKEND_PATH  # needed for login
-
-    # No user, no login
-    if user is None:
-        raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_DOES_NOT_EXIST)
 
     # Update the user's metadata fields
     users.update_user(user, claims)
@@ -179,11 +180,11 @@ def logout(request):
         if redirect_url is None:
             # If there is nothing in the session, the user called /logout
             # without being logged in in the first place. Just use the 'next'
-            # parameter.
-            redirect_url = _get_redirect_from_next(
-                request, default=settings.NENS_AUTH_DEFAULT_LOGOUT_URL
-            )
-        return HttpResponseRedirect(redirect_url)
+            # parameter (or the default logout url).
+            redirect_url = _get_redirect_from_next(request)
+        return HttpResponseRedirect(
+            redirect_url or settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+        )
 
     # Log the user out
     django_auth.logout(request)
@@ -223,7 +224,7 @@ def accept_invitation(request, slug):
         return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
 
     invitation.accept(request.user)
-    success_url = _get_redirect_from_next(
-        request, default=settings.NENS_AUTH_DEFAULT_SUCCESS_URL
+    success_url = _get_redirect_from_next(request)
+    return HttpResponseRedirect(
+        success_url or settings.NENS_AUTH_DEFAULT_SUCCESS_URL
     )
-    return HttpResponseRedirect(success_url)
