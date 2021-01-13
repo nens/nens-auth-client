@@ -124,7 +124,8 @@ def authorize(request):
             )
         except Invitation.DoesNotExist:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_DOES_NOT_EXIST)
-        invitation.check_acceptability()  # May raise PermissionDenied
+        # May raise PermissionDenied:
+        invitation.check_acceptability(claims["email"])
         if invitation.user is not None:
             # associate permanently
             user = invitation.user
@@ -207,7 +208,8 @@ def accept_invitation(request, slug):
     """
     # First check if the invitation is there and if it is still acceptable
     invitation = get_object_or_404(Invitation, slug=slug)
-    invitation.check_acceptability()  # May raise PermissionDenied
+    # May raise PermissionDenied
+    invitation.check_acceptability(email=getattr(request.user, "email", None))
 
     # We need a user - redirect to login view if user is not authenticated
     if not request.user.is_authenticated:

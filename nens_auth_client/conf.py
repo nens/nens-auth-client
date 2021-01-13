@@ -25,6 +25,7 @@ class NensAuthClientAppConf(AppConf):
     ERROR_INVITATION_UNUSABLE = "The invitation has been used already."
     ERROR_INVITATION_EXPIRED = "The invitation has expired."
     ERROR_INVITATION_WRONG_USER = "This invitation was not intended for the current user."
+    ERROR_INVITATION_WRONG_EMAIL = "Please log in with the email address at which you were invited."
 
     class Meta:
         prefix = "NENS_AUTH"
