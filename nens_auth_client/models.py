@@ -139,21 +139,45 @@ class Invitation(models.Model):
             days=settings.NENS_AUTH_INVITATION_EXPIRY_DAYS
         )
 
-    def check_acceptability(self):
-        """Checks if this invitation is PENDING and if it has not expired
+    def check_acceptability(self, email=None):
+        """Raise PermissionDenied if this invitation is not acceptable.
 
-        Raises PermissionDenied if the invitation is not acceptable
+        An invitation is not acceptable if it is not PENDING, if it has
+        expired, or if the user's email does not match the invitation email.
+
+        Args:
+          email (str): If provided, this email is compared case-insensitively
+            with the invitation email.
+
+        Returns:
+          True if checks passed
+
+        Raises:
+          PermissionDenied if the invitation is not acceptable
         """
         if self.status != Invitation.PENDING:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_UNUSABLE)
         if self.expires_at < timezone.now():
             raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_EXPIRED)
+        # Check if email matches (skip if email is None)
+        if email is not None and self.email.lower() != email.lower():
+            raise PermissionDenied(
+                settings.NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL.format(
+                    actual_email=email,
+                    expected_email=self.email,
+                )
+            )
         return True
 
     def accept(self, user, **kwargs):
         backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
         if self.user_id and self.user_id != user.id:
-            raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_WRONG_USER)
+            raise PermissionDenied(
+                settings.NENS_AUTH_ERROR_INVITATION_WRONG_USER.format(
+                    actual_user=user.username,
+                    expected_user=self.user.username,
+                )
+            )
         try:
             result = backend.assign(
                 permissions=json.loads(self.permissions), user=user, **kwargs

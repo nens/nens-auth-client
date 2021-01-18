@@ -11,6 +11,9 @@ Changelog of nens-auth-client
 - Handle username uniqueness constraint by appending 4 random characters after
   the username when necessary.
 
+- Added a check if the user's and invitation's email match. It does not matter
+  whether the user's email was verified.
+
 
 0.7 (2021-01-13)
 ----------------

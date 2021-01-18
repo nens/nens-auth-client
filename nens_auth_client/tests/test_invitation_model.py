@@ -73,7 +73,7 @@ def test_accept_signal_kwargs(m_permission_backend, user, invitation):
 def test_no_accept_user_mismatch(m_permission_backend, user, invitation):
     invitation.user = User(username="other_user", id=42)
 
-    with pytest.raises(PermissionDenied):
+    with pytest.raises(PermissionDenied, match=".*was intended for user 'other_user'.*"):
         invitation.accept(user, extra="something")
 
     assert invitation.status == Invitation.PENDING
