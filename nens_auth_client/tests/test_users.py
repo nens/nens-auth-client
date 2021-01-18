@@ -111,7 +111,7 @@ def test_create_user_remoteuser_exists(user_mgr, remoteuser_mgr, atomic_m):
     user_mgr.filter.return_value.exists.return_value = True
     assert create_user({"sub": "abc", "cognito:username": "testuser"}) is None
 
-    user_mgr.create_user.assert_called_once()
+    assert user_mgr.create_user.call_count == 1
     remoteuser_mgr.filter.assert_called_with(external_user_id="abc")
 
 
