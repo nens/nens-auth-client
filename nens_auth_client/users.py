@@ -1,9 +1,14 @@
 from .models import RemoteUser
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 User = get_user_model()
@@ -74,6 +79,7 @@ def create_user(claims):
         username = claims["email"]
     else:
         username = claims["cognito:username"]
+    username = username[:settings.NENS_AUTH_USERNAME_MAX_LENGTH]
     external_id = claims["sub"]
     try:
         return _create_user(username, external_id)
@@ -81,7 +87,9 @@ def create_user(claims):
         # We probably hit a username unique constraint. Try again with
         # some added random characters.
         if User.objects.filter(username=username).exists():
-            return _create_user(username + get_random_string(4), external_id)
+            suffix = get_random_string(4)
+            logger.warning("Username '%s' already existed, appending '%s'.", username, suffix)
+            return _create_user(username + suffix, external_id)
 
         # Unknown IntegrityErrors should be raised.
         raise
