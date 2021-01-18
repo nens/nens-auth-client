@@ -269,8 +269,8 @@ The error detail messages can be modified with the following settings:
 - NENS_AUTH_ERROR_INVITATION_DOES_NOT_EXIST
 - NENS_AUTH_ERROR_INVITATION_UNUSABLE
 - NENS_AUTH_ERROR_INVITATION_EXPIRED
-- NENS_AUTH_ERROR_INVITATION_WRONG_USER (accepts actual_user and expected_user placeholders)
-- NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL (accepts actual_email and expected_email placeholders)
+- NENS_AUTH_ERROR_INVITATION_WRONG_USER (accepts ``actual_user`` and ``expected_user`` placeholders)
+- NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL (accepts ``actual_email`` and ``expected_email`` placeholders)
 
 Local development
 -----------------
