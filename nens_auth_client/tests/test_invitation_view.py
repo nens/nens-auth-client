@@ -1,5 +1,6 @@
 from django.http import Http404
 from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from nens_auth_client import views
 from nens_auth_client.models import Invitation
@@ -18,15 +19,23 @@ def get_object_or_404(mocker):
 
 @pytest.fixture
 def invitation():
-    invitation = Invitation(created_at=timezone.now())
+    invitation = Invitation(created_at=timezone.now(), email="a@b.com")
     with mock.patch.object(invitation, "accept"):
         yield invitation
 
 
-def test_invitation_accept(rf, get_object_or_404, invitation):
+@pytest.fixture
+def invited_user(invitation):
+    user = mock.Mock()
+    user.id = 42
+    user.is_authenticated = True
+    user.email = invitation.email
+    return user
+
+
+def test_invitation_accept(rf, get_object_or_404, invitation, invited_user):
     request = rf.get("/?next=/success/")
-    request.user = mock.Mock()
-    request.user.is_authenticated = True
+    request.user = invited_user
     get_object_or_404.return_value = invitation
 
     response = views.accept_invitation(request, "foo")
@@ -35,6 +44,19 @@ def test_invitation_accept(rf, get_object_or_404, invitation):
 
     get_object_or_404.assert_called_with(Invitation, slug="foo")
     invitation.accept.assert_called_with(request.user)
+
+
+def test_invitation_accept_no_verified_email(
+    rf, get_object_or_404, invitation, invited_user
+):
+    request = rf.get("/?next=/success/")
+    request.user = invited_user
+    invited_user.email = ""  # no verified email results in a blank user.email
+    get_object_or_404.return_value = invitation
+
+    response = views.accept_invitation(request, "foo")
+    assert response.status_code == 302
+    assert response.url == "/success/"
 
 
 def test_invitation_does_not_exist(rf, get_object_or_404):
@@ -48,9 +70,10 @@ def test_invitation_does_not_exist(rf, get_object_or_404):
     get_object_or_404.assert_called_with(Invitation, slug="foo")
 
 
-def test_invitation_expired(rf, get_object_or_404, invitation):
-    """Not-existing invitations give 404, also for anonymous users"""
+def test_invitation_expired(rf, get_object_or_404, invitation, invited_user):
+    """Expired invitations give 403"""
     request = rf.get("/?next=/success/")
+    request.user = invited_user
     get_object_or_404.return_value = invitation
     invitation.created_at = timezone.now() - timedelta(days=15)
 
@@ -60,9 +83,21 @@ def test_invitation_expired(rf, get_object_or_404, invitation):
     get_object_or_404.assert_called_with(Invitation, slug="foo")
 
 
-def test_invitation_not_acceptable(rf, get_object_or_404, invitation):
-    """Non-acceptable invitations give 404, also for anonymous users"""
+def test_invitation_expired_anonymous_user(rf, get_object_or_404, invitation):
+    """Expired invitations give a redirect to login for anonymous users"""
     request = rf.get("/?next=/success/")
+    request.user = AnonymousUser()
+    get_object_or_404.return_value = invitation
+    invitation.created_at = timezone.now() - timedelta(days=15)
+
+    response = views.accept_invitation(request, "foo")
+    assert response.status_code == 302
+
+
+def test_invitation_used(rf, get_object_or_404, invitation, invited_user):
+    """Non-acceptable invitations give 403"""
+    request = rf.get("/?next=/success/")
+    request.user = invited_user
     get_object_or_404.return_value = invitation
     invitation.status = Invitation.ACCEPTED
 
@@ -73,10 +108,21 @@ def test_invitation_not_acceptable(rf, get_object_or_404, invitation):
     assert not invitation.accept.called
 
 
+def test_invitation_used_anonymous_user(rf, get_object_or_404, invitation):
+    """Non-acceptable invitations give a redirect to login for anonymous users
+    """
+    request = rf.get("/?next=/success/")
+    request.user = AnonymousUser()
+    get_object_or_404.return_value = invitation
+    invitation.status = Invitation.ACCEPTED
+
+    response = views.accept_invitation(request, "foo")
+    assert response.status_code == 302
+
+
 def test_invitation_not_logged_in(rf, get_object_or_404, invitation):
     request = rf.get("/some/url/")
-    request.user = mock.Mock()
-    request.user.is_authenticated = False
+    request.user = AnonymousUser()
     get_object_or_404.return_value = invitation
 
     response = views.accept_invitation(request, "foo")

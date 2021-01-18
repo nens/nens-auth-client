@@ -109,7 +109,7 @@ def test_authorize_with_invitation_existing_user(
 
     user = User(username="testuser")
     invitation_getter.return_value = models.Invitation(
-        slug="foo", user=user, created_at=timezone.now()
+        slug="foo", user=user, created_at=timezone.now(), email=claims["email"]
     )
     request.session[views.INVITATION_KEY] = "foo"
 
@@ -150,7 +150,7 @@ def test_authorize_with_invitation_new_user(
 
     user = User(username="testuser")
     invitation_getter.return_value = models.Invitation(
-        slug="foo", user=None, created_at=timezone.now()
+        slug="foo", user=None, created_at=timezone.now(), email=claims["email"]
     )
     users_m.create_user.return_value = user
     request.session[views.INVITATION_KEY] = "foo"
@@ -174,6 +174,25 @@ def test_authorize_with_invitation_new_user(
     args, kwargs = users_m.update_remote_user.call_args
     assert args[0] == claims
     assert args[1].keys() == {"id_token"}
+
+
+def test_authorize_with_invitation_email_unverified(
+    id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
+):
+    # It does not matter whether email is verified for checking invite email
+    id_token, claims = id_token_generator()
+    claims["email_verified"] = False
+    request = auth_req_generator(id_token, user=None)
+
+    request.session[views.INVITATION_KEY] = "foo"
+    invitation_getter.return_value = models.Invitation(
+        created_at=timezone.now(), email=claims["email"]
+    )
+
+    response = views.authorize(request)
+
+    assert response.status_code == 302
+    assert response.url == "http://testserver/success"
 
 
 def test_authorize_with_nonexisting_invitation(
@@ -228,6 +247,30 @@ def test_authorize_with_expired_invitation(
     )
 
     with pytest.raises(PermissionDenied, match=".*has expired.*"):
+        views.authorize(request)
+
+    invitation_getter.assert_called_with(slug="foo")
+    assert not login_m.called
+    assert not users_m.create_user.called
+    assert not users_m.create_remote_user.called
+    assert not users_m.update_user.called
+
+
+def test_authorize_with_mismatching_invitation(
+    id_token_generator, auth_req_generator, users_m, login_m, invitation_getter
+):
+    id_token, claims = id_token_generator()
+    request = auth_req_generator(id_token, user=None)
+
+    request.session[views.INVITATION_KEY] = "foo"
+    invitation_getter.return_value = models.Invitation(
+        created_at=timezone.now(), email="some@other.email"
+    )
+
+    with pytest.raises(
+        PermissionDenied,
+        match=".*intended for a user with email 'some@other.email'.*"
+    ):
         views.authorize(request)
 
     invitation_getter.assert_called_with(slug="foo")

@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 0.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added a check if the user's and invitation's email match. It does not matter
+  whether the user's email was verified.
 
 
 0.7 (2021-01-13)
