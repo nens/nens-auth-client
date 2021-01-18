@@ -2,13 +2,22 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.7 (unreleased)
+0.8 (unreleased)
+----------------
+
+- Added a check if the user's and invitation's email match. It does not matter
+  whether the user's email was verified.
+
+
+0.7 (2021-01-13)
 ----------------
 
 - Fixed faulty error message if user does not exist.
 
-- Added a check if the user's and invitation's email match. It does not matter
-  whether the user's email was verified.
+- Fixed authorize if there is no redirect in the session.
+
+- Stop storing the default redirect urls in the session. This prevents creating
+  a session in the login or logout flows if no 'next' url param is used.
 
 
 0.6 (2021-01-11)
