@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 
 User = get_user_model()
@@ -24,6 +25,33 @@ def create_remote_user(user, claims):
         pass
 
 
+def _create_user(username, external_id):
+    """Atomically create a user and associate it to a given external user ID.
+
+    Args:
+      username (str): should be non-existing (else: IntegrityError)
+      external_id (str): external user ID, can be existing, in which case this
+        function does nothing.
+
+    Returns:
+      user or None if external_id already existed
+    """
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(username=username, password=None)
+            RemoteUser.objects.create(external_user_id=external_id, user=user)
+    except IntegrityError:
+        # A race condition might occur when the same user authorizes twice
+        # at the same time.
+        if RemoteUser.objects.filter(external_user_id=external_id).exists():
+            return
+
+        # Unknown IntegrityErrors should be raised.
+        raise
+
+    return user
+
+
 def create_user(claims):
     """Create User and associate it with an external one through RemoteUser.
 
@@ -40,20 +68,20 @@ def create_user(claims):
       django User (created or, in case of a race condition, retrieved)
       RemoteUser (created or, in case of a race condition, retrieved)
     """
-    username = claims["cognito:username"]
+    if claims.get("identities"):
+        # External identity providers result in usernames that are not
+        # recognizable by the end user. Use the email instead.
+        username = claims["email"]
+    else:
+        username = claims["cognito:username"]
     external_id = claims["sub"]
     try:
-        with transaction.atomic():
-            user = User.objects.create_user(username=username, password=None)
-            RemoteUser.objects.create(external_user_id=external_id, user=user)
-        return user
+        return _create_user(username, external_id)
     except IntegrityError:
-        # A race condition might occur when the same user authorizes twice
-        # at the same time.
-        try:
-            return User.objects.get(remote__external_user_id=external_id)
-        except User.DoesNotExist:
-            pass
+        # We probably hit a username unique constraint. Try again with
+        # some added random characters.
+        if User.objects.filter(username=username).exists():
+            return _create_user(username + get_random_string(4), external_id)
 
         # Unknown IntegrityErrors should be raised.
         raise

@@ -25,6 +25,11 @@ def atomic_m(mocker):
     return mocker.patch("nens_auth_client.users.transaction.atomic")
 
 
+@pytest.fixture
+def create_user_m(mocker):
+    return mocker.patch("nens_auth_client.users._create_user")
+
+
 def test_create_remoteuser(remoteuser_mgr):
     user = User(id=42, username="testuser")
     create_remote_user(user, {"sub": "abc"})
@@ -47,6 +52,21 @@ def test_create_user(user_mgr, remoteuser_mgr, atomic_m):
     create_user({"sub": "abc", "cognito:username": "testuser"})
 
     user_mgr.create_user.assert_called_with(username="testuser", password=None)
+    remoteuser_mgr.create.assert_called_with(user=user, external_user_id="abc")
+
+
+def test_create_user_external_idp(user_mgr, remoteuser_mgr, atomic_m):
+    # Users coming from external IDPs should get their email as username
+    user = User(id=42, username="testuser")
+    user_mgr.create_user.return_value = user
+    create_user({
+        "sub": "abc",
+        "cognito:username": "testuser",
+        "email": "test@email.com",
+        "identities": [{"providerName": "Google"}]
+    })
+
+    user_mgr.create_user.assert_called_with(username="test@email.com", password=None)
     remoteuser_mgr.create.assert_called_with(user=user, external_user_id="abc")
 
 
@@ -82,3 +102,32 @@ def test_update_remote_user(remoteuser_mgr):
     assert kwargs["access_token"] == "bar"
     assert kwargs["refresh_token"] == ""
     assert isinstance(kwargs["last_modified"], datetime.datetime)
+
+
+def test_create_user_remoteuser_exists(user_mgr, remoteuser_mgr, atomic_m):
+    user_mgr.create_user.side_effect = IntegrityError
+
+    # mock the remote-user existence check
+    user_mgr.filter.return_value.exists.return_value = True
+    assert create_user({"sub": "abc", "cognito:username": "testuser"}) is None
+
+    user_mgr.create_user.assert_called_once()
+    remoteuser_mgr.filter.assert_called_with(external_user_id="abc")
+
+
+def test_create_user_username_exists(user_mgr, create_user_m, mocker):
+    random_string = mocker.patch("nens_auth_client.users.get_random_string")
+    random_string.return_value = "x23f"
+
+    user = User(id=42, username="testuser2")
+    create_user_m.side_effect = (IntegrityError, user)
+
+    # mock the user-existence check
+    user_mgr.filter.return_value.exists.return_value = True
+    assert create_user({"sub": "abc", "cognito:username": "testuser"}) == user
+
+    # _create_user should have been called twice
+    assert create_user_m.call_count == 2
+    first_call, second_call = create_user_m.call_args_list
+    assert first_call[0] == ("testuser", "abc")
+    assert second_call[0] == ("testuserx23f", "abc")

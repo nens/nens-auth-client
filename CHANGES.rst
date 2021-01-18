@@ -5,7 +5,11 @@ Changelog of nens-auth-client
 0.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Pick the email as username for newly registered users coming from an external
+  identity provider.
+
+- Handle username uniqueness constraint by appending 4 random characters after
+  the username when necessary.
 
 
 0.7 (2021-01-13)
