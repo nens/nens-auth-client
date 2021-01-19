@@ -103,7 +103,9 @@ class Invitation(models.Model):
         ),
     )
     email = models.EmailField(
-        help_text=("The email address to which this invitation is / will be sent")
+        help_text=(
+            "Only users with this email address may accept this invitation."
+        )
     )
     created_at = models.DateTimeField(auto_now_add=True)
     email_sent_at = models.DateTimeField(null=True, blank=True)
