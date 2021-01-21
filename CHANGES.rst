@@ -18,6 +18,9 @@ Changelog of nens-auth-client
   after remote logout: for that /logout-success/ is introduced. This so that
   users can always logout, also when local login failed.
 
+- Added a logout and then login functionality. This can be used by calling
+  /login?force_logout=true.
+
 
 0.7 (2021-01-13)
 ----------------

@@ -52,7 +52,7 @@ def login(request):
         settings.NENS_AUTH_DEFAULT_SUCCESS_URL
       invitation: an optional Invitation id. On authorization success, a user will be
         created and permissions from the Invitation are applied.
-      logout: if "true", force local and remote logout
+      force_logout: if "true", force local and remote logout
 
     Response:
       HTTP 302 Redirect to AWS Cognito (according to the OpenID Connect standard)
@@ -68,7 +68,7 @@ def login(request):
     success_url = _get_redirect_from_next(request)
 
     # Whether to force logout or not
-    force_logout = request.GET.get("logout") == "true"
+    force_logout = request.GET.get("force_logout") == "true"
     if force_logout:
         django_auth.logout(request)
     elif request.user.is_authenticated:

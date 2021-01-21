@@ -90,7 +90,7 @@ def test_get_redirect_from_next(rf, url, expected):
 def test_login_with_forced_logout(rf, openid_configuration, mocker, logged_in):
     django_logout = mocker.patch("nens_auth_client.views.django_auth.logout")
 
-    request = rf.get("http://testserver/login/?next=/a&logout=true")
+    request = rf.get("http://testserver/login/?next=/a&force_logout=true")
     request.session = {}
     request.user = User() if logged_in else AnonymousUser()
     response = views.login(request)
