@@ -21,6 +21,8 @@ Changelog of nens-auth-client
 - Added a logout and then login functionality. This can be used by calling
   /login?force_logout=true.
 
+- Never require presence of "email" claim in the ID token.
+
 
 0.7 (2021-01-13)
 ----------------

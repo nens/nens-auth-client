@@ -73,13 +73,16 @@ def create_user(claims):
       django User (created or, in case of a race condition, retrieved)
       RemoteUser (created or, in case of a race condition, retrieved)
     """
+    # Format a username from the claims.
+    username = ""
     if claims.get("identities"):
         # External identity providers result in usernames that are not
         # recognizable by the end user. Use the email instead.
-        username = claims["email"]
-    else:
+        username = claims.get("email")
+    if not username:
         username = claims["cognito:username"]
-    username = username[:settings.NENS_AUTH_USERNAME_MAX_LENGTH]
+    username = username[: settings.NENS_AUTH_USERNAME_MAX_LENGTH]
+
     external_id = claims["sub"]
     try:
         return _create_user(username, external_id)
@@ -88,7 +91,9 @@ def create_user(claims):
         # some added random characters.
         if User.objects.filter(username=username).exists():
             suffix = get_random_string(4)
-            logger.warning("Username '%s' already existed, appending '%s'.", username, suffix)
+            logger.warning(
+                "Username '%s' already existed, appending '%s'.", username, suffix
+            )
             return _create_user(username + suffix, external_id)
 
         # Unknown IntegrityErrors should be raised.
@@ -104,7 +109,10 @@ def update_user(user, claims):
     """
     user.first_name = claims.get("given_name", "")
     user.last_name = claims.get("family_name", "")
-    user.email = claims["email"] if claims["email_verified"] else ""
+    if claims.get("email_verified"):
+        user.email = claims.get("email", "")
+    else:
+        user.email = ""
     user.save()
 
 

@@ -142,7 +142,7 @@ def authorize(request):
         except Invitation.DoesNotExist:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_INVITATION_DOES_NOT_EXIST)
         # May raise PermissionDenied:
-        invitation.check_acceptability(email=claims["email"])
+        invitation.check_acceptability(email=claims.get("email") or None)
         if invitation.user is not None:
             # associate permanently
             user = invitation.user
