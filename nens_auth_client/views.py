@@ -214,7 +214,7 @@ def logout_success(request):
       that is stored in the session (or default logout url if unavailable).
     - if user is logged in locally: HTTP 302 Redirect to the logout view
     """
-    # If a user is still authenticated: redirect to logout view.
+    # If a user is still authenticated: this should not happen. Return 403.
     if request.user.is_authenticated:
         raise PermissionDenied("Logout failure")
 
