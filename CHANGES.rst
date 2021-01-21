@@ -14,6 +14,8 @@ Changelog of nens-auth-client
 - Added a check if the user's and invitation's email match. It does not matter
   whether the user's email was verified.
 
+- Never require presence of "email" claim in the ID token.
+
 
 0.7 (2021-01-13)
 ----------------
