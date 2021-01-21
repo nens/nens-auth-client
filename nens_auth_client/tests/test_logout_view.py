@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from nens_auth_client import views
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
+from django.core.exceptions import PermissionDenied
 
 import pytest
 
@@ -72,11 +73,10 @@ def test_logout_success_empty_session(rf, mocker, openid_configuration):
 
 def test_logout_success_logged_in(rf, mocker):
     # This should only be possible if the user typed in this URL himself.
+    # Give PermissionDenied.
     request = rf.get("http://testserver/logout-success/")
     request.session = {}
     request.user = User()  # user is logged in
-    response = views.logout_success(request)
 
-    # logout generated a redirect to the default logout url
-    assert response.status_code == 302
-    assert response.url == "/logout/"
+    with pytest.raises(PermissionDenied):
+        views.logout_success(request)

@@ -52,6 +52,7 @@ def login(request):
         settings.NENS_AUTH_DEFAULT_SUCCESS_URL
       invitation: an optional Invitation id. On authorization success, a user will be
         created and permissions from the Invitation are applied.
+      logout: if "true", force local and remote logout
 
     Response:
       HTTP 302 Redirect to AWS Cognito (according to the OpenID Connect standard)
@@ -66,8 +67,12 @@ def login(request):
     # Get the success redirect url
     success_url = _get_redirect_from_next(request)
 
-    # If the user was already authenticated, redirect to the success url
-    if request.user.is_authenticated:
+    # Whether to force logout or not
+    force_logout = request.GET.get("logout") == "true"
+    if force_logout:
+        django_auth.logout(request)
+    elif request.user.is_authenticated:
+        # If the user was already authenticated, redirect to the success url
         return HttpResponseRedirect(
             success_url or settings.NENS_AUTH_DEFAULT_SUCCESS_URL
         )
@@ -86,7 +91,11 @@ def login(request):
     redirect_uri = request.build_absolute_uri(
         reverse(settings.NENS_AUTH_URL_NAMESPACE + "authorize")
     )
-    return client.authorize_redirect(request, redirect_uri)
+
+    if force_logout:
+        return client.logout_redirect(request, redirect_uri, login_after=True)
+    else:
+        return client.authorize_redirect(request, redirect_uri)
 
 
 @cache_control(no_store=True)
@@ -207,9 +216,7 @@ def logout_success(request):
     """
     # If a user is still authenticated: redirect to logout view.
     if request.user.is_authenticated:
-        return HttpResponseRedirect(
-            reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout")
-        )
+        raise PermissionDenied("Logout failure")
 
     redirect_url = request.session.get(
         LOGOUT_REDIRECT_SESSION_KEY, settings.NENS_AUTH_DEFAULT_LOGOUT_URL

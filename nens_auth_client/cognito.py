@@ -62,7 +62,7 @@ def preprocess_access_token(claims):
 
 
 class CognitoOAuthClient(DjangoRemoteApp):
-    def logout_redirect(self, request, redirect_uri=None):
+    def logout_redirect(self, request, redirect_uri=None, login_after=False):
         """Create a redirect to the remote server's logout endpoint
 
         Note that unlike with login, there is no standardization for logout.
@@ -72,24 +72,30 @@ class CognitoOAuthClient(DjangoRemoteApp):
         Args:
           request: The current request
           redirect_uri: The absolute url to the logout view of this app. It
-            should be pre-registered in AWS Cognito.
+            should be pre-registered in AWS Cognito
+          login_after: whether to show the login screen after logout
 
         Returns:
           HttpResponseRedirect to AWS Cognito logout endpoint
         """
-        # Get the logout endpoint URL from the authorization endpoint
-        server_metadata = self.load_server_metadata()
-        auth_url = urlparse(server_metadata["authorization_endpoint"])
-        logout_url = urlunparse(
-            (
-                auth_url.scheme,
-                auth_url.netloc,
-                "/logout",
-                None,
-                urlencode({"client_id": self.client_id, "logout_uri": redirect_uri}),
-                None,
+        # AWS LOGOUT endpoint accepts the same query params as the authorize
+        # endpoint. If this feature is used, you see the login screen after
+        # logging out.
+        if login_after:
+            response = self.authorize_redirect(request, redirect_uri)
+            # patch the url
+            auth_url = list(urlparse(response.url))
+            auth_url[2] = "/logout"  # replace /oauth2/authorize with /logout
+            logout_url = urlunparse(auth_url)
+        else:
+            server_metadata = self.load_server_metadata()
+            auth_url = list(urlparse(server_metadata["authorization_endpoint"]))
+            auth_url[2] = "/logout"
+            auth_url[4] = urlencode(
+                {"client_id": self.client_id, "logout_uri": redirect_uri}
             )
-        )
+            logout_url = urlunparse(auth_url)
+
         return HttpResponseRedirect(logout_url)
 
     def parse_access_token(self, token, claims_options=None, leeway=120):
