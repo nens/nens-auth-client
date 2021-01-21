@@ -52,7 +52,8 @@ Include the ``nens-auth-client`` urls in your application's urls.py::
         ...
     ]
 
-You must register the absolute ``authorize`` and ``logout`` URIs in AWS Cognito.
+You must register the absolute ``authorize`` and ``logout-success`` URIs in
+AWS Cognito.
 If the site runs on multiple domains, they all have to be registered. Wildcards
 are not possible because of security reasons.
 
@@ -110,7 +111,7 @@ The logout flow follows a similar flow:
 1. The user accesses the "logout" view (optionally with a ``next`` query parameter).
 2. The user is logged out locally and is redirected to the Authorization Server's logout view.
 3. The Authorization Server logs the user out.
-4. The user is redirected to the "logout" view.
+4. The user is redirected to the "logout-success" view.
 5. The user is redirected to the 'next' URL provided in step 1.
 
 Optionally set defaults for the redirects after successful login/logout::

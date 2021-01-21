@@ -162,31 +162,17 @@ def authorize(request):
 def logout(request):
     """Logout the user (locally and remotely)
 
-    See the README for a description of the logout flow. Note that this view
-    is called twice in this flow.
+    See the README for a description of the logout flow.
 
     Query parameters:
-      next: the URL to redirect to after logout. If absolute, it
+      next: the URL to redirect to after logout-success. If absolute, it
         must match the domain of this request. Optional, default is set by
         settings.NENS_AUTH_DEFAULT_LOGOUT_URL
 
     Response:
     - if user is logged in locally: HTTP 302 Redirect to the remote logout URL.
       The user is logged out and the 'next' query parameter is stored in the session.
-    - if user is logged out locally: HTTP 302 Redirect to the 'next' query parameter
     """
-    if not request.user.is_authenticated:
-        # We are in step 3. (user is already logged out)
-        redirect_url = request.session.get(LOGOUT_REDIRECT_SESSION_KEY, None)
-        if redirect_url is None:
-            # If there is nothing in the session, the user called /logout
-            # without being logged in in the first place. Just use the 'next'
-            # parameter (or the default logout url).
-            redirect_url = _get_redirect_from_next(request)
-        return HttpResponseRedirect(
-            redirect_url or settings.NENS_AUTH_DEFAULT_LOGOUT_URL
-        )
-
     # Log the user out
     django_auth.logout(request)
 
@@ -197,10 +183,38 @@ def logout(request):
 
     # Redirect to authorization server
     logout_uri = request.build_absolute_uri(
-        reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout")
+        reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout-success")
     )
     client = get_oauth_client()
     return client.logout_redirect(request, logout_uri)
+
+
+@cache_control(no_store=True)
+def logout_success(request):
+    """Callback url for logout.
+
+    See the README for a description of the logout flow.
+
+    Query parameters:
+      next: the URL to redirect to after logout. If absolute, it
+        must match the domain of this request. Optional, default is set by
+        settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+
+    Response:
+    - if user is logged out locally: HTTP 302 Redirect to the 'next' query parameter
+      that is stored in the session (or default logout url if unavailable).
+    - if user is logged in locally: HTTP 302 Redirect to the logout view
+    """
+    # If a user is still authenticated: redirect to logout view.
+    if request.user.is_authenticated:
+        return HttpResponseRedirect(
+            reverse(settings.NENS_AUTH_URL_NAMESPACE + "logout")
+        )
+
+    redirect_url = request.session.get(
+        LOGOUT_REDIRECT_SESSION_KEY, settings.NENS_AUTH_DEFAULT_LOGOUT_URL
+    )
+    return HttpResponseRedirect(redirect_url)
 
 
 @cache_control(no_store=True)
@@ -229,6 +243,4 @@ def accept_invitation(request, slug):
     invitation.check_acceptability(email=request.user.email or None)
     invitation.accept(request.user)
     success_url = _get_redirect_from_next(request)
-    return HttpResponseRedirect(
-        success_url or settings.NENS_AUTH_DEFAULT_SUCCESS_URL
-    )
+    return HttpResponseRedirect(success_url or settings.NENS_AUTH_DEFAULT_SUCCESS_URL)
