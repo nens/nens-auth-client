@@ -14,6 +14,13 @@ Changelog of nens-auth-client
 - Added a check if the user's and invitation's email match. It does not matter
   whether the user's email was verified.
 
+- Split the logout view in two. It is not used anymore as the callback url
+  after remote logout: for that /logout-success/ is introduced. This so that
+  users can always logout, also when local login failed.
+
+- Added a logout and then login functionality. This can be used by calling
+  /login?force_logout=true.
+
 - Never require presence of "email" claim in the ID token.
 
 
