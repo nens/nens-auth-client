@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.8 (unreleased)
+0.8 (2021-01-21)
 ----------------
 
 - Pick the email as username for newly registered users coming from an external
