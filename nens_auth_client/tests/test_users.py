@@ -59,14 +59,32 @@ def test_create_user_external_idp(user_mgr, remoteuser_mgr, atomic_m):
     # Users coming from external IDPs should get their email as username
     user = User(id=42, username="testuser")
     user_mgr.create_user.return_value = user
-    create_user({
-        "sub": "abc",
-        "cognito:username": "testuser",
-        "email": "test@email.com",
-        "identities": [{"providerName": "Google"}]
-    })
+    create_user(
+        {
+            "sub": "abc",
+            "cognito:username": "testuser",
+            "email": "test@email.com",
+            "identities": [{"providerName": "Google"}],
+        }
+    )
 
     user_mgr.create_user.assert_called_with(username="test@email.com", password=None)
+    remoteuser_mgr.create.assert_called_with(user=user, external_user_id="abc")
+
+
+def test_create_user_external_idp_no_email(user_mgr, remoteuser_mgr, atomic_m):
+    # Users coming from external IDPs without email should be accepted too
+    user = User(id=42, username="testuser")
+    user_mgr.create_user.return_value = user
+    create_user(
+        {
+            "sub": "abc",
+            "cognito:username": "testuser",
+            "identities": [{"providerName": "Google"}],
+        }
+    )
+
+    user_mgr.create_user.assert_called_with(username="testuser", password=None)
     remoteuser_mgr.create.assert_called_with(user=user, external_user_id="abc")
 
 
@@ -89,6 +107,18 @@ def test_update_user(user_mgr, remoteuser_mgr, atomic_m):
     assert user.email == "test@test.com"
     assert user.first_name == "Lizard"
     assert user.last_name == "People"
+    assert user.save.called
+
+
+def test_update_user_no_fields(user_mgr, remoteuser_mgr, atomic_m):
+    user = mock.Mock()
+    user.username = "testuser"
+    update_user(user, {"sub": "abc", "cognito:username": "somethingdifferent"})
+
+    assert user.username == "testuser"
+    assert user.email == ""
+    assert user.first_name == ""
+    assert user.last_name == ""
     assert user.save.called
 
 
