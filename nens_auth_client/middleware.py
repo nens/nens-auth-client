@@ -1,4 +1,3 @@
-from .backends import create_remote_user
 from .oauth import get_oauth_client
 from authlib.jose.errors import JoseError
 from django.conf import settings
