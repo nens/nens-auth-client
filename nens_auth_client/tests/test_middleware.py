@@ -13,8 +13,6 @@ def mocked_middleware(rf, mocker, rq_mocker, jwks_request, settings):
     # Mock the user association call
     authenticate = mocker.patch("django.contrib.auth.authenticate")
     authenticate.return_value = UserModel(username="testuser")
-    # Disable automatic RemoteUser creation
-    settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER = False
     # Disable the custom AWS Cognito Access Token mapping
     mocker.patch("nens_auth_client.cognito.preprocess_access_token")
     # Make a middleware that returns the request as a response

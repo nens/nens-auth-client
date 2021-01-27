@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.9 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed bug in AccessTokenMiddleware.
 
 
 0.8 (2021-01-21)

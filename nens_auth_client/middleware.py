@@ -1,4 +1,3 @@
-from .backends import create_remote_user
 from .oauth import get_oauth_client
 from authlib.jose.errors import JoseError
 from django.conf import settings
@@ -50,9 +49,5 @@ class AccessTokenMiddleware:
 
         # Store the scope on the user object for later usage
         request.user.oauth2_scope = claims.get("scope")
-
-        # Create a permanent association between local and external users
-        if settings.NENS_AUTH_AUTO_CREATE_REMOTE_USER:
-            create_remote_user(user, claims)
 
         return self.get_response(request)
