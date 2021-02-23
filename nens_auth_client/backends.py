@@ -2,7 +2,8 @@ from .users import create_remote_user
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import PermissionDenied
 
 import logging
@@ -98,10 +99,7 @@ class SSOMigrationBackend(ModelBackend):
         except ObjectDoesNotExist:
             return
         except MultipleObjectsReturned:
-            logger.warning(
-                "Multiple users found with (case insensitive) username %s", username
-            )
-            return
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
 
         if not self.user_can_authenticate(user):
             raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)

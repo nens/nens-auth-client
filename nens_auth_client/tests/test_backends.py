@@ -95,7 +95,7 @@ def test_ssomigration_not_exists(user_getter, create_remote_user):
     assert not create_remote_user.called
 
 
-def test_ssomigration_multiple_exist(user_getter, create_remote_user, caplog):
+def test_ssomigration_multiple_exist(user_getter, create_remote_user):
     claims = {
         "sub": "remote-uid",
         "cognito:username": "testuser",
@@ -103,12 +103,10 @@ def test_ssomigration_multiple_exist(user_getter, create_remote_user, caplog):
     }
     user_getter.side_effect = MultipleObjectsReturned
 
-    user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
-    assert user is None
+    with pytest.raises(PermissionDenied):
+        backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     user_getter.assert_called_with(username__iexact="testuser", remote=None)
     assert not create_remote_user.called
-    assert caplog.records[0].levelname == "WARNING"
-    assert caplog.records[0].message.startswith("Multiple users found")
 
 
 def test_ssomigration_inactive(user_getter, create_remote_user):
