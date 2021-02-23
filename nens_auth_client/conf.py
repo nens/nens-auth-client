@@ -22,6 +22,10 @@ class NensAuthClientAppConf(AppConf):
 
     ERROR_USER_DOES_NOT_EXIST = "No user account available for these credentials."
     ERROR_USER_INACTIVE = "This account was set to inactive."
+    ERROR_USER_MULTIPLE = (
+        "There are multiple user accounts available with this username. "
+        "Please contact us to merge the accounts."
+    )
     ERROR_INVITATION_DOES_NOT_EXIST = "The invitation does not exist."
     ERROR_INVITATION_UNUSABLE = "The invitation has been used already."
     ERROR_INVITATION_EXPIRED = "The invitation has expired."

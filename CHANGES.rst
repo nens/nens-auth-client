@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.10 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- SSOMigrationBackend now matches usernames case-insensitively.
 
 
 0.9 (2021-01-27)

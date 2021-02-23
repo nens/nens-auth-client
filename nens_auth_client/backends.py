@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import PermissionDenied
 
 import logging
@@ -94,9 +95,11 @@ class SSOMigrationBackend(ModelBackend):
             return
 
         try:
-            user = UserModel.objects.get(username=username, remote=None)
+            user = UserModel.objects.get(username__iexact=username, remote=None)
         except ObjectDoesNotExist:
             return
+        except MultipleObjectsReturned:
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
 
         if not self.user_can_authenticate(user):
             raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
