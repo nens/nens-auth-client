@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import MultipleObjectsReturned
 from nens_auth_client import backends
 
 import pytest
@@ -76,7 +77,7 @@ def test_ssomigration_exists(user_getter, create_remote_user):
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user.username == "testuser"
-    user_getter.assert_called_with(username="testuser", remote=None)
+    user_getter.assert_called_with(username__iexact="testuser", remote=None)
     create_remote_user.assert_called_with(user, claims)
 
 
@@ -90,8 +91,24 @@ def test_ssomigration_not_exists(user_getter, create_remote_user):
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user is None
-    user_getter.assert_called_with(username="testuser", remote=None)
+    user_getter.assert_called_with(username__iexact="testuser", remote=None)
     assert not create_remote_user.called
+
+
+def test_ssomigration_multiple_exist(user_getter, create_remote_user, caplog):
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "testuser",
+        "custom:from_sso": "1",
+    }
+    user_getter.side_effect = MultipleObjectsReturned
+
+    user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
+    assert user is None
+    user_getter.assert_called_with(username__iexact="testuser", remote=None)
+    assert not create_remote_user.called
+    assert caplog.records[0].levelname == "WARNING"
+    assert caplog.records[0].message.startswith("Multiple users found")
 
 
 def test_ssomigration_inactive(user_getter, create_remote_user):
@@ -104,7 +121,7 @@ def test_ssomigration_inactive(user_getter, create_remote_user):
 
     with pytest.raises(PermissionDenied):
         backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
-    user_getter.assert_called_with(username="testuser", remote=None)
+    user_getter.assert_called_with(username__iexact="testuser", remote=None)
     assert not create_remote_user.called
 
 
@@ -128,7 +145,7 @@ def test_ssomigration_google_nens_ok(user_getter, create_remote_user):
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user.username == "testuser"
-    user_getter.assert_called_with(username="testuser", remote=None)
+    user_getter.assert_called_with(username__iexact="testuser", remote=None)
     create_remote_user.assert_called_with(user, claims)
 
 
@@ -144,10 +161,7 @@ def test_ssomigration_google_nens_ok(user_getter, create_remote_user):
             "email_verified": False,
             "identities": [{"providerName": "Google"}],
         },
-        {
-            "email_verified": True,
-            "identities": [{"providerName": "Google"}],
-        },
+        {"email_verified": True, "identities": [{"providerName": "Google"}]},
         {
             "email": "testuser@other-domain.nl",
             "email_verified": True,
