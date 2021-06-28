@@ -208,12 +208,12 @@ class Invitation(models.Model):
         return request.build_absolute_uri(relative_url)
 
     def send_email(
-            self,
-            request,
-            context=None,
-            send_email_options=None,
-            organisation_and_roles=None,
-        ):
+        self,
+        request,
+        context=None,
+        send_email_options=None,
+        organisation_and_roles=None,
+    ):
         """Send the invitation email.
 
         The email address is taken from invitation.email.
@@ -237,7 +237,7 @@ class Invitation(models.Model):
           send_email_options (dict): an optional dict for custom send_email
             arguments. see django's docs on send_email.
           organisation_and_roles (dict): optional dict to specify a list of
-            organisations and corresponing roles a user is invited to. 
+            organisations and corresponing roles a user is invited to.
             format: {"org_1_name": ["role1", "role2"]}
         """
         assert self.status == self.PENDING, "The invite must be PENDING"
