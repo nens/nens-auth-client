@@ -1,5 +1,14 @@
 <p>Dear user,</p>
-<p>This is an invitation for a user account at {{ host }}.<br />Use the following link to accept:</p>
+<p>This is an invitation for a user account at {{ host }}.</p>
+{% if organisation_and_roles %}
+<p>You are invited for the following organisation(s):</p>
+{% for line in organisation_and_roles %}
+    <p>{{ line }}</p>
+{% endfor %}
+{% endif %}
+</p>
+</br>
+<p>Use the following link to accept:</p>
 <p><a href="{{ accept_url }}">{{ accept_url }}</a></p>
 <p>The above link will first redirect to a page where you can sign in with a corporate ID or a Nelen &amp; Schuurmans account. If you do not have an account in any of the options listed, choose "Sign up".</p>
 <p>For questions, please contact servicedesk@nelen-schuurmans.nl.</p>

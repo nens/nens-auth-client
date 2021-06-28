@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 0.11 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added option to specify to which organisation and corresponding
+  roles a user is invited to in invitation email. (Lizard #5041)
 
 
 0.10 (2021-02-23)

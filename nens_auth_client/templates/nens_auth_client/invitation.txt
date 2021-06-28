@@ -1,6 +1,12 @@
 Dear user,
 
 This is an invitation for a user account at {{ host }}.
+{% if organisation_and_roles %}
+You are invited for the following organisation(s):
+{% for line in organisation_and_roles %}
+    {{ line }}
+{% endfor %}
+{% endif %}
 Use the following link to accept:
 
 {{ accept_url }}

@@ -114,3 +114,21 @@ def test_send_email(rf, invitation, m_send_email, settings):
     assert send_email_kwargs["foo"] == "bar"
 
     assert invitation.email_sent_at is not None
+    assert "- foo, role(s): bar" not in send_email_kwargs["message"]
+
+
+def test_send_email_multiple_orgs(rf, invitation, m_send_email, settings):
+    request = rf.get("http://testserver/x/y/z")
+    settings.NENS_AUTH_INVITATION_EMAIL_SUBJECT = "Test Subject"
+    invitation.send_email(
+        request,
+        send_email_options={"foo": "bar", "fizz": "buzz"},
+        organisation_and_roles={"foo": ["bar"], "fizz": ["buzz, bozz"]}
+    )
+
+    url = invitation.get_accept_url(request)
+    send_email_kwargs = m_send_email.call_args[1]
+    assert "- foo, role(s): bar" in send_email_kwargs["message"]
+    assert "- fizz, role(s): buzz, bozz" in send_email_kwargs["message"]
+    assert "- foo, role(s): bar" in send_email_kwargs["html_message"]
+    assert "- fizz, role(s): buzz, bozz" in send_email_kwargs["html_message"]
