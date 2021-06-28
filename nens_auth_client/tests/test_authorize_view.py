@@ -61,6 +61,9 @@ def test_authorize(
         assert response._headers["cache-control"] == ("Cache-Control", "no-store")
     elif hasattr(response, "headers"):
         assert response.headers["cache-control"] == "no-store"
+    else:
+        assert False
+
     # check if login was called
     login_m.assert_called_with(request, user)
 
