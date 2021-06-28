@@ -114,7 +114,10 @@ def test_send_email(rf, invitation, m_send_email, settings):
     assert send_email_kwargs["foo"] == "bar"
 
     assert invitation.email_sent_at is not None
-    assert "- foo, role(s): bar" not in send_email_kwargs["message"]
+    assert (
+        "You are invited for the following organisation(s)"
+        not in send_email_kwargs["message"]
+    )
 
 
 def test_send_email_multiple_orgs(rf, invitation, m_send_email, settings):
