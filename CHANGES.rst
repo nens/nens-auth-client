@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 0.11 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Nothing changed yet. test
 
 
 0.10 (2021-02-23)
