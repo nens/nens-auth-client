@@ -32,7 +32,12 @@ def test_logout(rf, mocker, openid_configuration, logged_in):
     assert request.session[views.LOGOUT_REDIRECT_SESSION_KEY] == "/a"
 
     # check if Cache-Control header is set to "no-store"
-    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    if hasattr(response, "_headers"):
+        assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    elif hasattr(response, "headers"):
+        assert response.headers["cache-control"] == "no-store"
+    else:
+        assert False
 
 
 def test_logout_no_next_url(rf, mocker, openid_configuration):
@@ -57,7 +62,12 @@ def test_logout_success(rf, mocker):
     assert response.url == "/b"
 
     # check if Cache-Control header is set to "no-store"
-    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    if hasattr(response, "_headers"):
+        assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    elif hasattr(response, "headers"):
+        assert response.headers["cache-control"] == "no-store"
+    else:
+        assert False
 
 
 def test_logout_success_empty_session(rf, mocker, openid_configuration):
