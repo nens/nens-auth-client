@@ -244,7 +244,7 @@ class Invitation(models.Model):
 
         if organisation_and_roles:
             organisation_and_roles = [
-                f"- {organisation}, role(s): {','.join(role)}"
+                "- {}, role(s): {}".format(organisation, ','.join(role))
                 for organisation, role in organisation_and_roles.items()
             ]
 
