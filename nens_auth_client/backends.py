@@ -43,8 +43,9 @@ class RemoteUserBackend(ModelBackend):
 def _nens_user_extract_username(claims):
     """Return the username from the email claim if the user is a N&S user.
 
-    A N&S user is characterized by 1) coming from "Google" identity provider
-    and 2) having (verified) email domain @nelen-schuurmans.nl.
+    A N&S user is characterized by 1) coming from either "Google" or
+    "Azure-AD-NENS" identity provider and 2) having (verified) email
+    domain @nelen-schuurmans.nl.
     """
     # Get the provider name, return False if not present
     try:
@@ -52,7 +53,7 @@ def _nens_user_extract_username(claims):
     except (KeyError, IndexError):
         return
 
-    if provider_name != "Google":
+    if provider_name not in ("Google", "Azure-AD-NENS"):
         return
     if not claims.get("email_verified", False):
         return
@@ -76,7 +77,8 @@ class SSOMigrationBackend(ModelBackend):
         things:
 
         - (normal accounts) "custom:from_sso" being 1.
-        - (AD acounts) IDP = Google and email domain = @nelen-schuurmans.nl
+        - (AD acounts) IDP = Google or Azure-AD-NENS, and
+              email domain = @nelen-schuurmans.nl
 
         Args:
           request: the current request

@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 0.11 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Extend SSOMigrationBackend so that it matches external users by username
+  (from email) if it is an Azure AD account ending with @nelen-schuurmans.nl.
 
 
 0.10 (2021-02-23)
