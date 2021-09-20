@@ -37,7 +37,6 @@ def test_logout(rf, mocker, openid_configuration, logged_in):
     assert re.match(pattern, response["cache-control"]) is not None
 
 
-
 def test_logout_no_next_url(rf, mocker, openid_configuration):
     mocker.patch("nens_auth_client.views.django_auth.logout")
 
@@ -62,7 +61,6 @@ def test_logout_success(rf, mocker):
     # check Cache-Control headers: page should never be cached
     pattern = "max-age=0, no-cache, no-store, must-revalidate(, private)?$"
     assert re.match(pattern, response["cache-control"]) is not None
-
 
 
 def test_logout_success_empty_session(rf, mocker, openid_configuration):
