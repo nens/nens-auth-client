@@ -13,12 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.5, 3.6, 3.8]
+        python-version: [3.6, 3.8]
         django-version: ["1.11.*", "2.2.*", "3.*"]
-        exclude:
-          # Exclude Django 3.* on python 3.5
-          - python-version: 3.5
-            django-version: "3.*"
 
     steps:
     - uses: actions/checkout@v2
