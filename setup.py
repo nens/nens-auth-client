@@ -8,7 +8,7 @@ long_description = '\n\n'.join([
 ])
 
 install_requires = [
-    'Django<3.2',
+    'Django',
     'django-appconf',
     'authlib[client]',
     'requests',
