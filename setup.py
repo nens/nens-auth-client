@@ -24,6 +24,7 @@ tests_require = [
 ]
 
 setup(name='nens-auth-client',
+      python_requires='>=3.6',
       version=version,
       description="An OAuth2 client library for AWS Cognito",
       long_description=long_description,
