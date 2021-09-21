@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.11 (unreleased)
+0.11 (2021-09-21)
 -----------------
 
 - Extend SSOMigrationBackend so that it matches external users by username
