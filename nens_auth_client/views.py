@@ -11,7 +11,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.http import is_safe_url
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import never_cache
 from urllib.parse import urlencode
 
 import django.contrib.auth as django_auth
@@ -40,7 +40,7 @@ def _get_redirect_from_next(request):
             return redirect_to
 
 
-@cache_control(no_store=True)
+@never_cache
 def login(request):
     """Initiate authentication through OpenID Connect.
 
@@ -98,7 +98,7 @@ def login(request):
         return client.authorize_redirect(request, redirect_uri)
 
 
-@cache_control(no_store=True)
+@never_cache
 def authorize(request):
     """Authorizes a user that authenticated through OpenID Connect.
 
@@ -167,7 +167,7 @@ def authorize(request):
     return HttpResponseRedirect(success_url)
 
 
-@cache_control(no_store=True)
+@never_cache
 def logout(request):
     """Logout the user (locally and remotely)
 
@@ -198,7 +198,7 @@ def logout(request):
     return client.logout_redirect(request, logout_uri)
 
 
-@cache_control(no_store=True)
+@never_cache
 def logout_success(request):
     """Callback url for logout.
 
@@ -224,7 +224,7 @@ def logout_success(request):
     return HttpResponseRedirect(redirect_url)
 
 
-@cache_control(no_store=True)
+@never_cache
 def accept_invitation(request, slug):
     """Assign the permissions of an Invitation to the current user.
 

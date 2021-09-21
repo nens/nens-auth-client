@@ -1,4 +1,5 @@
 import pytest
+import re
 from urllib.parse import urlparse, parse_qs
 from nens_auth_client import views
 from django.conf import settings
@@ -29,8 +30,9 @@ def test_login(rf, openid_configuration):
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "/a"
 
-    # check if Cache-Control header is set to "no-store"
-    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    # check Cache-Control headers: page should never be cached
+    pattern = "max-age=0, no-cache, no-store, must-revalidate(, private)?$"
+    assert re.match(pattern, response["cache-control"]) is not None
 
 
 def test_login_when_already_logged_in(rf):
@@ -114,5 +116,6 @@ def test_login_with_forced_logout(rf, openid_configuration, mocker, logged_in):
     assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "/a"
 
-    # check if Cache-Control header is set to "no-store"
-    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    # check Cache-Control headers: page should never be cached
+    pattern = "max-age=0, no-cache, no-store, must-revalidate(, private)?$"
+    assert re.match(pattern, response["cache-control"]) is not None

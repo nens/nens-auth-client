@@ -9,6 +9,7 @@ from nens_auth_client import views
 from urllib.parse import parse_qs
 
 import pytest
+import re
 import time
 from datetime import timedelta
 
@@ -56,8 +57,9 @@ def test_authorize(
     assert qs["code"] == ["code"]
     assert qs["state"] == ["state"]
 
-    # check if Cache-Control header is set to "no-store"
-    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    # check Cache-Control headers: page should never be cached
+    pattern = "max-age=0, no-cache, no-store, must-revalidate(, private)?$"
+    assert re.match(pattern, response["cache-control"]) is not None
 
     # check if login was called
     login_m.assert_called_with(request, user)

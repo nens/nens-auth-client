@@ -6,6 +6,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.core.exceptions import PermissionDenied
 
 import pytest
+import re
 
 
 @pytest.mark.parametrize("logged_in", [True, False])
@@ -31,8 +32,9 @@ def test_logout(rf, mocker, openid_configuration, logged_in):
     # the 'next' param was stored in the session
     assert request.session[views.LOGOUT_REDIRECT_SESSION_KEY] == "/a"
 
-    # check if Cache-Control header is set to "no-store"
-    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    # check Cache-Control headers: page should never be cached
+    pattern = "max-age=0, no-cache, no-store, must-revalidate(, private)?$"
+    assert re.match(pattern, response["cache-control"]) is not None
 
 
 def test_logout_no_next_url(rf, mocker, openid_configuration):
@@ -56,8 +58,9 @@ def test_logout_success(rf, mocker):
     assert response.status_code == 302
     assert response.url == "/b"
 
-    # check if Cache-Control header is set to "no-store"
-    assert response._headers["cache-control"] == ("Cache-Control", "no-store")
+    # check Cache-Control headers: page should never be cached
+    pattern = "max-age=0, no-cache, no-store, must-revalidate(, private)?$"
+    assert re.match(pattern, response["cache-control"]) is not None
 
 
 def test_logout_success_empty_session(rf, mocker, openid_configuration):
