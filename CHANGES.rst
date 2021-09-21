@@ -8,6 +8,9 @@ Changelog of nens-auth-client
 - Extend SSOMigrationBackend so that it matches external users by username
   (from email) if it is an Azure AD account ending with @nelen-schuurmans.nl.
 
+- Dropped support for Python 3.5. Added Python 3.9 to the versions to be
+  tested.
+
 
 0.10 (2021-02-23)
 -----------------
