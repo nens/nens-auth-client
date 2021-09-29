@@ -2,9 +2,10 @@ from .users import create_remote_user
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 
 import logging
 
@@ -44,7 +45,7 @@ def _nens_user_extract_username(claims):
     """Return the username from the email claim if the user is a N&S user.
 
     A N&S user is characterized by 1) coming from either "Google" or
-    "Nelen&Schuurmans" identity provider and 2) having (verified)
+    "NelenSchuurmans" identity provider and 2) having (verified)
     email domain @nelen-schuurmans.nl.
     """
     # Get the provider name, return False if not present
@@ -53,7 +54,7 @@ def _nens_user_extract_username(claims):
     except (KeyError, IndexError):
         return
 
-    if provider_name not in ("Google", "Nelen&Schuurmans"):
+    if provider_name not in ("Google", "NelenSchuurmans"):
         return
     if not claims.get("email_verified", False):
         return
@@ -77,7 +78,7 @@ class SSOMigrationBackend(ModelBackend):
         things:
 
         - (normal accounts) "custom:from_sso" being 1.
-        - (AD acounts) IDP = Google or Nelen&Schuurmans, and
+        - (AD acounts) IDP = Google or NelenSchuurmans, and
               email domain = @nelen-schuurmans.nl
 
         Args:
@@ -96,8 +97,14 @@ class SSOMigrationBackend(ModelBackend):
         if username is None:
             return
 
+        email = claims.get("email")
+
         try:
-            user = UserModel.objects.get(username__iexact=username, remote=None)
+            user = UserModel.objects.get(
+                Q(username__iexact=username),
+                Q(remote__isnull=True)
+                | (Q(remote__isnull=False) & Q(email__iexact=email)),
+            )
         except ObjectDoesNotExist:
             return
         except MultipleObjectsReturned:
