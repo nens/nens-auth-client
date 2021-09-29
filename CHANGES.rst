@@ -5,7 +5,13 @@ Changelog of nens-auth-client
 0.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Adapted code to match "NelenSchuurmans" as trusted provider name. It turned
+  out that "Nelen&Schuurmans" had issues: the ampersand was not encoded in
+  URLs being passed.
+
+- Previously, local Nelen & Schuurmans users were automatically associated
+  with their remote Google account. This now works for Azure AD accounts
+  too, even if a Google association already exists.
 
 
 0.11 (2021-09-21)
