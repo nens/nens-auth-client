@@ -72,12 +72,19 @@ def test_ssomigration_exists(user_getter, create_remote_user):
         "sub": "remote-uid",
         "cognito:username": "testuser",
         "custom:from_sso": "1",
+        "email": "testuser@nelen-schuurmans.nl",
     }
-    user_getter.return_value = User(username="testuser")
+    user_getter.return_value = User(
+        username="testuser",
+        email="testuser@nelen-schuurmans.nl"
+    )
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user.username == "testuser"
-    user_getter.assert_called_with(username__iexact="testuser", remote=None)
+    user_getter.assert_called_with(
+        username__iexact="testuser",
+        email__iexact="testuser@nelen-schuurmans.nl"
+    )
     create_remote_user.assert_called_with(user, claims)
 
 
@@ -86,12 +93,16 @@ def test_ssomigration_not_exists(user_getter, create_remote_user):
         "sub": "remote-uid",
         "cognito:username": "testuser",
         "custom:from_sso": "1",
+        "email": "testuser@nelen-schuurmans.nl",
     }
     user_getter.side_effect = ObjectDoesNotExist
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user is None
-    user_getter.assert_called_with(username__iexact="testuser", remote=None)
+    user_getter.assert_called_with(
+        username__iexact="testuser",
+        email__iexact="testuser@nelen-schuurmans.nl"
+    )
     assert not create_remote_user.called
 
 
@@ -100,12 +111,16 @@ def test_ssomigration_multiple_exist(user_getter, create_remote_user):
         "sub": "remote-uid",
         "cognito:username": "testuser",
         "custom:from_sso": "1",
+        "email": "testuser@nelen-schuurmans.nl",
     }
     user_getter.side_effect = MultipleObjectsReturned
 
     with pytest.raises(PermissionDenied):
         backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
-    user_getter.assert_called_with(username__iexact="testuser", remote=None)
+    user_getter.assert_called_with(
+        username__iexact="testuser",
+        email__iexact="testuser@nelen-schuurmans.nl"
+    )
     assert not create_remote_user.called
 
 
@@ -114,12 +129,16 @@ def test_ssomigration_inactive(user_getter, create_remote_user):
         "sub": "remote-uid",
         "cognito:username": "testuser",
         "custom:from_sso": "1",
+        "email": "testuser@nelen-schuurmans.nl",
     }
     user_getter.return_value = User(username="testuser", is_active=False)
 
     with pytest.raises(PermissionDenied):
         backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
-    user_getter.assert_called_with(username__iexact="testuser", remote=None)
+    user_getter.assert_called_with(
+        username__iexact="testuser",
+        email__iexact="testuser@nelen-schuurmans.nl"
+    )
     assert not create_remote_user.called
 
 
@@ -143,7 +162,10 @@ def test_ssomigration_google_nens_ok(user_getter, create_remote_user):
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user.username == "testuser"
-    user_getter.assert_called_with(username__iexact="testuser", remote=None)
+    user_getter.assert_called_with(
+        username__iexact="testuser",
+        email__iexact="testuser@nelen-schuurmans.nl"
+    )
     create_remote_user.assert_called_with(user, claims)
 
 

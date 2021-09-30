@@ -5,7 +5,6 @@ from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
 
 import logging
 
@@ -100,11 +99,7 @@ class SSOMigrationBackend(ModelBackend):
         email = claims.get("email")
 
         try:
-            user = UserModel.objects.get(
-                Q(username__iexact=username),
-                Q(remote__isnull=True)
-                | (Q(remote__isnull=False) & Q(email__iexact=email)),
-            )
+            user = UserModel.objects.get(username__iexact=username, email__iexact=email)
         except ObjectDoesNotExist:
             return
         except MultipleObjectsReturned:
