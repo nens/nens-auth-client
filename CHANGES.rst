@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.12 (unreleased)
+0.12 (2021-09-30)
 -----------------
 
 - Adapted code to match "NelenSchuurmans" as trusted provider name. It turned
