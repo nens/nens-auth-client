@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 0.13 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added session.get_session_for to get a requests Session with a correct
+  access_token set.
 
 
 0.12 (2021-09-30)
