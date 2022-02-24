@@ -1,7 +1,8 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # Django settings only suitable for standalone test environments.
 
-import os, sys
+import os
+import sys
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
