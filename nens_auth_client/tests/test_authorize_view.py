@@ -55,7 +55,6 @@ def test_authorize(
     qs = parse_qs(token_request.text)
     assert qs["grant_type"] == ["authorization_code"]
     assert qs["code"] == ["code"]
-    assert qs["state"] == ["state"]
 
     # check Cache-Control headers: page should never be cached
     pattern = "max-age=0, no-cache, no-store, must-revalidate(, private)?$"
