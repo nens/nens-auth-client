@@ -2,6 +2,7 @@
 # Django settings only suitable for standalone test environments.
 
 import os
+import sys
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -135,3 +136,12 @@ NENS_AUTH_ISSUER = os.environ.get("NENS_AUTH_ISSUER", "http://localhost/test-iss
 NENS_AUTH_DEFAULT_LOGOUT_URL = "/admin/"
 NENS_AUTH_DEFAULT_SUCCESS_URL = "/admin/"
 NENS_AUTH_RESOURCE_SERVER_ID = "http://localhost:8000/admin/"  # trailing slash
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+try:
+    from .localsettings import *  # NOQA
+
+    print("Using localsettings\n", file=sys.stderr)
+except ImportError:
+    print("Did not find localsettings.py\n", file=sys.stderr)

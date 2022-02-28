@@ -8,6 +8,10 @@ Changelog of nens-auth-client
 - Added requests_session.get_session_for to get a requests Session with a correct
   access_token set.
 
+- Fixed library with Django 4.*.
+
+- Fixed unittests with authlib 0.15.5.
+
 
 0.12 (2021-09-30)
 -----------------

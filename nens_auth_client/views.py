@@ -10,7 +10,10 @@ from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils.http import is_safe_url
+try:
+    from django.utils.http import url_has_allowed_host_and_scheme
+except ImportError:
+    from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from urllib.parse import urlencode
 
@@ -32,7 +35,7 @@ def _get_redirect_from_next(request):
     """
     if REDIRECT_FIELD_NAME in request.GET:
         redirect_to = request.GET[REDIRECT_FIELD_NAME]
-        if is_safe_url(
+        if url_has_allowed_host_and_scheme(
             url=redirect_to,
             allowed_hosts={request.get_host()},
             require_https=request.is_secure(),

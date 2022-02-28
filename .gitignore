@@ -56,4 +56,6 @@ pytest.log
 .vscode
 .devcontainer
 
+# Our own files
 db.sqlite3
+nens_auth_client/localsettings.py
