@@ -47,22 +47,21 @@ def test_refresh(rq_mocker, openid_configuration, remote_user):
 
     session.get("http://api.foo.bar/")
 
-    # Expect 4 requests in the request history
     request_list = rq_mocker.request_history
-    assert len(request_list) == 4
 
     # Initial request
     assert request_list[0].url == "http://api.foo.bar/"
 
-    # Auth server auto discovery (tested elsewere)
-    assert "openid-configuration" in request_list[1].url
-
-    # Refresh token fetch
-    assert request_list[2].url == openid_configuration["token_endpoint"]
-    qs = parse_qs(request_list[2].text)
+    # Pick the token request (from the JWKS and OpenID Discovery requests)
+    token_request = next(
+        request
+        for request in request_list
+        if request.url == openid_configuration["token_endpoint"]
+    )
+    qs = parse_qs(token_request.text)
     assert qs["grant_type"] == ["refresh_token"]
     assert qs["refresh_token"] == [remote_user.refresh_token]
 
     # Request with refreshed token
-    assert request_list[3].url == "http://api.foo.bar/"
-    assert request_list[3].headers["Authorization"] == f"Bearer {valid_token}"
+    assert request_list[-1].url == "http://api.foo.bar/"
+    assert request_list[-1].headers["Authorization"] == f"Bearer {valid_token}"
