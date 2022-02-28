@@ -16,13 +16,11 @@ def refresh_token(remote_user: RemoteUser):
 class OAuth2Session(Session):
     """A requests.Session constructed from a RemoteUser
 
-    Automatically refreshes if the access token is out of date; in that case,
-    the RemoteUser will be updated with a new access_token and refresh_token.
+    Automatically refreshes if the access token is expired; in that case,
+    the RemoteUser will be updated with a new id_token and access_token.
 
     Args:
         remote_user: the RemoteUser to get/set the tokens
-        valid_seconds: if the access_token is valid less than this many seconds then
-            the token will be refreshed
         **kwargs: see to authlib.integrations.requests_client.OAuth2Session and
             then to requests.Session.
     """

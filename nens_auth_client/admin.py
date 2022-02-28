@@ -3,8 +3,23 @@ from django.contrib import admin
 from django.utils.html import mark_safe
 from nens_auth_client import models
 
-from .jwt_utils import decode_jwt
+import base64
 import json
+
+
+def decode_jwt(token):
+    """Decode a JWT without checking its signature"""
+    if not token:
+        return
+    # JWT consists of {header}.{payload}.{signature}
+    try:
+        _, payload, _ = token.split(".")
+    except ValueError:
+        return "token is not a JWT"
+
+    # JWT should be padded with = (base64.b64decode expects this)
+    payload += "=" * (-len(payload) % 4)
+    return json.loads(base64.b64decode(payload))
 
 
 def render_json(obj):
@@ -27,7 +42,7 @@ class RemoteUserAdmin(admin.ModelAdmin):
         "access_token",
         "refresh_token",
     )
-    raw_id_fields = ("user", )
+    raw_id_fields = ("user",)
 
     fieldsets = [
         (
@@ -73,8 +88,8 @@ class InvitationAdmin(admin.ModelAdmin):
         "email_sent_at",
     )
     raw_id_fields = ("user", "created_by")
-    list_filter = ("status", )
-    actions = ("send_email", )
+    list_filter = ("status",)
+    actions = ("send_email",)
     fieldsets = [
         (
             None,
