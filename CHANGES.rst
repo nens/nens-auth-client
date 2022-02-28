@@ -5,8 +5,8 @@ Changelog of nens-auth-client
 0.13 (unreleased)
 -----------------
 
-- Added requests_session.get_session_for to get a requests Session with a correct
-  access_token set.
+- Added requests_session.OAuth2Session to get a requests Session with an access token.
+  If the access token expires the token is refreshed.
 
 - Fixed library with Django 4.*.
 
