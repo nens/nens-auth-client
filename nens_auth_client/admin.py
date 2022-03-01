@@ -42,7 +42,7 @@ class RemoteUserAdmin(admin.ModelAdmin):
         "access_token",
         "refresh_token",
     )
-    raw_id_fields = ("user", )
+    raw_id_fields = ("user",)
 
     fieldsets = [
         (
@@ -88,8 +88,8 @@ class InvitationAdmin(admin.ModelAdmin):
         "email_sent_at",
     )
     raw_id_fields = ("user", "created_by")
-    list_filter = ("status", )
-    actions = ("send_email", )
+    list_filter = ("status",)
+    actions = ("send_email",)
     fieldsets = [
         (
             None,

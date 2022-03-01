@@ -5,6 +5,12 @@ Changelog of nens-auth-client
 0.13 (unreleased)
 -----------------
 
+- Added requests_session.OAuth2Session to get a requests Session with an access token.
+  If the access token expires the token is refreshed.
+
+- Added requests_session.OAuth2CCSession for fetching an access token in the
+  Client Credentials Grant.
+
 - Fixed library with Django 4.*.
 
 - Fixed unittests with authlib 0.15.5.

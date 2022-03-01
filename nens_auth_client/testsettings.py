@@ -135,7 +135,7 @@ NENS_AUTH_CLIENT_SECRET = os.environ.get("NENS_AUTH_CLIENT_SECRET", "test-secret
 NENS_AUTH_ISSUER = os.environ.get("NENS_AUTH_ISSUER", "http://localhost/test-issuer")
 NENS_AUTH_DEFAULT_LOGOUT_URL = "/admin/"
 NENS_AUTH_DEFAULT_SUCCESS_URL = "/admin/"
-NENS_AUTH_RESOURCE_SERVER_ID = "http://localhost:8000/admin/"  # trailing slash
+NENS_AUTH_RESOURCE_SERVER_ID = "localhost/"  # trailing slash
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
