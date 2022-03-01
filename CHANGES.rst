@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.13 (unreleased)
+0.13 (2022-03-01)
 -----------------
 
 - Added requests_session.OAuth2Session to get a requests Session with an access token.
