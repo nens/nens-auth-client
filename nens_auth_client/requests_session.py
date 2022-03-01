@@ -26,6 +26,11 @@ class OAuth2Session(Session):
     Args:
         remote_user: the RemoteUser to get/set the tokens
         **kwargs: see requests.Session.
+
+    Raises:
+        - ``authlib.integrations.base_client.errors.OAuthError``: OAuth2 errors.
+            These are defined in https://tools.ietf.org/html/rfc6749#section-4.1.2.1.
+            The error descriptions can be shown to the user.
     """
 
     def __init__(self, remote_user: RemoteUser, **kwargs):
@@ -74,6 +79,11 @@ class OAuth2CCSession(Session):
     Args:
         scope: a list of scopes for the token. Defaults to settings.NENS_AUTH_SCOPE.
         **kwargs: see requests.Session.
+
+    Raises:
+        - ``authlib.integrations.base_client.errors.OAuthError``: OAuth2 errors.
+            These are defined in https://tools.ietf.org/html/rfc6749#section-4.1.2.1.
+            The error descriptions can be shown to the user.
     """
 
     def __init__(self, scope: Optional[Union[str, List[str]]] = None, **kwargs):
