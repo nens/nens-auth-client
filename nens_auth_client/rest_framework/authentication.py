@@ -7,9 +7,10 @@ from rest_framework import HTTP_HEADER_ENCODING
 import django.contrib.auth as django_auth
 
 
-class OAuth2Token:
-    def __init__(self, scope):
-        self.scope = scope
+class OAuth2Token(dict):
+    @property
+    def scope(self):
+        return self["scope"]
 
 
 def get_authorization_header(request):
@@ -75,4 +76,4 @@ class OAuth2TokenAuthentication:
         if user is None:
             raise exceptions.AuthenticationFailed("User not found.")
 
-        return (user, OAuth2Token(claims["scope"]))
+        return (user, OAuth2Token(claims))
