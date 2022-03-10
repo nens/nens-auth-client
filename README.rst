@@ -225,7 +225,18 @@ Bearer tokens (optional)
 
 If your web application acts as a Resource Server in the Authorization Code
 or Client Credentials Flow, then it will need to accept Bearer tokens in
-http requests. ``nens-auth-client`` has a middleware for this::
+http requests. ``nens-auth-client`` implements two methods for this:
+Django middleware and django REST framework authentication class.
+
+First, configure the ``NENS_AUTH_RESOURCE_SERVER_ID`` setting, which
+should match the one set in the AWS Cognito. It needs a trailing slash::
+
+    NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this on AWS Cognito
+
+
+*Option 1: middleware*
+
+Configure the middleware::
 
     MIDDLEWARE = (
         ...
@@ -238,12 +249,25 @@ http requests. ``nens-auth-client`` has a middleware for this::
 This middleware will set the ``request.user.oauth2_scope`` that your
 application may use for additional authorization logic.
 
-Also, set the ``NENS_AUTH_RESOURCE_SERVER_ID``, which
-should match the one set in the AWS Cognito. It needs a trailing slash::
+*Option 2: REST framework authentication class*
 
-    NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this on AWS Cognito
+Configure the authentication class::
 
-Note that the external user ID (``"sub"`` claim) must already be registered in
+
+    REST_FRAMEWORK = {
+        (...)
+        "DEFAULT_AUTHENTICATION_CLASSES": (
+            "nens_auth_client.rest_framwork.OAuth2TokenAuthentication",
+            (...)
+        )
+    }
+
+This authentication class will set ``request.auth.scope`` that the
+permission classes should use for additional authorization logic.
+
+*Notes*
+
+When using a Bearer token, the external user ID (``"sub"`` claim) must already be registered in
 the app (as a ``RemoteUser``). There is not much you can do about that because
 bearer tokens typically do not include much information about the user. A user
 should do a one-time login so that a ``RemoteUser`` is created. After that,
@@ -252,7 +276,6 @@ the user can be found by the "sub" claim in the access token.
 For the Client Credentials Flow there isn't any user. For that, a RemoteUser
 should be created manually (with ``external_user_id`` equaling the client_id.
 This should be attached to some service account.
-
 
 Error handling
 --------------
