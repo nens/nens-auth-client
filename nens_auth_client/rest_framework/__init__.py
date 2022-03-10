@@ -1,1 +1,1 @@
-from .authentication import OAuth2TokenAuthentication
+from .authentication import OAuth2TokenAuthentication  # NOQA

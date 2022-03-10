@@ -1,7 +1,9 @@
-from rest_framework import HTTP_HEADER_ENCODING, exceptions
-from nens_auth_client.oauth import get_oauth_client
 from authlib.jose.errors import JoseError
 from django.conf import settings
+from nens_auth_client.oauth import get_oauth_client
+from rest_framework import exceptions
+from rest_framework import HTTP_HEADER_ENCODING
+
 import django.contrib.auth as django_auth
 
 
@@ -16,7 +18,7 @@ def get_authorization_header(request):
 
     Hide some test client ickyness where the header can be unicode.
     """
-    auth = request.META.get('HTTP_AUTHORIZATION', b'')
+    auth = request.META.get("HTTP_AUTHORIZATION", b"")
     if isinstance(auth, str):
         # Work around django test client oddness
         auth = auth.encode(HTTP_HEADER_ENCODING)
@@ -34,6 +36,7 @@ class OAuth2TokenAuthentication:
     IMPORTANT: When using this as an authentication_class, the permission classes
     should consistently include `request.auth.scope` in their check.
     """
+
     keyword = "Bearer"
 
     def authenticate(self, request):
@@ -44,16 +47,16 @@ class OAuth2TokenAuthentication:
             return None
 
         if len(auth) == 1:
-            msg = 'Invalid token header. No credentials provided.'
+            msg = "Invalid token header. No credentials provided."
             raise exceptions.AuthenticationFailed(msg)
         elif len(auth) > 2:
-            msg = 'Invalid token header. Token string should not contain spaces.'
+            msg = "Invalid token header. Token string should not contain spaces."
             raise exceptions.AuthenticationFailed(msg)
 
         try:
             token = auth[1].decode()
         except UnicodeError:
-            msg = 'Invalid token header. Token string should not contain invalid characters.'
+            msg = "Invalid token header. Token string should not contain invalid characters."
             raise exceptions.AuthenticationFailed(msg)
 
         return self.authenticate_credentials(request, token)
