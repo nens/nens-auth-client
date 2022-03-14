@@ -20,7 +20,8 @@ tests_require = [
     'pytest-django',
     'pytest-mock',
     'requests-mock',
-    'flake8'
+    'flake8',
+    'djangorestframework'
 ]
 
 setup(name='nens-auth-client',

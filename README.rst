@@ -225,25 +225,54 @@ Bearer tokens (optional)
 
 If your web application acts as a Resource Server in the Authorization Code
 or Client Credentials Flow, then it will need to accept Bearer tokens in
-http requests. ``nens-auth-client`` has a middleware for this::
+http requests. ``nens-auth-client`` implements two methods for this:
+Django middleware and Django REST framework authentication class.
 
-    MIDDLEWARE = (
+In both cases, you need to configure the ``NENS_AUTH_RESOURCE_SERVER_ID`` setting, which
+should match the one set in the AWS Cognito. It needs a trailing slash::
+
+    NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this on AWS Cognito
+
+
+*Option 1: middleware*
+
+The Django Middleware will log the user in without starting a session. It works
+for all views. Additionaly, middleware will set the ``request.user.oauth2_scope``
+that your application may use for additional authorization logic.
+
+Configure the middleware as follows::
+
+    MIDDLEWARE = [
         ...
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
         "nens_auth_client.middleware.AccessTokenMiddleware",
         ...
-    )
+    ]
 
-This middleware will set the ``request.user.oauth2_scope`` that your
-application may use for additional authorization logic.
 
-Also, set the ``NENS_AUTH_RESOURCE_SERVER_ID``, which
-should match the one set in the AWS Cognito. It needs a trailing slash::
+*Option 2: REST framework authentication class*
 
-    NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this on AWS Cognito
+The REST framework authentication class will is only applicable to REST framework
+views. After a token appears valid, it will set ``request.user`` and
+``request.auth.scope``. Permission classes should use the scope for additional
+authorization logic. By default (like in the built-in ``IsAuthenticated``)
+the scope is ignored, which may lead to more permissive behavior than expected.
 
-Note that the external user ID (``"sub"`` claim) must already be registered in
+Configure the authentication class::
+
+
+    REST_FRAMEWORK = {
+        (...)
+        "DEFAULT_AUTHENTICATION_CLASSES": [
+            "nens_auth_client.rest_framwork.OAuth2TokenAuthentication",
+            (...)
+        ]
+    }
+
+*Notes*
+
+When using a Bearer token, the external user ID (``"sub"`` claim) must already be registered in
 the app (as a ``RemoteUser``). There is not much you can do about that because
 bearer tokens typically do not include much information about the user. A user
 should do a one-time login so that a ``RemoteUser`` is created. After that,
@@ -252,7 +281,6 @@ the user can be found by the "sub" claim in the access token.
 For the Client Credentials Flow there isn't any user. For that, a RemoteUser
 should be created manually (with ``external_user_id`` equaling the client_id.
 This should be attached to some service account.
-
 
 Error handling
 --------------
