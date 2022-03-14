@@ -3,6 +3,7 @@ from django.conf import settings
 from nens_auth_client.oauth import get_oauth_client
 from rest_framework import exceptions
 from rest_framework import HTTP_HEADER_ENCODING
+from rest_framework.authentication import BaseAuthentication
 
 import django.contrib.auth as django_auth
 
@@ -26,7 +27,7 @@ def get_authorization_header(request):
     return auth
 
 
-class OAuth2TokenAuthentication:
+class OAuth2TokenAuthentication(BaseAuthentication):
     """OAuth2 access token based authentication.
 
     Clients should authenticate by passing the token key in the "Authorization"
@@ -77,3 +78,10 @@ class OAuth2TokenAuthentication:
             raise exceptions.AuthenticationFailed("User not found.")
 
         return (user, OAuth2Token(claims))
+
+    def authenticate_header(self, request):
+        """
+        Return a string to be used as the value of the `WWW-Authenticate`
+        header in a `401 Unauthenticated` response
+        """
+        return self.keyword

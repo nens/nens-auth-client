@@ -39,3 +39,7 @@ def test_authentication_class_no_header(r, mocked_authenticator):
 def test_authentication_class_no_bearer(r, mocked_authenticator, access_token_generator):
     r.META["HTTP_AUTHORIZATION"] = "Token xxx"
     assert mocked_authenticator.authenticate(r) is None
+
+
+def test_authentication_header(r, mocked_authenticator):
+    assert mocked_authenticator.authenticate_header(r) == "Bearer"
