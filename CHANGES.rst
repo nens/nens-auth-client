@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 0.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added OAuth2TokenAuthentication as an alternative to the AccessTokenMiddleware when
+  using django REST framework.
 
 
 0.13 (2022-03-01)
