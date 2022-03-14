@@ -226,9 +226,9 @@ Bearer tokens (optional)
 If your web application acts as a Resource Server in the Authorization Code
 or Client Credentials Flow, then it will need to accept Bearer tokens in
 http requests. ``nens-auth-client`` implements two methods for this:
-Django middleware and django REST framework authentication class.
+Django middleware and Django REST framework authentication class.
 
-First, configure the ``NENS_AUTH_RESOURCE_SERVER_ID`` setting, which
+In both cases, you need to configure the ``NENS_AUTH_RESOURCE_SERVER_ID`` setting, which
 should match the one set in the AWS Cognito. It needs a trailing slash::
 
     NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this on AWS Cognito
@@ -236,34 +236,39 @@ should match the one set in the AWS Cognito. It needs a trailing slash::
 
 *Option 1: middleware*
 
-Configure the middleware::
+The Django Middleware will log the user in without starting a session. It works
+for all views. Additionaly, middleware will set the ``request.user.oauth2_scope``
+that your application may use for additional authorization logic.
 
-    MIDDLEWARE = (
+Configure the middleware as follows::
+
+    MIDDLEWARE = [
         ...
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
         "nens_auth_client.middleware.AccessTokenMiddleware",
         ...
-    )
+    ]
 
-This middleware will set the ``request.user.oauth2_scope`` that your
-application may use for additional authorization logic.
 
 *Option 2: REST framework authentication class*
+
+The REST framework authentication class will is only applicable to REST framework
+views. After a token appears valid, it will set ``request.user`` and
+``request.auth.scope``. Permission classes should use the scope for additional
+authorization logic. By default (like in the built-in ``IsAuthenticated``)
+the scope is ignored, which may lead to more permissive behavior than expected.
 
 Configure the authentication class::
 
 
     REST_FRAMEWORK = {
         (...)
-        "DEFAULT_AUTHENTICATION_CLASSES": (
+        "DEFAULT_AUTHENTICATION_CLASSES": [
             "nens_auth_client.rest_framwork.OAuth2TokenAuthentication",
             (...)
-        )
+        ]
     }
-
-This authentication class will set ``request.auth.scope`` that the
-permission classes should use for additional authorization logic.
 
 *Notes*
 
