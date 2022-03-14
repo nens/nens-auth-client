@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.14 (unreleased)
+0.14 (2022-03-14)
 -----------------
 
 - Added OAuth2TokenAuthentication as an alternative to the AccessTokenMiddleware when
