@@ -152,13 +152,16 @@ def authorize(request):
     except OAuthError as e:
         if e.error not in ("mismatching_state", "invalid_grant"):
             raise e
-        # This stuff happens mostly when people use the browser 'back' and 'forward' buttons
+        # This happens mostly when people use the browser 'back' and 'forward' buttons
         # - "invalid_grant": The code has been used already
         # - "mismatching_state": The state in the session does not match the one in the token
-        # --> Retry the complete login flow
+        # --> Retry the complete login flow. There are several cases:
+        # - the user is already logged in locally (login view will redirect to success url)
+        # - the user is already logged in on cognito (not locally): login view will redirect to
+        #   cognito which will (without user intervention) redirect back to here, now
+        #   with a correct state & fresh code
+        # - the user is not logged in: cognito will prompt for credentials and redirect here
         return HttpResponseRedirect(_get_login_url(request))
-    except Exception as e:
-        raise e
     claims = client.parse_id_token(request, tokens, leeway=settings.NENS_AUTH_LEEWAY)
 
     # The RemoteUserBackend finds a local user through a RemoteUser

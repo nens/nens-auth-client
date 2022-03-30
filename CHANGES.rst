@@ -5,8 +5,8 @@ Changelog of nens-auth-client
 0.15 (unreleased)
 -----------------
 
-- Do not raise an internal server error, but retry login if /authorize fails due to a
-  mismatching state or an invalid grant.
+- Do not raise an internal server error when users click 'backwards' or 'forwards' in
+  the browser. Instead, restart the login process by redirecting to the login view.
 
 
 0.14 (2022-03-14)

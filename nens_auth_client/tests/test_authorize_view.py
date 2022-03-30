@@ -292,6 +292,8 @@ def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):
 
 def test_authorize_wrong_state(id_token_generator, auth_req_generator):
     # The incoming state query param is different from the session
+    # This happens when the browser 'backwards' and 'forwards' buttons are used
+    # we solve this by restarting the login process (keeping the success_url).
     id_token, claims = id_token_generator()
     request = auth_req_generator(id_token, state="a")
     request.session["_cognito_authlib_state_"] = "b"
@@ -394,6 +396,9 @@ def test_token_error(rq_mocker, rf, openid_configuration):
 
 
 def test_token_error_code_already_used(rq_mocker, rf, openid_configuration):
+    # The incoming state query param is different from the session
+    # This happens when the browser 'backwards' and 'forwards' buttons are used
+    # we solve this by restarting the login process (keeping the success_url).
     rq_mocker.post(
         openid_configuration["token_endpoint"],
         status_code=400,
