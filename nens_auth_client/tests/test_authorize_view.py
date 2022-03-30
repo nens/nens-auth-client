@@ -6,13 +6,14 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from nens_auth_client import models
 from nens_auth_client import views
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 import re
 import time
 from datetime import timedelta
-
+from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY, INVITATION_KEY
+from django.contrib.auth import REDIRECT_FIELD_NAME
 
 @pytest.fixture
 def users_m(mocker):
@@ -294,8 +295,14 @@ def test_authorize_wrong_state(id_token_generator, auth_req_generator):
     id_token, claims = id_token_generator()
     request = auth_req_generator(id_token, state="a")
     request.session["_cognito_authlib_state_"] = "b"
-    with pytest.raises(OAuthError):
-        views.authorize(request)
+    request.session[LOGIN_REDIRECT_SESSION_KEY] = "/success"
+    response = views.authorize(request)
+
+    assert response.status_code == 302
+    parsed_url = urlparse(response.url)
+    parsed_params = parse_qs(parsed_url.query)
+    assert parsed_url.path == "/login/"
+    assert parsed_params == {REDIRECT_FIELD_NAME: ["/success"]}
 
 
 def test_authorize_wrong_issuer(id_token_generator, auth_req_generator):
@@ -384,3 +391,21 @@ def test_token_error(rq_mocker, rf, openid_configuration):
     request.session = {"_cognito_authlib_state_": "my_state"}
     with pytest.raises(OAuthError, match="some_error: bla"):
         views.authorize(request)
+
+
+def test_token_error_code_already_used(rq_mocker, rf, openid_configuration):
+    rq_mocker.post(
+        openid_configuration["token_endpoint"],
+        status_code=400,
+        json={"error": "invalid_grant", "error_description": "bla"},
+    )
+    # Create the request
+    request = rf.get("http://testserver/authorize/?code=abc&state=my_state")
+    request.session = {"_cognito_authlib_state_": "my_state"}
+    response = views.authorize(request)
+
+    assert response.status_code == 302
+    parsed_url = urlparse(response.url)
+    parsed_params = parse_qs(parsed_url.query)
+    assert parsed_url.path == "/login/"
+    assert parsed_params == {}

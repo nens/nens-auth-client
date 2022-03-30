@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 0.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Do not raise an internal server error, but retry login if /authorize fails due to a
+  mismatching state or an invalid grant.
 
 
 0.14 (2022-03-14)
