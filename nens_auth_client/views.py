@@ -10,10 +10,14 @@ from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+
+
 try:
     from django.utils.http import url_has_allowed_host_and_scheme
 except ImportError:
     from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
+
+from authlib.integrations.base_client.errors import OAuthError
 from django.views.decorators.cache import never_cache
 from urllib.parse import urlencode
 
@@ -101,6 +105,24 @@ def login(request):
         return client.authorize_redirect(request, redirect_uri)
 
 
+def _get_login_url(request):
+    """Reverse engineer the login URL from the current session
+
+    This includes adding the "next" parameter from the session. The "invitation"
+    is not reproduced from the session (because that would be a security leak).
+    """
+    success_url = request.session.get(LOGIN_REDIRECT_SESSION_KEY)
+    params = {}
+    if success_url:
+        params[REDIRECT_FIELD_NAME] = success_url
+    login_url = (
+        request.build_absolute_uri(reverse(settings.NENS_AUTH_URL_NAMESPACE + "login"))
+        + "?"
+        + urlencode(params)
+    )
+    return login_url
+
+
 @never_cache
 def authorize(request):
     """Authorizes a user that authenticated through OpenID Connect.
@@ -109,7 +131,14 @@ def authorize(request):
     This is the callback url (a.k.a. redirect_uri) from the login view.
 
     Response:
+      normally:
+
       HTTP 302 Redirect to the 'next' query parameter (see login view)
+
+      invalid state / expired code:
+
+      HTTP 302 Redirect to the login view ('next' parameter is persisted, but
+      the invitation is not)
 
     Raises:
     - ``authlib.jose.errors.JoseError``: cryptographic errors
@@ -123,7 +152,23 @@ def authorize(request):
     """
     client = get_oauth_client()
     client.check_error_in_query_params(request)
-    tokens = client.authorize_access_token(request, timeout=settings.NENS_AUTH_TIMEOUT)
+    try:
+        tokens = client.authorize_access_token(
+            request, timeout=settings.NENS_AUTH_TIMEOUT
+        )
+    except OAuthError as e:
+        if e.error not in ("mismatching_state", "invalid_grant"):
+            raise e
+        # This happens mostly when people use the browser 'back' and 'forward' buttons
+        # - "invalid_grant": The code has been used already
+        # - "mismatching_state": The state in the session does not match the one in the token
+        # --> Retry the complete login flow. There are several cases:
+        # - the user is already logged in locally (login view will redirect to success url)
+        # - the user is already logged in on cognito (not locally): login view will redirect to
+        #   cognito which will (without user intervention) redirect back to here, now
+        #   with a correct state & fresh code
+        # - the user is not logged in: cognito will prompt for credentials and redirect here
+        return HttpResponseRedirect(_get_login_url(request))
     claims = client.parse_id_token(request, tokens, leeway=settings.NENS_AUTH_LEEWAY)
 
     # The RemoteUserBackend finds a local user through a RemoteUser

@@ -1,17 +1,20 @@
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
+from datetime import timedelta
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from nens_auth_client import models
 from nens_auth_client import views
+from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
 from urllib.parse import parse_qs
+from urllib.parse import urlparse
 
 import pytest
 import re
 import time
-from datetime import timedelta
 
 
 @pytest.fixture
@@ -269,8 +272,7 @@ def test_authorize_with_mismatching_invitation(
     )
 
     with pytest.raises(
-        PermissionDenied,
-        match=".*intended for a user with email 'some@other.email'.*"
+        PermissionDenied, match=".*intended for a user with email 'some@other.email'.*"
     ):
         views.authorize(request)
 
@@ -291,11 +293,19 @@ def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):
 
 def test_authorize_wrong_state(id_token_generator, auth_req_generator):
     # The incoming state query param is different from the session
+    # This happens when the browser 'backwards' and 'forwards' buttons are used
+    # we solve this by restarting the login process (keeping the success_url).
     id_token, claims = id_token_generator()
     request = auth_req_generator(id_token, state="a")
     request.session["_cognito_authlib_state_"] = "b"
-    with pytest.raises(OAuthError):
-        views.authorize(request)
+    request.session[LOGIN_REDIRECT_SESSION_KEY] = "/success"
+    response = views.authorize(request)
+
+    assert response.status_code == 302
+    parsed_url = urlparse(response.url)
+    parsed_params = parse_qs(parsed_url.query)
+    assert parsed_url.path == "/login/"
+    assert parsed_params == {REDIRECT_FIELD_NAME: ["/success"]}
 
 
 def test_authorize_wrong_issuer(id_token_generator, auth_req_generator):
@@ -384,3 +394,24 @@ def test_token_error(rq_mocker, rf, openid_configuration):
     request.session = {"_cognito_authlib_state_": "my_state"}
     with pytest.raises(OAuthError, match="some_error: bla"):
         views.authorize(request)
+
+
+def test_token_error_code_already_used(rq_mocker, rf, openid_configuration):
+    # The incoming state query param is different from the session
+    # This happens when the browser 'backwards' and 'forwards' buttons are used
+    # we solve this by restarting the login process (keeping the success_url).
+    rq_mocker.post(
+        openid_configuration["token_endpoint"],
+        status_code=400,
+        json={"error": "invalid_grant", "error_description": "bla"},
+    )
+    # Create the request
+    request = rf.get("http://testserver/authorize/?code=abc&state=my_state")
+    request.session = {"_cognito_authlib_state_": "my_state"}
+    response = views.authorize(request)
+
+    assert response.status_code == 302
+    parsed_url = urlparse(response.url)
+    parsed_params = parse_qs(parsed_url.query)
+    assert parsed_url.path == "/login/"
+    assert parsed_params == {}

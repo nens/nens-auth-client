@@ -92,7 +92,7 @@ LOGGING = {
             "handlers": ["urllib3"],
             "level": "DEBUG",
         },
-    }
+    },
 }
 
 MIDDLEWARE = (
@@ -123,10 +123,10 @@ ALLOWED_HOSTS = ["localhost"]
 AUTHENTICATION_BACKENDS = [
     "nens_auth_client.backends.RemoteUserBackend",
     "nens_auth_client.backends.SSOMigrationBackend",
-    "django.contrib.auth.backends.ModelBackend"
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 NENS_AUTH_STANDALONE = True  # for testing
 NENS_AUTH_URL_NAMESPACE = ""  # nens_auth_client urls.py is the root url conf
@@ -137,7 +137,7 @@ NENS_AUTH_DEFAULT_LOGOUT_URL = "/admin/"
 NENS_AUTH_DEFAULT_SUCCESS_URL = "/admin/"
 NENS_AUTH_RESOURCE_SERVER_ID = "localhost/"  # trailing slash
 
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 try:
     from .localsettings import *  # NOQA

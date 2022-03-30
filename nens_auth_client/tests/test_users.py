@@ -6,8 +6,8 @@ from nens_auth_client.users import update_remote_user
 from nens_auth_client.users import update_user
 from unittest import mock
 
-import pytest
 import datetime
+import pytest
 
 
 @pytest.fixture
