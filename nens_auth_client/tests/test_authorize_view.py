@@ -297,7 +297,7 @@ def test_authorize_wrong_state(id_token_generator, auth_req_generator):
     # we solve this by restarting the login process (keeping the success_url).
     id_token, claims = id_token_generator()
     request = auth_req_generator(id_token, state="a")
-    request.session["_cognito_authlib_state_"] = "b"
+    request.session.pop("_state_cognito_a")
     request.session[LOGIN_REDIRECT_SESSION_KEY] = "/success"
     response = views.authorize(request)
 
@@ -370,7 +370,7 @@ def test_authorize_error(rf):
     # redirect (302) with an error message.
     request = rf.get("http://testserver/authorize/?error=some_error")
     request.session = {}
-    with pytest.raises(OAuthError, match="some_error: some_error"):
+    with pytest.raises(OAuthError, match="some_error"):
         views.authorize(request)
 
 
@@ -391,7 +391,7 @@ def test_token_error(rq_mocker, rf, openid_configuration):
     )
     # Create the request
     request = rf.get("http://testserver/authorize/?code=abc&state=my_state")
-    request.session = {"_cognito_authlib_state_": "my_state"}
+    request.session = {"_state_cognito_my_state": {"data": {"nonce": "x"}}}
     with pytest.raises(OAuthError, match="some_error: bla"):
         views.authorize(request)
 
@@ -407,7 +407,7 @@ def test_token_error_code_already_used(rq_mocker, rf, openid_configuration):
     )
     # Create the request
     request = rf.get("http://testserver/authorize/?code=abc&state=my_state")
-    request.session = {"_cognito_authlib_state_": "my_state"}
+    request.session = {"_state_cognito_my_state": {"data": {"nonce": "bla"}}}
     response = views.authorize(request)
 
     assert response.status_code == 302

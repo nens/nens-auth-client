@@ -10,6 +10,7 @@ from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from requests.exceptions import HTTPError
 
 
 try:
@@ -17,6 +18,7 @@ try:
 except ImportError:
     from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
 
+from authlib.integrations.base_client.errors import MismatchingStateError
 from authlib.integrations.base_client.errors import OAuthError
 from django.views.decorators.cache import never_cache
 from urllib.parse import urlencode
@@ -151,17 +153,13 @@ def authorize(request):
       acceptable invitation.
     """
     client = get_oauth_client()
-    client.check_error_in_query_params(request)
+    # client.check_error_in_query_params(request)
     try:
         tokens = client.authorize_access_token(
             request, timeout=settings.NENS_AUTH_TIMEOUT
         )
-    except OAuthError as e:
-        if e.error not in ("mismatching_state", "invalid_grant"):
-            raise e
+    except MismatchingStateError:
         # This happens mostly when people use the browser 'back' and 'forward' buttons
-        # - "invalid_grant": The code has been used already
-        # - "mismatching_state": The state in the session does not match the one in the token
         # --> Retry the complete login flow. There are several cases:
         # - the user is already logged in locally (login view will redirect to success url)
         # - the user is already logged in on cognito (not locally): login view will redirect to
@@ -169,7 +167,21 @@ def authorize(request):
         #   with a correct state & fresh code
         # - the user is not logged in: cognito will prompt for credentials and redirect here
         return HttpResponseRedirect(_get_login_url(request))
-    claims = client.parse_id_token(request, tokens, leeway=settings.NENS_AUTH_LEEWAY)
+    except HTTPError as e:
+        # Authlib 1.0 raises requests HTTPError for invalid token endpoint usage
+        resp = e.response
+        if resp.status_code == 400:
+            body = resp.json()
+            if body["error"] == "invalid_grant":
+                # This happens when the code has been used already, also due to misuse of 'back' and
+                # 'forward' buttons. See above for more notes.
+                return HttpResponseRedirect(_get_login_url(request))
+            else:
+                raise OAuthError(
+                    error=body["error"], description=body.get("error_description")
+                )
+        raise e
+    claims = tokens.pop("userinfo")
 
     # The RemoteUserBackend finds a local user through a RemoteUser
     user = django_auth.authenticate(request, claims=claims)
