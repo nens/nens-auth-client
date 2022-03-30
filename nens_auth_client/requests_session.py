@@ -1,8 +1,10 @@
 from .models import RemoteUser
 from .oauth import get_oauth_client
-from requests import Session
-from typing import Optional, List, Union
 from django.conf import settings
+from requests import Session
+from typing import List
+from typing import Optional
+from typing import Union
 
 
 def refresh_token(remote_user: RemoteUser):

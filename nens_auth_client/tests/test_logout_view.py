@@ -1,9 +1,10 @@
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from nens_auth_client import views
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
-from nens_auth_client import views
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User
-from django.core.exceptions import PermissionDenied
 
 import pytest
 import re

@@ -1,19 +1,21 @@
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
+from datetime import timedelta
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from nens_auth_client import models
 from nens_auth_client import views
-from urllib.parse import parse_qs, urlparse
+from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
 
 import pytest
 import re
 import time
-from datetime import timedelta
-from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY, INVITATION_KEY
-from django.contrib.auth import REDIRECT_FIELD_NAME
+
 
 @pytest.fixture
 def users_m(mocker):
@@ -270,8 +272,7 @@ def test_authorize_with_mismatching_invitation(
     )
 
     with pytest.raises(
-        PermissionDenied,
-        match=".*intended for a user with email 'some@other.email'.*"
+        PermissionDenied, match=".*intended for a user with email 'some@other.email'.*"
     ):
         views.authorize(request)
 

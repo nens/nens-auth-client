@@ -1,7 +1,8 @@
-from nens_auth_client.oauth import get_oauth_client
 from authlib.jose.errors import JoseError
-import time
+from nens_auth_client.oauth import get_oauth_client
+
 import pytest
+import time
 
 
 def test_parse_token_wrong_issuer(access_token_generator, jwks_request):

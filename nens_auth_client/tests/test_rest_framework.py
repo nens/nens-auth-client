@@ -1,9 +1,9 @@
-import pytest
-
+from django.contrib.auth import get_user_model
 from nens_auth_client.rest_framework import OAuth2TokenAuthentication
 from rest_framework.test import APIRequestFactory
 
-from django.contrib.auth import get_user_model
+import pytest
+
 
 UserModel = get_user_model()
 
@@ -36,6 +36,8 @@ def test_authentication_class_no_header(r, mocked_authenticator):
     assert mocked_authenticator.authenticate(r) is None
 
 
-def test_authentication_class_no_bearer(r, mocked_authenticator, access_token_generator):
+def test_authentication_class_no_bearer(
+    r, mocked_authenticator, access_token_generator
+):
     r.META["HTTP_AUTHORIZATION"] = "Token xxx"
     assert mocked_authenticator.authenticate(r) is None

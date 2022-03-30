@@ -1,10 +1,10 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 from .signals import invitation_accepted
-
+from datetime import timedelta
 from django.conf import settings
-from django.core.mail import send_mail
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import models
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -12,11 +12,9 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
 from functools import partial
-
 # A known caveat of django-appconf is that we need to import the AppConf here
 from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 
-from datetime import timedelta
 import json
 import logging
 
@@ -103,9 +101,7 @@ class Invitation(models.Model):
         ),
     )
     email = models.EmailField(
-        help_text=(
-            "Only users with this email address may accept this invitation."
-        )
+        help_text=("Only users with this email address may accept this invitation.")
     )
     created_at = models.DateTimeField(auto_now_add=True)
     email_sent_at = models.DateTimeField(null=True, blank=True)
@@ -189,9 +185,7 @@ class Invitation(models.Model):
             raise
         else:
             self._update_status(Invitation.ACCEPTED)
-            invitation_accepted.send(
-                sender=self.__class__, obj=self, user=user
-            )
+            invitation_accepted.send(sender=self.__class__, obj=self, user=user)
             return result
 
     def reject(self):

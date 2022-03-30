@@ -1,6 +1,7 @@
 from nens_auth_client.models import RemoteUser
 from nens_auth_client.oauth import get_oauth_client
-from nens_auth_client.requests_session import OAuth2Session, OAuth2CCSession
+from nens_auth_client.requests_session import OAuth2CCSession
+from nens_auth_client.requests_session import OAuth2Session
 from unittest import mock
 from urllib.parse import parse_qs
 

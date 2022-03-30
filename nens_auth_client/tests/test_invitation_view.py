@@ -1,7 +1,8 @@
-from django.http import Http404
-from django.utils import timezone
+from datetime import timedelta
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
+from django.utils import timezone
 from nens_auth_client import views
 from nens_auth_client.models import Invitation
 from unittest import mock
@@ -9,7 +10,6 @@ from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
 import pytest
-from datetime import timedelta
 
 
 @pytest.fixture
@@ -109,8 +109,7 @@ def test_invitation_used(rf, get_object_or_404, invitation, invited_user):
 
 
 def test_invitation_used_anonymous_user(rf, get_object_or_404, invitation):
-    """Non-acceptable invitations give a redirect to login for anonymous users
-    """
+    """Non-acceptable invitations give a redirect to login for anonymous users"""
     request = rf.get("/?next=/success/")
     request.user = AnonymousUser()
     get_object_or_404.return_value = invitation

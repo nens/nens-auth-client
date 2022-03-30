@@ -73,7 +73,9 @@ def test_accept_signal_kwargs(m_permission_backend, user, invitation):
 def test_no_accept_user_mismatch(m_permission_backend, user, invitation):
     invitation.user = User(username="other_user", id=42)
 
-    with pytest.raises(PermissionDenied, match=".*was intended for user 'other_user'.*"):
+    with pytest.raises(
+        PermissionDenied, match=".*was intended for user 'other_user'.*"
+    ):
         invitation.accept(user, extra="something")
 
     assert invitation.status == Invitation.PENDING
@@ -100,9 +102,7 @@ def test_get_accept_url(rf, invitation):
 def test_send_email(rf, invitation, m_send_email, settings):
     request = rf.get("http://testserver/x/y/z")
     settings.NENS_AUTH_INVITATION_EMAIL_SUBJECT = "Test Subject"
-    invitation.send_email(
-        request, send_email_options={"foo": "bar"}
-    )
+    invitation.send_email(request, send_email_options={"foo": "bar"})
 
     url = invitation.get_accept_url(request)
     send_email_kwargs = m_send_email.call_args[1]

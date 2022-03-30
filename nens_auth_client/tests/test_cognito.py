@@ -1,4 +1,5 @@
 from nens_auth_client.cognito import preprocess_access_token
+
 import pytest
 
 

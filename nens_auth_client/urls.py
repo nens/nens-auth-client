@@ -28,7 +28,7 @@ except ImportError:  # Django 1.11 compatibility
 
 def override_admin_auth(admin_path="admin"):
     """Return login/logout url paths to enable cognito-based authentication.
-    
+
     This should be included in the urlpatterns of the root site before
     the admin urls are included.
 
@@ -36,15 +36,23 @@ def override_admin_auth(admin_path="admin"):
     added for backdoor access with local accounts.
     """
     return [
-        re_path("^{}/login/".format(admin_path), views.login, name="admin-login-override"),
-        re_path("^{}/logout/".format(admin_path), views.logout, name="admin-logout-override"),
-        re_path("^{}/local-login/".format(admin_path), admin.site.login, name="admin-local-login")
+        re_path(
+            "^{}/login/".format(admin_path), views.login, name="admin-login-override"
+        ),
+        re_path(
+            "^{}/logout/".format(admin_path), views.logout, name="admin-logout-override"
+        ),
+        re_path(
+            "^{}/local-login/".format(admin_path),
+            admin.site.login,
+            name="admin-local-login",
+        ),
     ]
 
 
 def override_rest_framework_auth(drf_path="api-auth"):
     """Return login/logout url paths to enable cognito-based authentication.
-    
+
     This should be included in the urlpatterns of the root site before
     the rest_framework urls are included.
 
@@ -52,7 +60,9 @@ def override_rest_framework_auth(drf_path="api-auth"):
     """
     return [
         re_path("^{}/login/".format(drf_path), views.login, name="drf-login-override"),
-        re_path("^{}/logout/".format(drf_path), views.logout, name="drf-logout-override"),
+        re_path(
+            "^{}/logout/".format(drf_path), views.logout, name="drf-logout-override"
+        ),
     ]
 
 
@@ -71,7 +81,4 @@ urlpatterns = [
 ]
 
 if settings.NENS_AUTH_STANDALONE:
-    urlpatterns += [
-        *override_admin_auth(),
-        re_path("^admin/", admin.site.urls)
-    ]
+    urlpatterns += [*override_admin_auth(), re_path("^admin/", admin.site.urls)]

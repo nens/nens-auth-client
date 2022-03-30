@@ -10,13 +10,16 @@ from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+
+
 try:
     from django.utils.http import url_has_allowed_host_and_scheme
 except ImportError:
     from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
+
+from authlib.integrations.base_client.errors import OAuthError
 from django.views.decorators.cache import never_cache
 from urllib.parse import urlencode
-from authlib.integrations.base_client.errors import OAuthError
 
 import django.contrib.auth as django_auth
 
@@ -112,9 +115,11 @@ def _get_login_url(request):
     params = {}
     if success_url:
         params[REDIRECT_FIELD_NAME] = success_url
-    login_url = request.build_absolute_uri(
-        reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
-    ) + "?" + urlencode(params)
+    login_url = (
+        request.build_absolute_uri(reverse(settings.NENS_AUTH_URL_NAMESPACE + "login"))
+        + "?"
+        + urlencode(params)
+    )
     return login_url
 
 
@@ -148,7 +153,9 @@ def authorize(request):
     client = get_oauth_client()
     client.check_error_in_query_params(request)
     try:
-        tokens = client.authorize_access_token(request, timeout=settings.NENS_AUTH_TIMEOUT)
+        tokens = client.authorize_access_token(
+            request, timeout=settings.NENS_AUTH_TIMEOUT
+        )
     except OAuthError as e:
         if e.error not in ("mismatching_state", "invalid_grant"):
             raise e

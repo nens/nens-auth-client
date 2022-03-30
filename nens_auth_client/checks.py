@@ -75,18 +75,22 @@ def check_error_message_formatting(app_configs=None, **kwargs):
     try:
         fmt.format(expected_user="a", actual_user="b")
     except KeyError:
-        errors.append(Error(
-            "Ensure that NENS_AUTH_ERROR_INVITATION_WRONG_USER only contains "
-            "'expected_user' and 'actual_user' placeholders."
-        ))
+        errors.append(
+            Error(
+                "Ensure that NENS_AUTH_ERROR_INVITATION_WRONG_USER only contains "
+                "'expected_user' and 'actual_user' placeholders."
+            )
+        )
 
     fmt = settings.NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL
     try:
         fmt.format(expected_email="a", actual_email="b")
     except KeyError:
-        errors.append(Error(
-            "Ensure that NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL only contains "
-            "'expected_email' and 'actual_email' placeholders."
-        ))
+        errors.append(
+            Error(
+                "Ensure that NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL only contains "
+                "'expected_email' and 'actual_email' placeholders."
+            )
+        )
 
     return errors
