@@ -2,8 +2,8 @@ Changelog of nens-auth-client
 ===================================================
 
 
-0.15 (unreleased)
------------------
+1.0 (2022-04-04)
+----------------
 
 - Do not raise an internal server error when users click 'backwards' or 'forwards' in
   the browser. Instead, restart the login process by redirecting to the login view.
