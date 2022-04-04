@@ -29,8 +29,9 @@ def test_login(rf, openid_configuration):
     assert qs["client_id"] == [settings.NENS_AUTH_CLIENT_ID]
     assert qs["redirect_uri"] == ["http://testserver/authorize/"]
     assert qs["scope"] == [" ".join(settings.NENS_AUTH_SCOPE)]
-    assert qs["state"] == [request.session["_cognito_authlib_state_"]]
-    assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
+
+    state = request.session[f'_state_cognito_{qs["state"][0]}']
+    assert qs["nonce"] == [state["data"]["nonce"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "/a"
 
     # check Cache-Control headers: page should never be cached
@@ -115,8 +116,9 @@ def test_login_with_forced_logout(rf, openid_configuration, mocker, logged_in):
     assert qs["client_id"] == [settings.NENS_AUTH_CLIENT_ID]
     assert qs["redirect_uri"] == ["http://testserver/authorize/"]
     assert qs["scope"] == [" ".join(settings.NENS_AUTH_SCOPE)]
-    assert qs["state"] == [request.session["_cognito_authlib_state_"]]
-    assert qs["nonce"] == [request.session["_cognito_authlib_nonce_"]]
+
+    state = request.session[f'_state_cognito_{qs["state"][0]}']
+    assert qs["nonce"] == [state["data"]["nonce"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "/a"
 
     # check Cache-Control headers: page should never be cached

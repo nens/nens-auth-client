@@ -8,6 +8,8 @@ Changelog of nens-auth-client
 - Do not raise an internal server error when users click 'backwards' or 'forwards' in
   the browser. Instead, restart the login process by redirecting to the login view.
 
+- Fixed authlib 1.* compatibility.
+
 
 0.14 (2022-03-14)
 -----------------

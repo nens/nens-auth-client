@@ -138,6 +138,7 @@ NENS_AUTH_DEFAULT_SUCCESS_URL = "/admin/"
 NENS_AUTH_RESOURCE_SERVER_ID = "localhost/"  # trailing slash
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+USE_TZ = True
 
 try:
     from .localsettings import *  # NOQA

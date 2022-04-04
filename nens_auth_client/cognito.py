@@ -1,5 +1,4 @@
-from authlib.integrations.base_client.errors import OAuthError
-from authlib.integrations.django_client import DjangoRemoteApp
+from authlib.integrations.django_client import DjangoOAuth2App
 from authlib.jose import JsonWebToken
 from authlib.jose import jwk
 from django.conf import settings
@@ -61,7 +60,7 @@ def preprocess_access_token(claims):
     claims["scope"] = " ".join(new_scopes)
 
 
-class CognitoOAuthClient(DjangoRemoteApp):
+class CognitoOAuthClient(DjangoOAuth2App):
     def logout_redirect(self, request, redirect_uri=None, login_after=False):
         """Create a redirect to the remote server's logout endpoint
 
@@ -147,17 +146,3 @@ class CognitoOAuthClient(DjangoRemoteApp):
 
         claims.validate(leeway=leeway)
         return claims
-
-    def check_error_in_query_params(self, request):
-        """Handle errors in the query parameters
-
-        The authorization endpoint (on the authorization server) may respond
-        with a redirect (302) containing error information.
-
-        See: https://tools.ietf.org/html/rfc6749#section-4.1.2.1
-        """
-        error_type = request.GET.get("error")
-        if error_type:
-            raise OAuthError(
-                error_type, description=request.GET.get("error_description", error_type)
-            )
