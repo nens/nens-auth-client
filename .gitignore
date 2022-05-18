@@ -20,6 +20,8 @@ develop-eggs
 # pipenv
 .env
 .venv
+lib/
+pyvenv.cfg
 
 # Installer logs
 pip-log.txt
