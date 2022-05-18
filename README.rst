@@ -322,7 +322,7 @@ Install package and run tests::
     (virtualenv)$ pytest
 
 For testing against an actual User Pool, configure the following environment
-variables (for instance in an ``.env`` file)::
+variables::
 
     NENS_AUTH_CLIENT_ID=...
     NENS_AUTH_CLIENT_SECRET=...
