@@ -16,14 +16,14 @@ also required, but they probably are already there.
 Add these to the ``INSTALLED_APPS`` setting. Make sure your project's app is
 listed *before* nens_auth_client::
 
-    INSTALLED_APPS = (
+    INSTALLED_APPS = [
         ...
         "nens_auth_client",
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.sessions",
         ...
-    )
+    ]
 
 Modify the authentication backends as follows::
 
