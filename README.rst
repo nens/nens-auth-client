@@ -28,7 +28,7 @@ listed *before* nens_auth_client::
 Modify the authentication backends as follows::
 
     AUTHENTICATION_BACKENDS = [
-        "nens_auth_client.backends.RemoteUserBackend",       
+        "nens_auth_client.backends.RemoteUserBackend",
         "nens_auth_client.backends.SSOMigrationBackend",  # only for apps with existing users (see below)
         "django.contrib.auth.backends.ModelBackend",  # only if you still need local login (e.g. admin)
     ]
@@ -131,7 +131,7 @@ match external user ids to local django users.
 There are two kinds of invitations: invitations with user, and invitations
 without. If the invitation has a user set, the external user id will be
 connected to that user (through a RemoteUser). If the invitation has no user
-set, a new User + RemoteUser will be created. The local username will equal the 
+set, a new User + RemoteUser will be created. The local username will equal the
 Cognito username field (``"cognito:username"``).
 
 Additionally, an invitation contains ``permissions`` to be assigned to the user.
@@ -312,7 +312,7 @@ Local development
 
 Install package and run tests::
 
-    (virtualenv)$ pip install django==2.2
+    (virtualenv)$ pip install django==3.2
     (virtualenv)$ pip install -e .[test]
     (virtualenv)$ pytest
 
