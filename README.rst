@@ -327,3 +327,6 @@ variables::
     NENS_AUTH_CLIENT_ID=...
     NENS_AUTH_CLIENT_SECRET=...
     NENS_AUTH_ISSUER=https://cognito-idp.{region}.amazonaws.com/{pool-id}
+
+Note that github actions tests agains a variety of python/django versions, see
+the ``.github/workflows/main.yml`` file.
