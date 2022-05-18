@@ -14,6 +14,12 @@ def user_getter(mocker):
 
 
 @pytest.fixture
+def user_get_or_creater(mocker):
+    UserModel = mocker.patch("nens_auth_client.backends.UserModel")
+    return UserModel.objects.get_or_create
+
+
+@pytest.fixture
 def create_remote_user(mocker):
     return mocker.patch("nens_auth_client.backends.create_remote_user")
 
@@ -206,3 +212,65 @@ def test_ssomigration_google_nens_not_ok(user_getter, create_remote_user, claims
 
     user = backends.SSOMigrationBackend().authenticate(request=None, claims=claims)
     assert user is None
+
+
+def test_accept_nens_nonexisting(user_get_or_creater, create_remote_user):
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "tuinplant",
+        "email": "tuinplant@nelen-schuurmans.nl",
+        "email_verified": True,
+        "identities": [{"providerName": "NelenSchuurmans"}],
+    }
+    user_get_or_creater.return_value = (
+        User(username="tuinplant", email="tuinplant@nelen-schuurmans.nl"),
+        True,
+    )
+    user = backends.AcceptNensBackend().authenticate(request=None, claims=claims)
+    user_get_or_creater.assert_called_with(
+        username__iexact="tuinplant", email__iexact="tuinplant@nelen-schuurmans.nl"
+    )
+    assert user.username == "tuinplant"
+    create_remote_user.assert_called_with(user, claims)
+
+
+def test_accept_nens_non_nens():
+    # Reject non-nens users.
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "someone",
+        "email": "someone@example.org",
+        "email_verified": True,
+        "identities": [{"providerName": "something"}],
+    }
+    user = backends.AcceptNensBackend().authenticate(request=None, claims=claims)
+    assert user is None
+
+
+def test_accept_nens_inactive(user_get_or_creater):
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "tuinplant",
+        "email": "tuinplant@nelen-schuurmans.nl",
+        "email_verified": True,
+        "identities": [{"providerName": "NelenSchuurmans"}],
+    }
+    user_get_or_creater.return_value = (
+        User(username="tuinplant", email="tuinplant@nelen-schuurmans.nl", is_active=False),
+        False,
+    )
+    with pytest.raises(PermissionDenied):
+        backends.AcceptNensBackend().authenticate(request=None, claims=claims)
+
+
+def test_accept_nens_multiple(user_get_or_creater):
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "tuinplant",
+        "email": "tuinplant@nelen-schuurmans.nl",
+        "email_verified": True,
+        "identities": [{"providerName": "NelenSchuurmans"}],
+    }
+    user_get_or_creater.side_effect = MultipleObjectsReturned
+    with pytest.raises(PermissionDenied):
+        backends.AcceptNensBackend().authenticate(request=None, claims=claims)

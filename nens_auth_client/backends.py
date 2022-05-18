@@ -112,3 +112,40 @@ class SSOMigrationBackend(ModelBackend):
         create_remote_user(user, claims)
 
         return user if self.user_can_authenticate(user) else None
+
+
+class AcceptNensBackend(ModelBackend):
+    def authenticate(self, request, claims):
+        """Backend for auto-accepting users that have a N&S azure AD account.
+
+        TODO docs
+
+        Args:
+          request: the current request
+          claims (dict): the verified payload of the ID or Access token
+
+        Returns:
+          user or None
+        """
+        username = _nens_user_extract_username(claims)
+        if username is None:
+            return
+
+        email = claims.get("email")
+
+        try:
+            user, created = UserModel.objects.get_or_create(
+                username__iexact=username, email__iexact=email
+            )
+            if created:
+                logger.info("Auto-accepting N&S user %s: created", username)
+        except MultipleObjectsReturned:
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
+
+        if not self.user_can_authenticate(user):
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
+
+        # Create a permanent association
+        create_remote_user(user, claims)
+
+        return user if self.user_can_authenticate(user) else None
