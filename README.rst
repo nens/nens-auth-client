@@ -212,6 +212,7 @@ will keep growing. Use the management command `clean_invitations` for that, or
 wrap the `nens_auth_client.models.clean_invitations` function in a celery task
 and schedule it every day.
 
+
 Migrating existing users
 ------------------------
 
@@ -284,6 +285,7 @@ For the Client Credentials Flow there isn't any user. For that, a RemoteUser
 should be created manually (with ``external_user_id`` equaling the client_id.
 This should be attached to some service account.
 
+
 Error handling
 --------------
 
@@ -302,6 +304,7 @@ The error detail messages can be modified with the following settings:
 - NENS_AUTH_ERROR_INVITATION_EXPIRED
 - NENS_AUTH_ERROR_INVITATION_WRONG_USER (accepts ``actual_user`` and ``expected_user`` placeholders)
 - NENS_AUTH_ERROR_INVITATION_WRONG_EMAIL (accepts ``actual_email`` and ``expected_email`` placeholders)
+
 
 Local development
 -----------------
