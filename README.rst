@@ -29,8 +29,10 @@ Modify the authentication backends as follows::
 
     AUTHENTICATION_BACKENDS = [
         "nens_auth_client.backends.RemoteUserBackend",
-        "nens_auth_client.backends.SSOMigrationBackend",  # only for apps with existing users (see below)
-        "django.contrib.auth.backends.ModelBackend",  # only if you still need local login (e.g. admin)
+        "nens_auth_client.backends.SSOMigrationBackend",
+	# ^^^ only for apps with existing users (see below)
+        "django.contrib.auth.backends.ModelBackend",
+	# ^^^ only if you still need local login (e.g. admin)
     ]
 
 Set the authorization server (the "issuer")::
