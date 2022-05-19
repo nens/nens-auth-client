@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added ``AcceptNensBackend`` for automatically accepting N&S users without
+  prior invitation. Handy for some internal websites.
 
 
 1.0 (2022-04-04)
