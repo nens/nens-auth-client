@@ -60,7 +60,7 @@ def _nens_user_extract_username(claims):
 
     # Unpack email
     username, domain = claims.get("email", "a@b").split("@", 1)
-    if domain != "nelen-schuurmans.nl":
+    if domain.lower() != "nelen-schuurmans.nl":
         return
 
     return username
