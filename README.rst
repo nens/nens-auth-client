@@ -234,10 +234,11 @@ invitations seems unnecessary. For such sites, enable the
 automatically accepts N&S users and creates a User object for them if it
 doesn't exist already.
 
-You can still invite other non-N&S users in the regular manner. You probably
-don't need the ``SSOMigrationBackend``, though, as N&S users get accepted (and
-thus migrated) automatically. They *can* be used at the same time, however,
-and the order in which they're placed doesn't matter.
+You can still invite other non-N&S users in the regular manner.
+
+You probably don't need the ``SSOMigrationBackend``, though, as N&S users get
+accepted (and thus migrated) automatically. They *can* be used at the same
+time, however, and the order in which they're placed doesn't matter.
 
 
 Bearer tokens (optional)
