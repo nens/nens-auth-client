@@ -15,13 +15,14 @@ install_requires = [
 ]
 
 tests_require = [
+    'djangorestframework',
+    'flake8',
+    'mock',
     'pytest',
     'pytest-cov',
     'pytest-django',
     'pytest-mock',
     'requests-mock',
-    'flake8',
-    'djangorestframework'
 ]
 
 setup(name='nens-auth-client',
