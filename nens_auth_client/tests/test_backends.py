@@ -279,8 +279,8 @@ def test_accept_nens_inactive(user_getter):
         "identities": [{"providerName": "NelenSchuurmans"}],
     }
     user_getter.return_value = User(
-            username="tuinplant", email="tuinplant@nelen-schuurmans.nl", is_active=False
-        )
+        username="tuinplant", email="tuinplant@nelen-schuurmans.nl", is_active=False
+    )
     with pytest.raises(PermissionDenied):
         backends.AcceptNensBackend().authenticate(request=None, claims=claims)
 
