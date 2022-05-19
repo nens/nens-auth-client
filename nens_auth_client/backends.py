@@ -111,7 +111,7 @@ class SSOMigrationBackend(ModelBackend):
         # Create a permanent association
         create_remote_user(user, claims)
 
-        return user if self.user_can_authenticate(user) else None
+        return user
 
 
 class AcceptNensBackend(ModelBackend):
@@ -155,4 +155,4 @@ class AcceptNensBackend(ModelBackend):
         # Create a permanent association
         create_remote_user(user, claims)
 
-        return user if self.user_can_authenticate(user) else None
+        return user
