@@ -256,7 +256,9 @@ def test_accept_nens_inactive(user_get_or_creater):
         "identities": [{"providerName": "NelenSchuurmans"}],
     }
     user_get_or_creater.return_value = (
-        User(username="tuinplant", email="tuinplant@nelen-schuurmans.nl", is_active=False),
+        User(
+            username="tuinplant", email="tuinplant@nelen-schuurmans.nl", is_active=False
+        ),
         False,
     )
     with pytest.raises(PermissionDenied):
