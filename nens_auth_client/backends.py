@@ -144,10 +144,10 @@ class AcceptNensBackend(ModelBackend):
             user, created = UserModel.objects.get_or_create(
                 username__iexact=username, email__iexact=email
             )
-            if created:
-                logger.info("Auto-accepting new N&S user %s: created", username)
         except MultipleObjectsReturned:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
+        if created:
+            logger.info("Auto-accepting new N&S user %s: created", username)
 
         if not self.user_can_authenticate(user):
             raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
