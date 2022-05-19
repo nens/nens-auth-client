@@ -118,7 +118,13 @@ class AcceptNensBackend(ModelBackend):
     def authenticate(self, request, claims):
         """Backend for auto-accepting users that have a N&S azure AD account.
 
-        TODO docs
+        The behaviour looks a bit like the SSOMigrationBackend above, but with
+        two key differences:
+
+        - N&S users don't need an existing account, they're accepted right
+          away and a User is created if missing.
+
+        - We only deal with users recognized as being really from N&S.
 
         Args:
           request: the current request
@@ -126,6 +132,7 @@ class AcceptNensBackend(ModelBackend):
 
         Returns:
           user or None
+
         """
         username = _nens_user_extract_username(claims)
         if username is None:
@@ -138,7 +145,7 @@ class AcceptNensBackend(ModelBackend):
                 username__iexact=username, email__iexact=email
             )
             if created:
-                logger.info("Auto-accepting N&S user %s: created", username)
+                logger.info("Auto-accepting new N&S user %s: created", username)
         except MultipleObjectsReturned:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
 
