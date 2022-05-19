@@ -30,9 +30,9 @@ Modify the authentication backends as follows::
     AUTHENTICATION_BACKENDS = [
         "nens_auth_client.backends.RemoteUserBackend",
         "nens_auth_client.backends.SSOMigrationBackend",
-        # ^^^ only for apps with existing users (see below)
+        # ^^^ only for sites with existing users (see below)
         "nens_auth_client.backends.AcceptNensBackend",
-        # ^^^ only for apps meant for N&S users (see below)
+        # ^^^ only for sites meant for N&S users (see below)
         "django.contrib.auth.backends.ModelBackend",
         # ^^^ only if you still need local login (e.g. admin)
     ]
