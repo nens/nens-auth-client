@@ -93,6 +93,18 @@ def test_ssomigration_exists(user_getter, create_remote_user):
     create_remote_user.assert_called_with(user, claims)
 
 
+def test_nens_user_extract_username_capitalized():
+    # Some smartypants created users with @Nelen-Schuurmans.nl...
+    # Detect capitalized domain name, too.
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "smartypants",
+        "custom:from_sso": "1",
+        "email": "smartypants@Nelen-Schuurmans.nl",
+    }
+    assert "smartypants" == backends._nens_user_extract_username(claims)
+
+
 def test_ssomigration_not_exists(user_getter, create_remote_user):
     claims = {
         "sub": "remote-uid",
