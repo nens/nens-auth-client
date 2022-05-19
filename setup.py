@@ -19,7 +19,6 @@ install_requires = [
 tests_require = [
     "djangorestframework",
     "flake8",
-    "mock",
     "pytest",
     "pytest-cov",
     "pytest-django",
