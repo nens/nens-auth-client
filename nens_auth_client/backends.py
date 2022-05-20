@@ -60,7 +60,7 @@ def _nens_user_extract_username(claims):
 
     # Unpack email
     username, domain = claims.get("email", "a@b").split("@", 1)
-    if domain != "nelen-schuurmans.nl":
+    if domain.lower() != "nelen-schuurmans.nl":
         return
 
     return username
@@ -111,4 +111,52 @@ class SSOMigrationBackend(ModelBackend):
         # Create a permanent association
         create_remote_user(user, claims)
 
-        return user if self.user_can_authenticate(user) else None
+        return user
+
+
+class AcceptNensBackend(ModelBackend):
+    def authenticate(self, request, claims):
+        """Backend for auto-accepting users that have a N&S azure AD account.
+
+        The behaviour looks a bit like the SSOMigrationBackend above, but with
+        two key differences:
+
+        - N&S users don't need an existing account, they're accepted right
+          away and a User is created if missing.
+
+        - We only deal with users recognized as being really from N&S.
+
+        Args:
+          request: the current request
+          claims (dict): the verified payload of the ID or Access token
+
+        Returns:
+          user or None
+
+        """
+        username = _nens_user_extract_username(claims)
+        if username is None:
+            return
+
+        email = claims.get("email")
+
+        try:
+            # For our purposes, just a match on email is enough. Some
+            # usernames have been shortened to fit within 20 characters though
+            # the email has not, so we escape some corner cases this way.
+            user = UserModel.objects.get(email__iexact=email)
+        except ObjectDoesNotExist:
+            user = UserModel.objects.create(
+                username=username.lower(), email=email.lower()
+            )
+            logger.info("Auto-accepting new N&S user %s: created", username)
+        except MultipleObjectsReturned:
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
+
+        if not self.user_can_authenticate(user):
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
+
+        # Create a permanent association
+        create_remote_user(user, claims)
+
+        return user

@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
 from functools import partial
+
 # A known caveat of django-appconf is that we need to import the AppConf here
 from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 

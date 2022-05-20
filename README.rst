@@ -30,7 +30,9 @@ Modify the authentication backends as follows::
     AUTHENTICATION_BACKENDS = [
         "nens_auth_client.backends.RemoteUserBackend",
         "nens_auth_client.backends.SSOMigrationBackend",
-        # ^^^ only for apps with existing users (see below)
+        # ^^^ only for sites with existing users (see below)
+        "nens_auth_client.backends.AcceptNensBackend",
+        # ^^^ only for sites meant for N&S users (see below)
         "django.contrib.auth.backends.ModelBackend",
         # ^^^ only if you still need local login (e.g. admin)
     ]
@@ -221,6 +223,22 @@ user going through the invitation process (described above). For this we have th
 ``SSOMigrationBackend``. If the user's ID Token has ``"custom:from_sso": "1"``,
 users are matched by username. On first-time login, a RemoteUser object is
 created to link the external and local users permanently.
+
+
+Auto-accepting N&S users
+------------------------
+
+For (mostly-)internal sites that are intended for N&S users, sending
+invitations seems unnecessary. For such sites, enable the
+``AcceptNensBackend`` in addition to the regular ``RemoteUserBackend``. This
+automatically accepts N&S users and creates a User object for them if it
+doesn't exist already.
+
+You can still invite other non-N&S users in the regular manner.
+
+You probably don't need the ``SSOMigrationBackend``, though, as N&S users get
+accepted (and thus migrated) automatically. They *can* be used at the same
+time, however, and the order in which they're placed doesn't matter.
 
 
 Bearer tokens (optional)
