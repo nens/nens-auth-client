@@ -141,7 +141,10 @@ class AcceptNensBackend(ModelBackend):
         email = claims.get("email")
 
         try:
-            user = UserModel.objects.get(username__iexact=username, email__iexact=email)
+            # For our purposes, just a match on email is enough. Some
+            # usernames have been shortened to fit within 20 characters though
+            # the email has not, so we escape some corner cases this way.
+            user = UserModel.objects.get(email__iexact=email)
         except ObjectDoesNotExist:
             user = UserModel.objects.create(
                 username=username.lower(), email=email.lower()
