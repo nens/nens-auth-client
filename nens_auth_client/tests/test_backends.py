@@ -296,3 +296,103 @@ def test_accept_nens_multiple(user_getter):
     user_getter.side_effect = MultipleObjectsReturned
     with pytest.raises(PermissionDenied):
         backends.AcceptNensBackend().authenticate(request=None, claims=claims)
+
+
+def test_trusted_backend_accepted(user_getter, settings, create_remote_user):
+    # Accept the user that matches the criteria.
+    settings.NENS_AUTH_TRUSTED_PROVIDERS = ["vanrees"]
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "goede.klant",
+        "email": "goede.klant@vanrees.org",
+        "identities": [{"providerName": "vanrees"}],
+    }
+    user_getter.return_value = User(
+        username="goede_klant", email="goede.klant@vanrees.org", is_active=True
+    )
+    user = backends.TrustedProviderMigrationBackend().authenticate(
+        request=None, claims=claims
+    )
+    assert user.username == "goede_klant"
+    create_remote_user.assert_called_with(user, claims)
+
+
+def test_trusted_backend_not_trusted():
+    # Don't authenticate users frum untrusted backends.
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "someone",
+        "email": "someone@example.org",
+        "identities": [{"providerName": "something"}],
+    }
+    user = backends.TrustedProviderMigrationBackend().authenticate(
+        request=None, claims=claims
+    )
+    assert user is None
+
+
+def test_trusted_backend_inactive(user_getter, settings):
+    # A user that's inactive should get a PermissionDenied.
+    settings.NENS_AUTH_TRUSTED_PROVIDERS = ["vanrees"]
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "goede.klant",
+        "email": "goede.klant@vanrees.org",
+        "identities": [{"providerName": "vanrees"}],
+    }
+    user_getter.return_value = User(
+        username="goede_klant", email="goede.klant@vanrees.org", is_active=False
+    )
+    with pytest.raises(PermissionDenied):
+         backends.TrustedProviderMigrationBackend().authenticate(
+             request=None, claims=claims
+         )
+
+
+def test_trusted_backend_multiple(user_getter, settings):
+    # An email that's the email of multiple users? PermissionDenied.
+    settings.NENS_AUTH_TRUSTED_PROVIDERS = ["vanrees"]
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "goede.klant",
+        "email": "goede.klant@vanrees.org",
+        "identities": [{"providerName": "vanrees"}],
+    }
+    user_getter.side_effect = MultipleObjectsReturned
+    with pytest.raises(PermissionDenied):
+        backends.TrustedProviderMigrationBackend().authenticate(
+            request=None, claims=claims
+        )
+
+
+def test_trusted_backend_nonexisting_user(user_getter, settings):
+    # An email that's not found on any existing user? Don't authenticate.
+    settings.NENS_AUTH_TRUSTED_PROVIDERS = ["vanrees"]
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "goede.klant",
+        "email": "goede.klant@vanrees.org",
+        "identities": [{"providerName": "vanrees"}],
+    }
+    user_getter.side_effect = ObjectDoesNotExist
+    user = backends.TrustedProviderMigrationBackend().authenticate(
+        request=None, claims=claims
+    )
+    assert user is None
+
+
+@pytest.mark.parametrize(
+    "claims",
+    [
+        {
+            "email": "testuser@nelen-schuurmans.nl",
+        },
+        {
+            "identities": [{"providerName": "Google"}],
+        },
+    ],
+)
+def test_trusted_backend_proper_prerequisites(claims):
+    # The claims need both email and providerName
+    user = backends.TrustedProviderMigrationBackend().authenticate(request=None, claims=claims)
+    assert user is None
