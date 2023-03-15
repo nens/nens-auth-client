@@ -5,7 +5,6 @@ from django.db import models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("nens_auth_client", "0003_invite_add_fields"),
     ]
