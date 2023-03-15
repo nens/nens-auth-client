@@ -150,19 +150,16 @@ class TrustedProviderMigrationBackend(ModelBackend):
           user or None
         """
         try:
+            # We need proper claims with provider_name and email, otherwise we
+            # don't need to bother to look.
             provider_name = claims["identities"][0]["providerName"]
+            email = claims["email"]
         except (KeyError, IndexError):
             return
 
         if provider_name not in TODO_LIST:
             logger.debug("%s not in special list of trusted providers", provider_name)
             return
-
-        email = claims.get("email")
-        if not email:
-            logger.error(
-                "No email claim found for user from trusted provider %s: %r",
-                provider_name, claim)
 
         try:
             user = UserModel.objects.get(email__iexact=email)
