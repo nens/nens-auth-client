@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- oauthlib had a relevant breaking change in 1.1, so we require the latest
+  1.2 version and adjust our code.
 
 
 1.1 (2022-05-20)
