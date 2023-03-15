@@ -157,7 +157,7 @@ class TrustedProviderMigrationBackend(ModelBackend):
         except (KeyError, IndexError):
             return
 
-        if provider_name not in TODO_LIST:
+        if provider_name not in settings.NENS_AUTH_TRUSTED_PROVIDERS:
             logger.debug("%s not in special list of trusted providers", provider_name)
             return
 
