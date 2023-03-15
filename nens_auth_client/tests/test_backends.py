@@ -344,9 +344,9 @@ def test_trusted_backend_inactive(user_getter, settings):
         username="goede_klant", email="goede.klant@vanrees.org", is_active=False
     )
     with pytest.raises(PermissionDenied):
-         backends.TrustedProviderMigrationBackend().authenticate(
-             request=None, claims=claims
-         )
+        backends.TrustedProviderMigrationBackend().authenticate(
+            request=None, claims=claims
+        )
 
 
 def test_trusted_backend_multiple(user_getter, settings):
@@ -394,5 +394,7 @@ def test_trusted_backend_nonexisting_user(user_getter, settings):
 )
 def test_trusted_backend_proper_prerequisites(claims):
     # The claims need both email and providerName
-    user = backends.TrustedProviderMigrationBackend().authenticate(request=None, claims=claims)
+    user = backends.TrustedProviderMigrationBackend().authenticate(
+        request=None, claims=claims
+    )
     assert user is None
