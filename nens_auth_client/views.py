@@ -167,19 +167,12 @@ def authorize(request):
         #   with a correct state & fresh code
         # - the user is not logged in: cognito will prompt for credentials and redirect here
         return HttpResponseRedirect(_get_login_url(request))
-    except HTTPError as e:
-        # Authlib 1.0 raises requests HTTPError for invalid token endpoint usage
-        resp = e.response
-        if resp.status_code == 400:
-            body = resp.json()
-            if body["error"] == "invalid_grant":
-                # This happens when the code has been used already, also due to misuse of 'back' and
-                # 'forward' buttons. See above for more notes.
-                return HttpResponseRedirect(_get_login_url(request))
-            else:
-                raise OAuthError(
-                    error=body["error"], description=body.get("error_description")
-                )
+
+    except OAuthError as e:
+        if e.error == "invalid_grant":
+            # This happens when the code has been used already, also due to misuse of 'back' and
+            # 'forward' buttons. See above for more notes.
+            return HttpResponseRedirect(_get_login_url(request))
         raise e
     claims = tokens.pop("userinfo")
 
