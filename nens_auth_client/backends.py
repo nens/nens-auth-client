@@ -114,6 +114,72 @@ class SSOMigrationBackend(ModelBackend):
         return user
 
 
+class TrustedProviderMigrationBackend(ModelBackend):
+    """Backend for users that move from cognito to a new provider, like azure
+
+    A company can ask to couple their identity provider (like azure AD) to our
+    cognito instance. Often, their users will already have an existing
+    account. This backend provides a means to automatically couple these
+    "remote users" to their existing django user.
+
+    The only useful way to couple them is by comparing the email address. So
+    we should have a specific list of external providers that we trust to pass
+    the correct email address.
+
+    """
+
+    def authenticate(self, request, claims):
+        """Return user if a trusted provider provides a known email address
+
+        The regular `RemoteUserBackend` authenticates existing remote
+        users. What we should do is to check the following:
+
+        - Is the user being authenticated by an external identity provider
+        that we trust?
+
+        - If so, is the email address known?
+
+        Note that duplicate email addresses aren't acceptable: we'll raise an
+        error. They should have been cleaned up beforehand.
+
+        Args:
+          request: the current request
+          claims (dict): the verified payload of the ID or Access token
+
+        Returns:
+          user or None
+        """
+        try:
+            provider_name = claims["identities"][0]["providerName"]
+        except (KeyError, IndexError):
+            return
+
+        if provider_name not in TODO_LIST:
+            logger.debug("%s not in special list of trusted providers", provider_name)
+            return
+
+        email = claims.get("email")
+        if not email:
+            logger.error(
+                "No email claim found for user from trusted provider %s: %r",
+                provider_name, claim)
+
+        try:
+            user = UserModel.objects.get(email__iexact=email)
+        except ObjectDoesNotExist:
+            return
+        except MultipleObjectsReturned:
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
+
+        if not self.user_can_authenticate(user):
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
+
+        # Create a permanent association
+        create_remote_user(user, claims)
+
+        return user
+
+
 class AcceptNensBackend(ModelBackend):
     def authenticate(self, request, claims):
         """Backend for auto-accepting users that have a N&S azure AD account.
