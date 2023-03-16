@@ -33,6 +33,8 @@ Modify the authentication backends as follows::
         # ^^^ only for sites with existing users (see below)
         "nens_auth_client.backends.AcceptNensBackend",
         # ^^^ only for sites meant for N&S users (see below)
+        "nens_auth_client.backends.TrustedProviderMigrationBackend",
+        # ^^^ only when you want to migrate users between backends (see below)
         "django.contrib.auth.backends.ModelBackend",
         # ^^^ only if you still need local login (e.g. admin)
     ]
@@ -239,6 +241,24 @@ You can still invite other non-N&S users in the regular manner.
 You probably don't need the ``SSOMigrationBackend``, though, as N&S users get
 accepted (and thus migrated) automatically. They *can* be used at the same
 time, however, and the order in which they're placed doesn't matter.
+
+
+Migrating users to new external providers
+-----------------------------------------
+
+Users that originally had an account in the regular cognito database might be
+in an organisation that now has coupled their azure AD as an external
+provider. If they try to log in via that external provider, they won't be
+allowed in as they have no connected user account.
+
+The ``TrustedProviderMigrationBackend`` coupled with the setting
+``NENS_AUTH_TRUSTED_PROVIDERS`` solves it. The setting contains the list of
+provider names (as configured in cognito) that we trust to have correct email
+addresses. New users from that provider then are checked if they have an
+existing account with the correct email address.
+
+There is no check on ``email_verified`` as that turns out to be hard to
+configure.
 
 
 Bearer tokens (optional)

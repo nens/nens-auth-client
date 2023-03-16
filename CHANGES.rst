@@ -8,6 +8,14 @@ Changelog of nens-auth-client
 - oauthlib had a relevant breaking change in 1.1, so we require the latest
   1.2 version and adjust our code.
 
+- Added ``TrustedProviderMigrationBackend`` for connecting users from specific
+  external providers to their existing account, based on email. Email doesn't
+  need to be verified, this turns out to be hard to set up properly in the
+  claims that are send by external providers.
+
+- Added ``NENS_AUTH_TRUSTED_PROVIDERS`` setting for configuring which external
+  providers are trusted (see above).
+
 
 1.1 (2022-05-20)
 ----------------
