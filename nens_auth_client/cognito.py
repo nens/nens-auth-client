@@ -114,6 +114,7 @@ class CognitoOAuthClient(DjangoOAuth2App):
           authlib.jose.errors.JoseError: if token is invalid
           ValueError: if the key id is not present in the jwks.json
         """
+
         # this is a copy from the _parse_id_token equivalent function
         def load_key(header, payload):
             jwk_set = self.fetch_jwk_set()

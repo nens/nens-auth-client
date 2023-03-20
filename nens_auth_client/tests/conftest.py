@@ -9,7 +9,6 @@ import pytest
 import requests_mock
 import time
 
-
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
 UserModel = get_user_model()
 

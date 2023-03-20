@@ -1,3 +1,4 @@
+from .users import _extract_provider_name
 from .users import create_remote_user
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -7,7 +8,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +48,8 @@ def _nens_user_extract_username(claims):
     email domain @nelen-schuurmans.nl.
     """
     # Get the provider name, return False if not present
-    try:
-        provider_name = claims["identities"][0]["providerName"]
-    except (KeyError, IndexError):
+    provider_name = _extract_provider_name(claims)
+    if not provider_name:
         return
 
     if provider_name not in ("Google", "NelenSchuurmans"):
@@ -100,6 +99,68 @@ class SSOMigrationBackend(ModelBackend):
 
         try:
             user = UserModel.objects.get(username__iexact=username, email__iexact=email)
+        except ObjectDoesNotExist:
+            return
+        except MultipleObjectsReturned:
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
+
+        if not self.user_can_authenticate(user):
+            raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_INACTIVE)
+
+        # Create a permanent association
+        create_remote_user(user, claims)
+
+        return user
+
+
+class TrustedProviderMigrationBackend(ModelBackend):
+    """Backend for users that move from cognito to a new provider, like azure
+
+    A company can ask to couple their identity provider (like azure AD) to our
+    cognito instance. Often, their users will already have an existing
+    account. This backend provides a means to automatically couple these
+    "remote users" to their existing django user.
+
+    The only useful way to couple them is by comparing the email address. So
+    we should have a specific list of external providers that we trust to pass
+    the correct email address.
+
+    """
+
+    def authenticate(self, request, claims):
+        """Return user if a trusted provider provides a known email address
+
+        The regular `RemoteUserBackend` authenticates existing remote
+        users. What we should do is to check the following:
+
+        - Is the user being authenticated by an external identity provider
+        that we trust?
+
+        - If so, is the email address known?
+
+        Note that duplicate email addresses aren't acceptable: we'll raise an
+        error. They should have been cleaned up beforehand.
+
+        Args:
+          request: the current request
+          claims (dict): the verified payload of the ID or Access token
+
+        Returns:
+          user or None
+        """
+        provider_name = _extract_provider_name(claims)
+        email = claims.get("email")
+        # We need proper claims with provider_name and email, otherwise we
+        # don't need to bother to look.
+        if not provider_name or not email:
+            return
+
+        if provider_name not in settings.NENS_AUTH_TRUSTED_PROVIDERS:
+            logger.debug("%s not in special list of trusted providers", provider_name)
+            return
+
+        try:
+            user = UserModel.objects.get(email__iexact=email)
         except ObjectDoesNotExist:
             return
         except MultipleObjectsReturned:

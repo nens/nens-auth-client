@@ -20,6 +20,8 @@ class NensAuthClientAppConf(AppConf):
     INVITATION_EXPIRY_DAYS = 14  # change this to change the default expiry
     USERNAME_MAX_LENGTH = 50
 
+    TRUSTED_PROVIDERS = []  # providerName's trusted by TrustedProviderMigrationBackend
+
     ERROR_USER_DOES_NOT_EXIST = "No user account available for these credentials."
     ERROR_USER_INACTIVE = "This account was set to inactive."
     ERROR_USER_MULTIPLE = (

@@ -4,7 +4,6 @@ from nens_auth_client.middleware import AccessTokenMiddleware
 
 import pytest
 
-
 UserModel = get_user_model()
 
 

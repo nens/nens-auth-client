@@ -10,8 +10,6 @@ from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from requests.exceptions import HTTPError
-
 
 try:
     from django.utils.http import url_has_allowed_host_and_scheme
@@ -24,7 +22,6 @@ from django.views.decorators.cache import never_cache
 from urllib.parse import urlencode
 
 import django.contrib.auth as django_auth
-
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 INVITATION_KEY = "nens_auth_invitation_slug"
@@ -167,19 +164,12 @@ def authorize(request):
         #   with a correct state & fresh code
         # - the user is not logged in: cognito will prompt for credentials and redirect here
         return HttpResponseRedirect(_get_login_url(request))
-    except HTTPError as e:
-        # Authlib 1.0 raises requests HTTPError for invalid token endpoint usage
-        resp = e.response
-        if resp.status_code == 400:
-            body = resp.json()
-            if body["error"] == "invalid_grant":
-                # This happens when the code has been used already, also due to misuse of 'back' and
-                # 'forward' buttons. See above for more notes.
-                return HttpResponseRedirect(_get_login_url(request))
-            else:
-                raise OAuthError(
-                    error=body["error"], description=body.get("error_description")
-                )
+
+    except OAuthError as e:
+        if e.error == "invalid_grant":
+            # This happens when the code has been used already, also due to misuse of 'back' and
+            # 'forward' buttons. See above for more notes.
+            return HttpResponseRedirect(_get_login_url(request))
         raise e
     claims = tokens.pop("userinfo")
 

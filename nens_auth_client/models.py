@@ -19,7 +19,6 @@ from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 import json
 import logging
 
-
 logger = logging.getLogger(__name__)
 user_model = getattr(settings, "AUTH_USER_MODEL", None) or "auth.User"
 

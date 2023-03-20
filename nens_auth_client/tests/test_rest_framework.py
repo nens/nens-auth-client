@@ -4,7 +4,6 @@ from rest_framework.test import APIRequestFactory
 
 import pytest
 
-
 UserModel = get_user_model()
 
 

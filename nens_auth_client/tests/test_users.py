@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from nens_auth_client.users import _extract_provider_name
 from nens_auth_client.users import create_remote_user
 from nens_auth_client.users import create_user
 from nens_auth_client.users import update_remote_user
@@ -110,6 +111,26 @@ def test_update_user(user_mgr, remoteuser_mgr, atomic_m):
     assert user.save.called
 
 
+def test_update_user_trusted_provider(user_mgr, remoteuser_mgr, atomic_m, settings):
+    # Email should be updated for trusted providers even without email_verified.
+    user = mock.Mock()
+    user.username = "testuser"
+    settings.NENS_AUTH_TRUSTED_PROVIDERS = ["Google"]
+    update_user(
+        user,
+        {
+            "sub": "abc",
+            "cognito:username": "somethingdifferent",
+            "email": "test@test.com",
+            "email_verified": False,
+            "identities": [{"providerName": "Google"}],
+            "given_name": "Lizard",
+            "family_name": "People",
+        },
+    )
+    assert user.email == "test@test.com"
+
+
 def test_update_user_no_fields(user_mgr, remoteuser_mgr, atomic_m):
     user = mock.Mock()
     user.username = "testuser"
@@ -161,3 +182,15 @@ def test_create_user_username_exists(user_mgr, create_user_m, mocker):
     first_call, second_call = create_user_m.call_args_list
     assert first_call[0] == ("testuser", "abc")
     assert second_call[0] == ("testuserx23f", "abc")
+
+
+def test_extract_provider_name_present():
+    # Extract provider name when it is present.
+    claims = {"identities": [{"providerName": "Google"}]}
+    assert _extract_provider_name(claims) == "Google"
+
+
+def test_extract_provider_name_absent():
+    # Return None when a provider name cannot be found.
+    claims = {"some": "claim"}
+    assert not _extract_provider_name(claims)

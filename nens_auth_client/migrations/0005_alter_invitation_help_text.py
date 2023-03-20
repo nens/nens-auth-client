@@ -5,7 +5,6 @@ from django.db import models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("nens_auth_client", "0004_remoteuser_add_tokens"),
     ]

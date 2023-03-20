@@ -8,11 +8,19 @@ from django.utils.crypto import get_random_string
 
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
 User = get_user_model()
+
+
+def _extract_provider_name(claims):
+    """Return provider name from claim and `None` if not found"""
+    # Also used by backends.py
+    try:
+        return claims["identities"][0]["providerName"]
+    except (KeyError, IndexError):
+        return
 
 
 def create_remote_user(user, claims):
@@ -110,7 +118,11 @@ def update_user(user, claims):
     """
     user.first_name = claims.get("given_name", "")
     user.last_name = claims.get("family_name", "")
-    if claims.get("email_verified"):
+    provider_name = _extract_provider_name(claims)
+    if (
+        claims.get("email_verified")
+        or provider_name in settings.NENS_AUTH_TRUSTED_PROVIDERS
+    ):
         user.email = claims.get("email", "")
     else:
         user.email = ""
