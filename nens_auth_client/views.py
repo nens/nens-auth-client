@@ -11,17 +11,13 @@ from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 
 from . import users
 from .backends import RemoteUserBackend
 from .models import Invitation
 from .oauth import get_oauth_client
-
-try:
-    from django.utils.http import url_has_allowed_host_and_scheme
-except ImportError:
-    from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 INVITATION_KEY = "nens_auth_invitation_slug"
