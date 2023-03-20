@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Requiring Django 3.0+ (this simplifies the imports).
 
 
 1.2 (2023-03-20)

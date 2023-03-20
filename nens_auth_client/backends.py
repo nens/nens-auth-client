@@ -1,5 +1,5 @@
-from .users import _extract_provider_name
-from .users import create_remote_user
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -7,7 +7,8 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 
-import logging
+from .users import _extract_provider_name
+from .users import create_remote_user
 
 logger = logging.getLogger(__name__)
 

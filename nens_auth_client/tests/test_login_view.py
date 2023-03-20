@@ -1,12 +1,13 @@
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth.models import User
-from nens_auth_client import views
+import re
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
 import pytest
-import re
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import User
+
+from nens_auth_client import views
 
 
 def test_login(rf, openid_configuration):

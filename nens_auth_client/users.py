@@ -1,4 +1,5 @@
-from .models import RemoteUser
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
@@ -6,7 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-import logging
+from .models import RemoteUser
 
 logger = logging.getLogger(__name__)
 

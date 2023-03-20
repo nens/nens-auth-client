@@ -1,11 +1,12 @@
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
+
 from authlib.integrations.django_client import DjangoOAuth2App
 from authlib.jose import JsonWebToken
 from authlib.jose import jwk
 from django.conf import settings
 from django.http.response import HttpResponseRedirect
-from urllib.parse import urlencode
-from urllib.parse import urlparse
-from urllib.parse import urlunparse
 
 
 def preprocess_access_token(claims):

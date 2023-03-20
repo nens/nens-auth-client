@@ -1,8 +1,8 @@
-from .oauth import get_oauth_client
+import django.contrib.auth as django_auth
 from authlib.jose.errors import JoseError
 from django.conf import settings
 
-import django.contrib.auth as django_auth
+from .oauth import get_oauth_client
 
 
 class AccessTokenMiddleware:

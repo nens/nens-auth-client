@@ -1,15 +1,16 @@
 from datetime import timedelta
-from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
-from django.http import Http404
-from django.utils import timezone
-from nens_auth_client import views
-from nens_auth_client.models import Invitation
 from unittest import mock
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
+from django.utils import timezone
+
+from nens_auth_client import views
+from nens_auth_client.models import Invitation
 
 
 @pytest.fixture

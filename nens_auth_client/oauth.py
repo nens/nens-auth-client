@@ -1,6 +1,7 @@
 from authlib.integrations.django_client import OAuth
 from authlib.oidc.discovery import get_well_known_url
 from django.conf import settings
+
 from nens_auth_client.cognito import CognitoOAuthClient
 
 # Create the global OAuth registry

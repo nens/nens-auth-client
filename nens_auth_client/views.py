@@ -1,27 +1,23 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
-from . import users
-from .backends import RemoteUserBackend
-from .models import Invitation
-from .oauth import get_oauth_client
+from urllib.parse import urlencode
+
+import django.contrib.auth as django_auth
+from authlib.integrations.base_client.errors import MismatchingStateError
+from authlib.integrations.base_client.errors import OAuthError
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-
-try:
-    from django.utils.http import url_has_allowed_host_and_scheme
-except ImportError:
-    from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
-
-from authlib.integrations.base_client.errors import MismatchingStateError
-from authlib.integrations.base_client.errors import OAuthError
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
-from urllib.parse import urlencode
 
-import django.contrib.auth as django_auth
+from . import users
+from .backends import RemoteUserBackend
+from .models import Invitation
+from .oauth import get_oauth_client
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 INVITATION_KEY = "nens_auth_invitation_slug"

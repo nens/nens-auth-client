@@ -1,11 +1,12 @@
-from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
-from nens_auth_client.models import Invitation
-from nens_auth_client.signals import invitation_accepted
+import json
 from unittest import mock
 
-import json
 import pytest
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+
+from nens_auth_client.models import Invitation
+from nens_auth_client.signals import invitation_accepted
 
 
 @pytest.fixture

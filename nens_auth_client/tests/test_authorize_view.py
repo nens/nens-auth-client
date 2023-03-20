@@ -1,20 +1,21 @@
+import re
+import time
+from datetime import timedelta
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
+
+import pytest
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
-from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+
 from nens_auth_client import models
 from nens_auth_client import views
 from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
-from urllib.parse import parse_qs
-from urllib.parse import urlparse
-
-import pytest
-import re
-import time
 
 
 @pytest.fixture
