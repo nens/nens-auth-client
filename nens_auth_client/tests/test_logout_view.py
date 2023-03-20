@@ -1,13 +1,14 @@
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
-from nens_auth_client import views
+import re
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
 import pytest
-import re
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+
+from nens_auth_client import views
 
 
 @pytest.mark.parametrize("logged_in", [True, False])

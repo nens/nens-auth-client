@@ -1,8 +1,8 @@
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from nens_auth_client.middleware import AccessTokenMiddleware
 
-import pytest
+from nens_auth_client.middleware import AccessTokenMiddleware
 
 UserModel = get_user_model()
 

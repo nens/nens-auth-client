@@ -1,6 +1,9 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
-from .signals import invitation_accepted
+import json
+import logging
 from datetime import timedelta
+from functools import partial
+
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
@@ -11,13 +14,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
-from functools import partial
 
 # A known caveat of django-appconf is that we need to import the AppConf here
 from nens_auth_client.conf import NensAuthClientAppConf  # NOQA
 
-import json
-import logging
+from .signals import invitation_accepted
 
 logger = logging.getLogger(__name__)
 user_model = getattr(settings, "AUTH_USER_MODEL", None) or "auth.User"

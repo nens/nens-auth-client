@@ -1,10 +1,10 @@
+import pytest
 from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
-from nens_auth_client import backends
 
-import pytest
+from nens_auth_client import backends
 
 
 @pytest.fixture

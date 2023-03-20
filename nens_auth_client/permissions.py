@@ -1,9 +1,9 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
+import logging
+
 from django.contrib.auth.models import Permission
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
-
-import logging
 
 logger = logging.getLogger(__name__)
 

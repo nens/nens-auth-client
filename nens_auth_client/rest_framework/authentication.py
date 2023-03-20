@@ -1,10 +1,10 @@
+import django.contrib.auth as django_auth
 from authlib.jose.errors import JoseError
 from django.conf import settings
-from nens_auth_client.oauth import get_oauth_client
 from rest_framework import exceptions
 from rest_framework import HTTP_HEADER_ENCODING
 
-import django.contrib.auth as django_auth
+from nens_auth_client.oauth import get_oauth_client
 
 
 class OAuth2Token(dict):

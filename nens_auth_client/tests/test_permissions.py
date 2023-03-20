@@ -1,10 +1,11 @@
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.exceptions import ValidationError
-from nens_auth_client.permissions import DjangoPermissionBackend
+import logging
 from unittest import mock
 
-import logging
 import pytest
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError
+
+from nens_auth_client.permissions import DjangoPermissionBackend
 
 
 @pytest.fixture

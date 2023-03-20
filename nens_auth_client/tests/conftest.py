@@ -1,13 +1,14 @@
+import json
+import os
+import time
+
+import pytest
+import requests_mock
 from authlib.jose import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
 
-import json
-import os
-import pytest
-import requests_mock
-import time
+from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
 UserModel = get_user_model()

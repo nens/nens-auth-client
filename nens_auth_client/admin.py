@@ -1,10 +1,11 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
-from django.contrib import admin
-from django.utils.html import mark_safe
-from nens_auth_client import models
-
 import base64
 import json
+
+from django.contrib import admin
+from django.utils.html import mark_safe
+
+from nens_auth_client import models
 
 
 def decode_jwt(token):

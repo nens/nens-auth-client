@@ -1,8 +1,8 @@
+import pytest
 from django.contrib.auth import get_user_model
-from nens_auth_client.rest_framework import OAuth2TokenAuthentication
 from rest_framework.test import APIRequestFactory
 
-import pytest
+from nens_auth_client.rest_framework import OAuth2TokenAuthentication
 
 UserModel = get_user_model()
 
