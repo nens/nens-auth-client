@@ -19,7 +19,6 @@ from django.conf import settings
 from django.contrib import admin
 from nens_auth_client import views
 
-
 try:
     from django.urls import re_path
 except ImportError:  # Django 1.11 compatibility

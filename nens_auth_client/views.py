@@ -11,7 +11,6 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
-
 try:
     from django.utils.http import url_has_allowed_host_and_scheme
 except ImportError:
@@ -23,7 +22,6 @@ from django.views.decorators.cache import never_cache
 from urllib.parse import urlencode
 
 import django.contrib.auth as django_auth
-
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 INVITATION_KEY = "nens_auth_invitation_slug"

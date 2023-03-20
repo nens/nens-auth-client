@@ -9,7 +9,6 @@ from django.core.exceptions import PermissionDenied
 
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()

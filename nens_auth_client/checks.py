@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.checks import Error
 from django.core.checks import register
 
-
 ACCESS_TOKEN_MIDDLWARE = "nens_auth_client.middleware.AccessTokenMiddleware"
 DJANGO_AUTH_MIDDLEWARE = "django.contrib.auth.middleware.AuthenticationMiddleware"
 
