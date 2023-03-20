@@ -111,6 +111,26 @@ def test_update_user(user_mgr, remoteuser_mgr, atomic_m):
     assert user.save.called
 
 
+def test_update_user_trusted_provider(user_mgr, remoteuser_mgr, atomic_m, settings):
+    # Email should be updated for trusted providers even without email_verified.
+    user = mock.Mock()
+    user.username = "testuser"
+    settings.NENS_AUTH_TRUSTED_PROVIDERS = ["Google"]
+    update_user(
+        user,
+        {
+            "sub": "abc",
+            "cognito:username": "somethingdifferent",
+            "email": "test@test.com",
+            "email_verified": False,
+            "identities": [{"providerName": "Google"}],
+            "given_name": "Lizard",
+            "family_name": "People",
+        },
+    )
+    assert user.email == "test@test.com"
+
+
 def test_update_user_no_fields(user_mgr, remoteuser_mgr, atomic_m):
     user = mock.Mock()
     user.username = "testuser"
