@@ -1,5 +1,5 @@
-from .users import create_remote_user
 from .users import _extract_provider_name
+from .users import create_remote_user
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend

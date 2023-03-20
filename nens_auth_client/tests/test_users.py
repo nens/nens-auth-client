@@ -1,10 +1,10 @@
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from nens_auth_client.users import _extract_provider_name
 from nens_auth_client.users import create_remote_user
 from nens_auth_client.users import create_user
 from nens_auth_client.users import update_remote_user
 from nens_auth_client.users import update_user
-from nens_auth_client.users import _extract_provider_name
 from unittest import mock
 
 import datetime
