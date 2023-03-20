@@ -4,6 +4,7 @@ from nens_auth_client.users import create_remote_user
 from nens_auth_client.users import create_user
 from nens_auth_client.users import update_remote_user
 from nens_auth_client.users import update_user
+from nens_auth_client.users import _extract_provider_name
 from unittest import mock
 
 import datetime
@@ -161,3 +162,15 @@ def test_create_user_username_exists(user_mgr, create_user_m, mocker):
     first_call, second_call = create_user_m.call_args_list
     assert first_call[0] == ("testuser", "abc")
     assert second_call[0] == ("testuserx23f", "abc")
+
+
+def test_extract_provider_name_present():
+    # Extract provider name when it is present.
+    claims = {"identities": [{"providerName": "Google"}]}
+    assert _extract_provider_name(claims) == "Google"
+
+
+def test_extract_provider_name_absent():
+    # Return None when a provider name cannot be found.
+    claims = {"some": "claim"}
+    assert not _extract_provider_name(claims)

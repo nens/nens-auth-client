@@ -15,6 +15,15 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+def _extract_provider_name(claims):
+    """Return provider name from claim and `None` if not found"""
+    # Also used by backends.py
+    try:
+        return claims["identities"][0]["providerName"]
+    except (KeyError, IndexError):
+        return
+
+
 def create_remote_user(user, claims):
     """Create RemoteUser to permanently associate a User with an external one.
 

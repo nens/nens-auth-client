@@ -1,4 +1,5 @@
 from .users import create_remote_user
+from .users import _extract_provider_name
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -48,9 +49,8 @@ def _nens_user_extract_username(claims):
     email domain @nelen-schuurmans.nl.
     """
     # Get the provider name, return False if not present
-    try:
-        provider_name = claims["identities"][0]["providerName"]
-    except (KeyError, IndexError):
+    provider_name = _extract_provider_name(claims)
+    if not provider_name:
         return
 
     if provider_name not in ("Google", "NelenSchuurmans"):
@@ -149,12 +149,11 @@ class TrustedProviderMigrationBackend(ModelBackend):
         Returns:
           user or None
         """
-        try:
-            # We need proper claims with provider_name and email, otherwise we
-            # don't need to bother to look.
-            provider_name = claims["identities"][0]["providerName"]
-            email = claims["email"]
-        except (KeyError, IndexError):
+        provider_name = _extract_provider_name(claims)
+        email = claims.get("email")
+        # We need proper claims with provider_name and email, otherwise we
+        # don't need to bother to look.
+        if not provider_name or not email:
             return
 
         if provider_name not in settings.NENS_AUTH_TRUSTED_PROVIDERS:
