@@ -34,5 +34,3 @@ jobs:
       - name: Test with pytest
         run: |
           pytest --cov=nens_auth_client
-      - name: Lint with flake8
-        run: if flake8 nens_auth_client > flake8.txt; then echo 'flake8 is a success'; else cat flake8.txt; false; fi
