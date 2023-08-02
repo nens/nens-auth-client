@@ -7,7 +7,7 @@ from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
@@ -134,6 +134,10 @@ def authorize(request):
 
       HTTP 302 Redirect to the 'next' query parameter (see login view)
 
+      missing query parameters:
+
+      HTTP 400 Bad Request
+
       invalid state / expired code:
 
       HTTP 302 Redirect to the login view ('next' parameter is persisted, but
@@ -150,7 +154,9 @@ def authorize(request):
       acceptable invitation.
     """
     client = get_oauth_client()
-    # client.check_error_in_query_params(request)
+    validation_errors = client.validate_authorize_request_params(request.GET)
+    if validation_errors:
+        return JsonResponse({"errors": validation_errors}, status=400)
     try:
         tokens = client.authorize_access_token(
             request, timeout=settings.NENS_AUTH_TIMEOUT
