@@ -383,6 +383,14 @@ def test_authorize_error_with_description(rf):
         views.authorize(request)
 
 
+@pytest.mark.parametrize("params", ["", "code=foo", "state=bar"])
+def test_authorize_missing_query_params(rf):
+    request = rf.get(f"http://testserver/authorize/?{params}")
+    request.session = {}
+    response = views.authorize(request)
+    assert response.status_code == 400
+
+
 def test_token_error(rq_mocker, rf, openid_configuration):
     rq_mocker.post(
         openid_configuration["token_endpoint"],

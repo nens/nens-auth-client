@@ -147,3 +147,14 @@ class CognitoOAuthClient(DjangoOAuth2App):
 
         claims.validate(leeway=leeway)
         return claims
+
+    def validate_authorize_request_params(self, query_params):
+        """Returns a list of validation errors"""
+        result = []
+        if query_params.get("error"):
+            return result
+        if not query_params.get("code"):
+            result.append("missing 'code' parameter")
+        if not query_params.get("state"):
+            result.append("missing 'state' parameter")
+        return result
