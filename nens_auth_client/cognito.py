@@ -1,6 +1,5 @@
 from authlib.integrations.django_client import DjangoOAuth2App
 from authlib.jose import JsonWebToken
-from authlib.jose import jwk
 from django.conf import settings
 from django.http.response import HttpResponseRedirect
 from urllib.parse import urlencode
