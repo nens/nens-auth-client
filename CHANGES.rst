@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.3 (unreleased)
+1.3 (2023-10-25)
 ----------------
 
 - Fixed deprecation warning by using JsonWebKey directly instead of calling
