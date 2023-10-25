@@ -1,6 +1,6 @@
 from authlib.integrations.django_client import DjangoOAuth2App
+from authlib.jose import JsonWebKey
 from authlib.jose import JsonWebToken
-from authlib.jose import jwk
 from django.conf import settings
 from django.http.response import HttpResponseRedirect
 from urllib.parse import urlencode
@@ -118,12 +118,13 @@ class CognitoOAuthClient(DjangoOAuth2App):
         # this is a copy from the _parse_id_token equivalent function
         def load_key(header, payload):
             jwk_set = self.fetch_jwk_set()
+            kid = header.get("kid")
             try:
-                return jwk.loads(jwk_set, header.get("kid"))
+                return JsonWebKey.import_key_set(jwk_set).find_by_kid(kid)
             except ValueError:
                 # re-try with new jwk set
                 jwk_set = self.fetch_jwk_set(force=True)
-                return jwk.loads(jwk_set, header.get("kid"))
+                return JsonWebKey.import_key_set(jwk_set).find_by_kid(kid)
 
         metadata = self.load_server_metadata()
         claims_options = {
