@@ -22,6 +22,7 @@ class NensAuthClientAppConf(AppConf):
     USERNAME_MAX_LENGTH = 50
 
     TRUSTED_PROVIDERS = []  # providerName's trusted by TrustedProviderMigrationBackend
+    TRUSTED_PROVIDERS_NEW_USERS = []  # providerName's trusted for creating new users
 
     ERROR_USER_DOES_NOT_EXIST = "No user account available for these credentials."
     ERROR_USER_INACTIVE = "This account was set to inactive."

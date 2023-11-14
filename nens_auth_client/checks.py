@@ -93,3 +93,15 @@ def check_error_message_formatting(app_configs=None, **kwargs):
         )
 
     return errors
+
+
+@register()
+def check_trusted_providers(app_configs=None, **kwargs):
+    trusted = set(settings.TRUSTED_PROVIDERS)
+    trusted_new = set(settings.TRUSTED_PROVIDERS_NEW_USERS)
+
+    if not trusted_new.issuperset(trusted):
+        return [
+            Error("TRUSTED_PROVIDERS must be a superset of TRUSTED_PROVIDERS_NEW_USERS")
+        ]
+    return []

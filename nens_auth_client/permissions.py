@@ -1,7 +1,9 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
+from django.utils.module_loading import import_string
 
 import logging
 
@@ -72,3 +74,22 @@ class DjangoPermissionBackend:
                     "Skipped assigning non-existing permission %s", permission_key
                 )
         user.user_permissions.add(*user_permission_objs)
+
+    def auto_assign(self, user, claims):
+        # assign permissions based on the user's claims
+        # does nothing by default
+        return None
+
+
+def get_permission_backend():
+    return import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
+
+
+def assign_permissions(permissions, user, **kwargs):
+    return get_permission_backend().assign(permissions=permissions, user=user, **kwargs)
+
+
+def auto_assign_permissions(user, claims):
+    backend = get_permission_backend()
+    if hasattr(backend, "auto_assign"):
+        backend.auto_assign(user, claims)
