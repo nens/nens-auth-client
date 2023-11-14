@@ -26,6 +26,17 @@ def create_remote_user(mocker):
     return mocker.patch("nens_auth_client.backends.create_remote_user")
 
 
+@pytest.fixture
+def create_user(mocker):
+    return mocker.patch("nens_auth_client.backends.create_user")
+
+
+@pytest.fixture
+def m_permission_backend(mocker):
+    cls = mocker.patch("nens_auth_client.permissions.DjangoPermissionBackend")
+    return cls.return_value
+
+
 def test_remote_user_exists(user_getter):
     user_getter.return_value = User(username="testuser")
 
@@ -398,3 +409,38 @@ def test_trusted_backend_proper_prerequisites(claims):
         request=None, claims=claims
     )
     assert user is None
+
+
+def test_auto_permissions_backend_accepted(settings, create_user, m_permission_backend):
+    # Accept the user that matches the criteria.
+    settings.NENS_AUTH_AUTO_PERMISSIONS = {"goedeKlant": {"roles": ["user"]}}
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "pietje",
+        "email": "piet@goede-klant.nl",
+        "identities": [{"providerName": "goedeKlant"}],
+    }
+    create_user.return_value = User(
+        username="goede_klant", email="piet@vanrees.org", is_active=True
+    )
+    user = backends.AutoPermissionBackend().authenticate(request=None, claims=claims)
+    assert user.username == "goede_klant"
+    create_user.assert_called_once_with(claims)
+    m_permission_backend.assign.assert_called_once_with(
+        permissions={"roles": ["user"]}, user=user
+    )
+
+
+def test_auto_permissions_backend_rejected(settings, create_user, m_permission_backend):
+    # Accept the user that matches the criteria.
+    settings.NENS_AUTH_AUTO_PERMISSIONS = {"goedeKlant": None}
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "pietje",
+        "email": "piet@goede-klant.nl",
+        "identities": [{"providerName": "andereKlant"}],
+    }
+    actual = backends.AutoPermissionBackend().authenticate(request=None, claims=claims)
+    assert actual is None
+    assert not create_user.called
+    assert not m_permission_backend.called

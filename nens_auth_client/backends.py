@@ -219,11 +219,10 @@ class AutoPermissionBackend(ModelBackend):
         # Create user and remote user
         user = create_user(claims)
 
-        # Optionally, set permissions
+        # Set permissions
         permissions = settings.NENS_AUTH_AUTO_PERMISSIONS[provider_name]
-        if permissions:
-            permission_backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
-            permission_backend.assign(permissions=permissions, user=user)
+        permission_backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
+        permission_backend.assign(permissions=permissions, user=user)
 
         return user
 
