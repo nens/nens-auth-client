@@ -100,7 +100,7 @@ def check_trusted_providers(app_configs=None, **kwargs):
     trusted = set(settings.TRUSTED_PROVIDERS)
     trusted_new = set(settings.TRUSTED_PROVIDERS_NEW_USERS)
 
-    if not trusted_new.issuperset(trusted):
+    if not trusted.issuperset(trusted_new):
         return [
             Error("TRUSTED_PROVIDERS must be a superset of TRUSTED_PROVIDERS_NEW_USERS")
         ]

@@ -15,7 +15,6 @@ class NensAuthClientAppConf(AppConf):
     RESOURCE_SERVER_ID = None  # For Access Tokens ("aud" should equal this)
 
     PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"
-    AUTO_PERMISSIONS = {}  # automatic permissions per provider
 
     INVITATION_EMAIL_SUBJECT = "Invitation"
     INVITATION_EXPIRY_DAYS = 14  # change this to change the default expiry

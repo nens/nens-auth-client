@@ -92,4 +92,4 @@ def assign_permissions(permissions, user, **kwargs):
 def auto_assign_permissions(user, claims):
     backend = get_permission_backend()
     if hasattr(backend, "auto_assign"):
-        backend.auto_assign(user, claims)
+        backend.auto_assign(user=user, claims=claims)
