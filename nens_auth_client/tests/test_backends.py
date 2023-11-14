@@ -26,6 +26,11 @@ def create_remote_user(mocker):
     return mocker.patch("nens_auth_client.backends.create_remote_user")
 
 
+@pytest.fixture
+def create_user(mocker):
+    return mocker.patch("nens_auth_client.backends.create_user")
+
+
 def test_remote_user_exists(user_getter):
     user_getter.return_value = User(username="testuser")
 
@@ -398,3 +403,21 @@ def test_trusted_backend_proper_prerequisites(claims):
         request=None, claims=claims
     )
     assert user is None
+
+
+def test_trusted_backend_create_new_user(user_getter, create_user, settings):
+    # User does not exist and TRUSTED_PROVIDERS_NEW_USERS set? Create new user.
+    settings.NENS_AUTH_TRUSTED_PROVIDERS = ["vanrees"]
+    settings.NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS = ["vanrees"]
+    claims = {
+        "sub": "remote-uid",
+        "cognito:username": "goede.klant",
+        "email": "goede.klant@vanrees.org",
+        "identities": [{"providerName": "vanrees"}],
+    }
+    user_getter.side_effect = ObjectDoesNotExist
+    user = backends.TrustedProviderMigrationBackend().authenticate(
+        request=None, claims=claims
+    )
+    assert user == create_user.return_value
+    create_user.assert_called_once_with(claims)

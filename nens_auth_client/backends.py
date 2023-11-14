@@ -1,5 +1,6 @@
 from .users import _extract_provider_name
 from .users import create_remote_user
+from .users import create_user
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -162,7 +163,10 @@ class TrustedProviderMigrationBackend(ModelBackend):
         try:
             user = UserModel.objects.get(email__iexact=email)
         except ObjectDoesNotExist:
-            return
+            if provider_name in settings.NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS:
+                return create_user(claims)
+            else:
+                return
         except MultipleObjectsReturned:
             raise PermissionDenied(settings.NENS_AUTH_ERROR_USER_MULTIPLE)
 

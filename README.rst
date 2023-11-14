@@ -131,7 +131,8 @@ First-time logins
 
 For first-time logins, there is no RemoteUser object to match the external
 user ID with a local django user. In this case, users are accepted only if the
-user presents a valid invitation. This is because there is no way to safely
+user presents a valid invitation (or when using ``TrustedProviderMigrationBackend``, see below).
+This is because there is no way to safely
 match external user ids to local django users.
 
 There are two kinds of invitations: invitations with user, and invitations
@@ -227,6 +228,16 @@ users are matched by username. On first-time login, a RemoteUser object is
 created to link the external and local users permanently.
 
 
+Auto-accepting users
+--------------------
+
+For some sites we might want to automatically create local users if they log in
+from a trusted identity provider. For such sites, enable the
+``TrustedProviderMigrationBackend`` and add a ``NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS`` setting.
+The setting contains the list of provider names (as configured in cognito) that we trust to
+have correct email addresses.
+
+
 Auto-accepting N&S users
 ------------------------
 
@@ -259,6 +270,14 @@ existing account with the correct email address.
 
 There is no check on ``email_verified`` as that turns out to be hard to
 configure.
+
+
+Auto-assigning permissions
+--------------------------
+
+Any user that logs in can automatically be assigned permissions. This can be
+implemented in the ``auto_assign(user, claims)`` method of a custom permission class,
+which needs to be set on the ``NENS_AUTH_PERMISSION_BACKEND`` setting.
 
 
 Bearer tokens (optional)

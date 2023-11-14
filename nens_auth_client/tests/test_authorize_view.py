@@ -33,6 +33,11 @@ def invitation_getter(mocker):
     return manager.select_related.return_value.get
 
 
+@pytest.fixture
+def permissions_m(mocker):
+    return mocker.patch("nens_auth_client.views.permissions")
+
+
 def test_authorize(
     id_token_generator,
     auth_req_generator,
@@ -40,6 +45,7 @@ def test_authorize(
     openid_configuration,
     users_m,
     login_m,
+    permissions_m,
 ):
     id_token, claims = id_token_generator(testclaim="bar")
     user = User(username="testuser")
@@ -71,6 +77,9 @@ def test_authorize(
     args, kwargs = users_m.update_remote_user.call_args
     assert args[0] == claims
     assert args[1].keys() == {"id_token"}
+
+    # check if auto_assign_permissions was called
+    permissions_m.auto_assign_permissions.assert_called_once_with(user, claims)
 
 
 def test_authorize_no_user(id_token_generator, auth_req_generator, users_m, login_m):

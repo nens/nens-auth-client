@@ -1,5 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
+from . import permissions
 from . import users
 from .backends import RemoteUserBackend
 from .models import Invitation
@@ -206,6 +207,9 @@ def authorize(request):
     # Update the user's metadata fields
     users.update_user(user, claims)
     users.update_remote_user(claims, tokens)
+
+    # Automatically assign permissions based on the user's claims
+    permissions.auto_assign_permissions(user, claims)
 
     # Log the user in
     django_auth.login(request, user)

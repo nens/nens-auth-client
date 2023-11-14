@@ -1,4 +1,5 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
+from . import permissions
 from .signals import invitation_accepted
 from datetime import timedelta
 from django.conf import settings
@@ -168,7 +169,6 @@ class Invitation(models.Model):
         return True
 
     def accept(self, user, **kwargs):
-        backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
         if self.user_id and self.user_id != user.id:
             raise PermissionDenied(
                 settings.NENS_AUTH_ERROR_INVITATION_WRONG_USER.format(
@@ -177,7 +177,7 @@ class Invitation(models.Model):
                 )
             )
         try:
-            result = backend.assign(
+            result = permissions.assign_permissions(
                 permissions=json.loads(self.permissions), user=user, **kwargs
             )
         except Exception:
