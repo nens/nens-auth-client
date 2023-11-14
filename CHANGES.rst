@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.4 (unreleased)
+1.4 (2023-11-14)
 ----------------
 
 - Extended ``TrustedProviderMigrationBackend`` with creating new users.
