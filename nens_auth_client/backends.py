@@ -1,11 +1,13 @@
 from .users import _extract_provider_name
 from .users import create_remote_user
+from .users import create_user
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
+from django.utils.module_loading import import_string
 
 import logging
 
@@ -171,6 +173,57 @@ class TrustedProviderMigrationBackend(ModelBackend):
 
         # Create a permanent association
         create_remote_user(user, claims)
+
+        return user
+
+
+class AutoPermissionBackend(ModelBackend):
+    """Backend to autocreate users and permissions for selected providers.
+
+    A company can ask to couple their identity provider (like azure AD) to our
+    cognito instance. Sometimes, they do not want to send each of their users
+    an invitation and instead provide a standard set of permissions to all of
+    their users. This backend provides a means to do that.
+
+    The backend should be configured *after* the RemoteUserBackend, otherwise
+    a new user will be created each time a user logs in.
+
+    The related setting is NENS_AUTH_AUTO_PERMISSIONS, which should be configured
+    as a dict that maps provider_name to something that can be accepted by the
+    invitation backend. For instance:
+
+    NENS_AUTH_AUTO_PERMISSIONS = {"NelenSchuurmans": {"1": ["user"]}}
+    """
+
+    def authenticate(self, request, claims):
+        """Return user if the provider is trusted.
+
+        The regular `RemoteUserBackend` authenticates existing remote
+        users. In case that didn't happen, we should create a new user if the
+        provider is trusted.
+
+        Args:
+          request: the current request
+          claims (dict): the verified payload of the ID or Access token
+
+        Returns:
+          user or None
+        """
+        provider_name = _extract_provider_name(claims)
+        if (
+            not provider_name
+            or provider_name not in settings.NENS_AUTH_AUTO_PERMISSIONS
+        ):
+            return
+
+        # Create user and remote user
+        user = create_user(claims)
+
+        # Optionally, set permissions
+        permissions = settings.NENS_AUTH_AUTO_PERMISSIONS[provider_name]
+        if permissions:
+            permission_backend = import_string(settings.NENS_AUTH_PERMISSION_BACKEND)()
+            permission_backend.assign(permissions=permissions, user=user)
 
         return user
 

@@ -131,7 +131,8 @@ First-time logins
 
 For first-time logins, there is no RemoteUser object to match the external
 user ID with a local django user. In this case, users are accepted only if the
-user presents a valid invitation. This is because there is no way to safely
+user presents a valid invitation (or if there are AUTO_PERMISSIONS) setup, see below.
+This is because there is no way to safely
 match external user ids to local django users.
 
 There are two kinds of invitations: invitations with user, and invitations
@@ -225,6 +226,26 @@ user going through the invitation process (described above). For this we have th
 ``SSOMigrationBackend``. If the user's ID Token has ``"custom:from_sso": "1"``,
 users are matched by username. On first-time login, a RemoteUser object is
 created to link the external and local users permanently.
+
+
+Auto-accepting users
+--------------------
+
+For some sites we might want to add a default set of permissions to each
+new user. For such sites, enable the
+``AutoPermissionBackend`` and add a ``NENS_AUTH_AUTO_PERMISSIONS`` setting::
+
+    NENS_AUTH_AUTO_PERMISSIONS = {
+        "my_provider": {"roles": ["user"]}
+    }
+
+The keys in this setting dict are provider names (as configured in cognito) that we
+trust. The values are permission dictionaries, matching the NENS_AUTH_PERMISSION_BACKEND
+setting. The result of the setting in this example is that users coming from provider
+"my_provider" will automatically receive the role "user".
+
+Note that it is important to configure the ``AutoPermissionBackend`` *after* the
+``RemoteUserBackend``. 
 
 
 Auto-accepting N&S users
