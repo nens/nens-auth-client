@@ -131,7 +131,7 @@ First-time logins
 
 For first-time logins, there is no RemoteUser object to match the external
 user ID with a local django user. In this case, users are accepted only if the
-user presents a valid invitation (or if there are AUTO_PERMISSIONS) setup, see below.
+user presents a valid invitation (or when using ``AutoPermissionBackend``, see below).
 This is because there is no way to safely
 match external user ids to local django users.
 

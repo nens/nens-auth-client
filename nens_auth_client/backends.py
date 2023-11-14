@@ -210,10 +210,7 @@ class AutoPermissionBackend(ModelBackend):
           user or None
         """
         provider_name = _extract_provider_name(claims)
-        if (
-            not provider_name
-            or provider_name not in settings.NENS_AUTH_AUTO_PERMISSIONS
-        ):
+        if provider_name not in settings.NENS_AUTH_AUTO_PERMISSIONS:
             return
 
         # Create user and remote user
