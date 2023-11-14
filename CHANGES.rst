@@ -5,7 +5,10 @@ Changelog of nens-auth-client
 1.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Extended ``TrustedProviderMigrationBackend`` with creating new users.
+
+- Extended the permission class with an `auto_assign` method for automatically
+  assigning permissions based on the token claims.
 
 
 1.3 (2023-10-25)
