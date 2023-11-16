@@ -2,10 +2,10 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.5 (unreleased)
+1.4.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed settings check introduced in 1.4.
 
 
 1.4 (2023-11-14)

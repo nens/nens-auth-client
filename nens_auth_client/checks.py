@@ -97,11 +97,13 @@ def check_error_message_formatting(app_configs=None, **kwargs):
 
 @register()
 def check_trusted_providers(app_configs=None, **kwargs):
-    trusted = set(settings.TRUSTED_PROVIDERS)
-    trusted_new = set(settings.TRUSTED_PROVIDERS_NEW_USERS)
+    trusted = set(settings.NENS_AUTH_TRUSTED_PROVIDERS)
+    trusted_new = set(settings.NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS)
 
     if not trusted.issuperset(trusted_new):
         return [
-            Error("TRUSTED_PROVIDERS must be a superset of TRUSTED_PROVIDERS_NEW_USERS")
+            Error(
+                "NENS_AUTH_TRUSTED_PROVIDERS must be a superset of NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS"
+            )
         ]
     return []
