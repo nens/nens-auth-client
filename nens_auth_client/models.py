@@ -233,9 +233,20 @@ class Invitation(models.Model):
             "host": request.get_host(),
             **(context or {}),
         }
+        if context.get("service_email", None) is None:
+            context["service_email"] = r"servicedesk@nelen-schuurmans.nl"
 
-        text = render_to_string("nens_auth_client/invitation.txt", context=context)
-        html = render_to_string("nens_auth_client/invitation.html", context=context)
+        inv_lang = send_email_options.get("invitation_language", "en")
+        if inv_lang == "en":
+            text = render_to_string("nens_auth_client/invitation.txt", context=context)
+            html = render_to_string("nens_auth_client/invitation.html", context=context)
+        elif inv_lang == "nl":
+            text = render_to_string("nens_auth_client/uitnodiging.txt", context=context)
+            html = render_to_string(
+                "nens_auth_client/uitnodiging.html", context=context
+            )
+        else:
+            raise Exception(f"Unknown language code: {inv_lang}")
 
         send_mail(
             from_email=None,  # uses DEFAULT_FROM_EMAIL setting
@@ -243,7 +254,7 @@ class Invitation(models.Model):
             message=text,
             html_message=html,
             recipient_list=[self.email],
-            **(send_email_options or {})
+            **(send_email_options or {}),
         )
 
         self.email_sent_at = timezone.now()

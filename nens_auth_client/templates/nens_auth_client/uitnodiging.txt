@@ -1,0 +1,10 @@
+Beste gebruiker,
+ 
+Dit is een uitnodigingsmail voor een gebruikersaccount voor {{ host }}.
+Klik op onderstaande link om deze uitnodiging te accepteren:
+ 
+{{ accept_url }}
+ 
+Deze link stuurt u door naar de inlogpagina waar u kunt inloggen met uw eigen corporate ID.  
+
+Mocht u vragen hebben, neem dan contact op met {{service_email}}.
