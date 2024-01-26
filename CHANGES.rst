@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.4.2 (unreleased)
+1.4.2 (2024-01-26)
 ------------------
 
 - Invitation mail: Service email address is now interpolated, also added Dutch version
