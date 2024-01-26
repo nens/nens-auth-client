@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 1.4.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Invitation: fixed bug in mail rendering
 
 
 1.4.2 (2024-01-26)
