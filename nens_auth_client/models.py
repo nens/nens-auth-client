@@ -236,9 +236,7 @@ class Invitation(models.Model):
         if context.get("service_email", None) is None:
             context["service_email"] = r"servicedesk@nelen-schuurmans.nl"
 
-        inv_lang = "en"
-        if send_email_options is not None:
-            inv_lang = send_email_options.get("invitation_language", "en")
+        inv_lang = context.get("invitation_language", "en")
 
         if inv_lang == "en":
             text = render_to_string("nens_auth_client/invitation.txt", context=context)
