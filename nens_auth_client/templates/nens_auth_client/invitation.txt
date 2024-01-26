@@ -9,4 +9,4 @@ The above link will first redirect to a page where you can sign in
 with a corporate ID or a Nelen & Schuurmans account. If you do not have an
 account in any of the options listed, choose "Sign up".
 
-For questions, please contact servicedesk@nelen-schuurmans.nl.
+For questions, please contact {{ service_email }}.
