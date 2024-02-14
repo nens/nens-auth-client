@@ -44,3 +44,7 @@ class WSO2AuthClient(DjangoOAuth2App):
 
     def parse_access_token(self, token, claims_options=None, leeway=120):
         raise NotImplementedError()
+
+    def extract_provider_name(claims):
+        """Return provider name from claim and `None` if not found"""
+        return None

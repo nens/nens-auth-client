@@ -148,3 +148,11 @@ class CognitoOAuthClient(DjangoOAuth2App):
 
         claims.validate(leeway=leeway)
         return claims
+
+    def extract_provider_name(claims):
+        """Return provider name from claim and `None` if not found"""
+        # Also used by backends.py
+        try:
+            return claims["identities"][0]["providerName"]
+        except (KeyError, IndexError):
+            return

@@ -1,4 +1,5 @@
 from .models import RemoteUser
+from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
@@ -12,15 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 User = get_user_model()
-
-
-def _extract_provider_name(claims):
-    """Return provider name from claim and `None` if not found"""
-    # Also used by backends.py
-    try:
-        return claims["identities"][0]["providerName"]
-    except (KeyError, IndexError):
-        return
 
 
 def create_remote_user(user, claims):
@@ -118,7 +110,7 @@ def update_user(user, claims):
     """
     user.first_name = claims.get("given_name", "")
     user.last_name = claims.get("family_name", "")
-    provider_name = _extract_provider_name(claims)
+    provider_name = get_oauth_client().extract_provider_name(claims)
     if (
         claims.get("email_verified")
         or provider_name in settings.NENS_AUTH_TRUSTED_PROVIDERS
