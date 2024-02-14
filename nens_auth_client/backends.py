@@ -225,3 +225,14 @@ class AcceptNensBackend(ModelBackend):
         create_remote_user(user, claims)
 
         return user
+
+
+class AcceptAnyBackend(ModelBackend):
+    def authenticate(self, request, claims):
+        user = UserModel.objects.create(
+            username=claims["sub"], is_superuser=True, is_staff=True
+        )
+        # Create a permanent association
+        create_remote_user(user, claims)
+
+        return user
