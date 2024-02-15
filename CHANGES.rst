@@ -5,7 +5,14 @@ Changelog of nens-auth-client
 1.4.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Moved provider-specific logic (``extract_provider_name``, ``extract_username``) to
+  to ``CognitoOAuthClient``.
+
+- Made the OAuth2 provider backend configurable through ``NENS_AUTH_OAUTH_BACKEND``.
+
+- Added ``WSO2OAuthClient`` for login using WSO2 Identity Server.
+
+- Added the possibility of wildcards in ``NENS_AUTH_TRUSTED_PROVIDERS[_NEW_USERS]``.
 
 
 1.4.4 (2024-01-26)

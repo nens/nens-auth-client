@@ -172,7 +172,7 @@ def auth_req_generator(
             "http://testserver/authorize/?code={}&state={}".format(code, state)
         )
         request.session = {
-            f"_state_cognito_{state}": {"data": {"nonce": nonce}},
+            f"_state_oauth_{state}": {"data": {"nonce": nonce}},
             LOGIN_REDIRECT_SESSION_KEY: "http://testserver/success",
         }
         return request

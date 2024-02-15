@@ -26,10 +26,29 @@ def test_preprocess_access_token(claims, expected, settings):
 def test_extract_provider_name_present():
     # Extract provider name when it is present.
     claims = {"identities": [{"providerName": "Google"}]}
-    assert CognitoOAuthClient.extract_provider_name(None, claims) == "Google"
+    assert CognitoOAuthClient.extract_provider_name(claims) == "Google"
 
 
 def test_extract_provider_name_absent():
     # Return None when a provider name cannot be found.
     claims = {"some": "claim"}
-    assert CognitoOAuthClient._extract_provider_name(None, claims)
+    assert CognitoOAuthClient.extract_provider_name(claims) is None
+
+
+@pytest.mark.parametrize(
+    "claims,expected",
+    [
+        ({"cognito:username": "foo", "email": "a@b.com"}, "foo"),
+        ({"cognito:username": "foo", "email": "a@b.com", "identities": []}, "foo"),
+        (
+            {
+                "cognito:username": "abc123",
+                "email": "a@b.com",
+                "identities": ["something"],
+            },
+            "a@b.com",
+        ),
+    ],
+)
+def test_extract_username(claims, expected):
+    assert CognitoOAuthClient.extract_username(claims) == expected
