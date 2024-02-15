@@ -74,6 +74,10 @@ class WSO2AuthClient(DjangoOAuth2App):
         claims.validate(leeway=leeway)
         return claims
 
-    def extract_provider_name(claims):
+    def extract_provider_name(self, claims):
         """Return provider name from claim and `None` if not found"""
         return None
+
+    def extract_username(self, claims) -> str:
+        """Return username from claims"""
+        return claims["email"]

@@ -149,10 +149,21 @@ class CognitoOAuthClient(DjangoOAuth2App):
         claims.validate(leeway=leeway)
         return claims
 
-    def extract_provider_name(claims):
+    def extract_provider_name(self, claims):
         """Return provider name from claim and `None` if not found"""
         # Also used by backends.py
         try:
             return claims["identities"][0]["providerName"]
         except (KeyError, IndexError):
             return
+
+    def extract_username(self, claims) -> str:
+        """Return username from claims"""
+        username = ""
+        if claims.get("identities"):
+            # External identity providers result in usernames that are not
+            # recognizable by the end user. Use the email instead.
+            username = claims.get("email")
+        if not username:
+            username = claims["cognito:username"]
+        return username

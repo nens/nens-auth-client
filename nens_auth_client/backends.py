@@ -1,4 +1,5 @@
 from .oauth import get_oauth_client
+from .users import contains_including_wildcard
 from .users import create_remote_user
 from .users import create_user
 from django.conf import settings
@@ -7,7 +8,6 @@ from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
-from typing import Sequence
 
 import logging
 
@@ -115,10 +115,6 @@ class SSOMigrationBackend(ModelBackend):
         return user
 
 
-def contains_including_wildcard(elem: str, set_: Sequence[str]):
-    return "*" in set_ or elem in set_
-
-
 class TrustedProviderMigrationBackend(ModelBackend):
     """Backend for users that move from cognito to a new provider, like azure
 
@@ -160,7 +156,7 @@ class TrustedProviderMigrationBackend(ModelBackend):
         if not email:
             return
 
-        if contains_including_wildcard(
+        if not contains_including_wildcard(
             provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS
         ):
             logger.debug("%s not in special list of trusted providers", provider_name)
