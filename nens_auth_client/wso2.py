@@ -17,29 +17,18 @@ class WSO2AuthClient(DjangoOAuth2App):
           request: The current request
           redirect_uri: The absolute url to the logout view of this app. It
             should be pre-registered in AWS Cognito
-          login_after: whether to show the login screen after logout
+          login_after: whether to show the login screen after logout (unsupported
+            for WSO2)
 
         Returns:
-          HttpResponseRedirect to AWS Cognito logout endpoint
+          HttpResponseRedirect to WSO2 logout endpoint
         """
-        # AWS LOGOUT endpoint accepts the same query params as the authorize
-        # endpoint. If this feature is used, you see the login screen after
-        # logging out.
-        if login_after:
-            response = self.authorize_redirect(request, redirect_uri)
-            # patch the url
-            auth_url = list(urlparse(response.url))
-            auth_url[2] = "/oidc/logout"  # replace /oauth2/authorize with /logout
-            logout_url = urlunparse(auth_url)
-        else:
-            server_metadata = self.load_server_metadata()
-            auth_url = list(urlparse(server_metadata["authorization_endpoint"]))
-            auth_url[2] = "/oidc/logout"
-            auth_url[4] = urlencode(
-                {"client_id": self.client_id, "post_logout_redirect_uri": redirect_uri}
-            )
-            logout_url = urlunparse(auth_url)
-
+        server_metadata = self.load_server_metadata()
+        auth_url = list(urlparse(server_metadata["end_session_endpoint"]))
+        auth_url[4] = urlencode(
+            {"client_id": self.client_id, "post_logout_redirect_uri": redirect_uri}
+        )
+        logout_url = urlunparse(auth_url)
         return HttpResponseRedirect(logout_url)
 
     def parse_access_token(self, token, claims_options=None, leeway=120):
