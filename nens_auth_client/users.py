@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from typing import List
 
 import logging
 
@@ -15,8 +16,8 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-def contains_including_wildcard(elem: str, set_):
-    return "*" in set_ or elem in set_
+def found_or_wildcard(elem: str, allowed_elements: List[str]):
+    return "*" in allowed_elements or elem in allowed_elements
 
 
 def create_remote_user(user, claims):
@@ -107,7 +108,7 @@ def update_user(user, claims):
     user.first_name = claims.get("given_name", "")
     user.last_name = claims.get("family_name", "")
     provider_name = get_oauth_client().extract_provider_name(claims)
-    if claims.get("email_verified") or contains_including_wildcard(
+    if claims.get("email_verified") or found_or_wildcard(
         provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS
     ):
         user.email = claims.get("email", "")

@@ -1,7 +1,7 @@
 from .oauth import get_oauth_client
-from .users import contains_including_wildcard
 from .users import create_remote_user
 from .users import create_user
+from .users import found_or_wildcard
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -156,16 +156,14 @@ class TrustedProviderMigrationBackend(ModelBackend):
         if not email:
             return
 
-        if not contains_including_wildcard(
-            provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS
-        ):
+        if not found_or_wildcard(provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS):
             logger.debug("%s not in special list of trusted providers", provider_name)
             return
 
         try:
             user = UserModel.objects.get(email__iexact=email)
         except ObjectDoesNotExist:
-            if contains_including_wildcard(
+            if found_or_wildcard(
                 provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS
             ):
                 return create_user(claims)

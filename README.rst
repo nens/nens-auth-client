@@ -239,8 +239,8 @@ have correct email addresses.
 
 If you want to auto-accept all users that authenticate through OAuth2, use a wildecard as follows::
 
-    NENS_AUTH_TRUSTED_PROVIDERS = {"*"}
-    NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS = {"*"}
+    NENS_AUTH_TRUSTED_PROVIDERS = ["*"]
+    NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS = ["*"]
 
 
 Auto-accepting N&S users

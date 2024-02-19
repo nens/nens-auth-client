@@ -17,3 +17,11 @@ def test_extract_provider_name():
 )
 def test_extract_username(claims, expected):
     assert WSO2AuthClient.extract_username(claims) == expected
+
+
+def test_parse_access_token_includes_claims(access_token_generator):
+    with pytest.raises(NotImplementedError) as e:
+        WSO2AuthClient.parse_access_token(None, access_token_generator())
+
+    # error is raised with claims as arg
+    assert e.value.args[0]["client_id"] == "1234"
