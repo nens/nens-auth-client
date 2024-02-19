@@ -14,6 +14,9 @@ Changelog of nens-auth-client
 
 - Added the possibility of wildcards in ``NENS_AUTH_TRUSTED_PROVIDERS[_NEW_USERS]``.
 
+- Usage of Bearer tokens with WSO2 is not (yet) supported; currently a NotImplementedError
+  is raised with the token claims as argument.
+
 
 1.4.4 (2024-01-26)
 ------------------
