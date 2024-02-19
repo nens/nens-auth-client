@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.4.5 (unreleased)
+1.5.0 (2024-02-19)
 ------------------
 
 - Moved provider-specific logic (``extract_provider_name``, ``extract_username``) to
