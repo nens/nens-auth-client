@@ -1,10 +1,12 @@
 from .models import RemoteUser
+from .oauth import get_oauth_client
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from typing import List
 
 import logging
 
@@ -14,13 +16,8 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-def _extract_provider_name(claims):
-    """Return provider name from claim and `None` if not found"""
-    # Also used by backends.py
-    try:
-        return claims["identities"][0]["providerName"]
-    except (KeyError, IndexError):
-        return
+def found_or_wildcard(elem: str, allowed_elements: List[str]):
+    return "*" in allowed_elements or elem in allowed_elements
 
 
 def create_remote_user(user, claims):
@@ -69,8 +66,6 @@ def _create_user(username, external_id):
 def create_user(claims):
     """Create User and associate it with an external one through RemoteUser.
 
-    The username is taken from the "cognito:username" field.
-
     Raises an IntegrityError if this username already exists. This is expected
     to happen very rarely, in which case we do want to see this in our bug
     tracker.
@@ -82,15 +77,9 @@ def create_user(claims):
       django User (created or, in case of a race condition, retrieved)
       RemoteUser (created or, in case of a race condition, retrieved)
     """
-    # Format a username from the claims.
-    username = ""
-    if claims.get("identities"):
-        # External identity providers result in usernames that are not
-        # recognizable by the end user. Use the email instead.
-        username = claims.get("email")
-    if not username:
-        username = claims["cognito:username"]
-    username = username[: settings.NENS_AUTH_USERNAME_MAX_LENGTH]
+    username = get_oauth_client().extract_username(claims)[
+        : settings.NENS_AUTH_USERNAME_MAX_LENGTH
+    ]
 
     external_id = claims["sub"]
     try:
@@ -118,10 +107,9 @@ def update_user(user, claims):
     """
     user.first_name = claims.get("given_name", "")
     user.last_name = claims.get("family_name", "")
-    provider_name = _extract_provider_name(claims)
-    if (
-        claims.get("email_verified")
-        or provider_name in settings.NENS_AUTH_TRUSTED_PROVIDERS
+    provider_name = get_oauth_client().extract_provider_name(claims)
+    if claims.get("email_verified") or found_or_wildcard(
+        provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS
     ):
         user.email = claims.get("email", "")
     else:

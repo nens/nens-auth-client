@@ -1,6 +1,7 @@
-from .users import _extract_provider_name
+from .oauth import get_oauth_client
 from .users import create_remote_user
 from .users import create_user
+from .users import found_or_wildcard
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -49,7 +50,7 @@ def _nens_user_extract_username(claims):
     email domain @nelen-schuurmans.nl.
     """
     # Get the provider name, return False if not present
-    provider_name = _extract_provider_name(claims)
+    provider_name = get_oauth_client().extract_provider_name(claims)
     if not provider_name:
         return
 
@@ -149,21 +150,22 @@ class TrustedProviderMigrationBackend(ModelBackend):
         Returns:
           user or None
         """
-        provider_name = _extract_provider_name(claims)
+        provider_name = get_oauth_client().extract_provider_name(claims)
         email = claims.get("email")
-        # We need proper claims with provider_name and email, otherwise we
-        # don't need to bother to look.
-        if not provider_name or not email:
+        # We need email
+        if not email:
             return
 
-        if provider_name not in settings.NENS_AUTH_TRUSTED_PROVIDERS:
+        if not found_or_wildcard(provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS):
             logger.debug("%s not in special list of trusted providers", provider_name)
             return
 
         try:
             user = UserModel.objects.get(email__iexact=email)
         except ObjectDoesNotExist:
-            if provider_name in settings.NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS:
+            if found_or_wildcard(
+                provider_name, settings.NENS_AUTH_TRUSTED_PROVIDERS_NEW_USERS
+            ):
                 return create_user(claims)
             else:
                 return

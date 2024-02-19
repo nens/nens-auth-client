@@ -30,7 +30,7 @@ def test_login(rf, openid_configuration):
     assert qs["redirect_uri"] == ["http://testserver/authorize/"]
     assert qs["scope"] == [" ".join(settings.NENS_AUTH_SCOPE)]
 
-    state = request.session[f'_state_cognito_{qs["state"][0]}']
+    state = request.session[f'_state_oauth_{qs["state"][0]}']
     assert qs["nonce"] == [state["data"]["nonce"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "/a"
 
@@ -117,7 +117,7 @@ def test_login_with_forced_logout(rf, openid_configuration, mocker, logged_in):
     assert qs["redirect_uri"] == ["http://testserver/authorize/"]
     assert qs["scope"] == [" ".join(settings.NENS_AUTH_SCOPE)]
 
-    state = request.session[f'_state_cognito_{qs["state"][0]}']
+    state = request.session[f'_state_oauth_{qs["state"][0]}']
     assert qs["nonce"] == [state["data"]["nonce"]]
     assert request.session[views.LOGIN_REDIRECT_SESSION_KEY] == "/a"
 
