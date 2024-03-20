@@ -60,16 +60,15 @@ class WSO2AuthClient(DjangoOAuth2App):
           ValueError: if the key id is not present in the jwks.json
         """
 
-        # this is a copy from the _parse_id_token equivalent function
-        def load_key(header, payload):
-            jwk_set = self.fetch_jwk_set()
-            kid = header.get("kid")
+        # this is a copy from authlib.integrations.base_client.sync_openid.parse_id_token equivalent function
+        def load_key(header, _):
+            jwk_set = JsonWebKey.import_key_set(self.fetch_jwk_set())
             try:
-                return JsonWebKey.import_key_set(jwk_set).find_by_kid(kid)
+                return jwk_set.find_by_kid(header.get("kid"))
             except ValueError:
                 # re-try with new jwk set
-                jwk_set = self.fetch_jwk_set(force=True)
-                return JsonWebKey.import_key_set(jwk_set).find_by_kid(kid)
+                jwk_set = JsonWebKey.import_key_set(self.fetch_jwk_set(force=True))
+                return jwk_set.find_by_kid(header.get("kid"))
 
         metadata = self.load_server_metadata()
         claims_options = {
