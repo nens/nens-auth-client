@@ -1,3 +1,6 @@
+from authlib.jose.errors import JoseError
+from authlib.oidc.discovery import get_well_known_url
+from django.conf import settings
 from nens_auth_client.wso2 import WSO2AuthClient
 
 import pytest
@@ -19,9 +22,31 @@ def test_extract_username(claims, expected):
     assert WSO2AuthClient.extract_username(claims) == expected
 
 
-def test_parse_access_token_includes_claims(access_token_generator):
-    with pytest.raises(NotImplementedError) as e:
-        WSO2AuthClient.parse_access_token(None, access_token_generator())
+@pytest.fixture
+def wso2_client():
+    return WSO2AuthClient(
+        "foo",
+        server_metadata_url=get_well_known_url(
+            settings.NENS_AUTH_ISSUER, external=True
+        ),
+    )
 
-    # error is raised with claims as arg
-    assert e.value.args[0]["client_id"] == "1234"
+
+def test_parse_access_token_wso2(access_token_generator, jwks_request, wso2_client):
+    # disable 'token_use' (not included in WSO2 access token)
+    claims = wso2_client.parse_access_token(
+        access_token_generator(email="test@wso2", token_use=None)
+    )
+
+    assert claims["email"] == "test@wso2"
+
+
+@pytest.mark.parametrize(
+    "claims_mod", [{"aud": "abc123"}, {"sub": None}, {"iss": "abc123"}, {"exp": 0}]
+)
+def test_parse_access_token_wso2_invalid_claims(
+    claims_mod, access_token_generator, jwks_request, wso2_client
+):
+    token = access_token_generator(**claims_mod)
+    with pytest.raises(JoseError):
+        wso2_client.parse_access_token(token)

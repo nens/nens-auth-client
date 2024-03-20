@@ -145,6 +145,7 @@ def access_token_generator(token_generator, access_token_template):
 
     def func(**extra_claims):
         claims = {**access_token_template, **extra_claims}
+        claims = {k: v for (k, v) in claims.items() if v is not None}
         return token_generator(**claims)
 
     return func
