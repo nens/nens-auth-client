@@ -5,8 +5,9 @@ Changelog of nens-auth-client
 1.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added Bearer token parsing to WSO2 client.
 
+- Refactored the Cognito and WSO2 clients so they use the same baseclass.
 
 1.5.0 (2024-02-19)
 ------------------
