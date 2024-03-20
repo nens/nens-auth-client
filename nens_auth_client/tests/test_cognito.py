@@ -1,5 +1,4 @@
 from nens_auth_client.cognito import CognitoOAuthClient
-from nens_auth_client.cognito import preprocess_access_token
 
 import pytest
 
@@ -19,7 +18,7 @@ import pytest
 )
 def test_preprocess_access_token(claims, expected, settings):
     settings.NENS_AUTH_RESOURCE_SERVER_ID = "api/"
-    preprocess_access_token(claims)
+    CognitoOAuthClient.preprocess_access_token(None, claims)
     assert claims == expected
 
 

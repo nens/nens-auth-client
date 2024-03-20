@@ -13,30 +13,39 @@ def r():
 
 
 @pytest.fixture
-def mocked_authenticator(rf, mocker, rq_mocker, jwks_request, settings):
-    """Mock necessary functions to test AccessTokenMiddleware request"""
-    # Mock the user association call
+def mocked_oauth_client(mocker):
+    get_oauth_client = mocker.patch(
+        "nens_auth_client.rest_framework.authentication.get_oauth_client"
+    )
+    get_oauth_client.return_value.parse_access_token.return_value = {"scope": "foo"}
+    return get_oauth_client.return_value
+
+
+@pytest.fixture
+def mocked_authenticate(mocker):
     authenticate = mocker.patch("django.contrib.auth.authenticate")
     authenticate.return_value = UserModel(username="testuser")
-    # Disable the custom AWS Cognito Access Token mapping
-    mocker.patch("nens_auth_client.cognito.preprocess_access_token")
-    # Make a middleware that returns the request as a response
+    return authenticate
+
+
+@pytest.fixture
+def authenticator():
     return OAuth2TokenAuthentication()
 
 
-def test_authentication_class(r, mocked_authenticator, access_token_generator):
-    r.META["HTTP_AUTHORIZATION"] = "Bearer " + access_token_generator()
-    user, auth = mocked_authenticator.authenticate(r)
-    assert user.username == "testuser"
-    assert auth.scope == "readwrite"
-
-
-def test_authentication_class_no_header(r, mocked_authenticator):
-    assert mocked_authenticator.authenticate(r) is None
-
-
-def test_authentication_class_no_bearer(
-    r, mocked_authenticator, access_token_generator
+def test_authentication_class(
+    r, authenticator, access_token_generator, mocked_oauth_client, mocked_authenticate
 ):
+    r.META["HTTP_AUTHORIZATION"] = "Bearer " + access_token_generator()
+    user, auth = authenticator.authenticate(r)
+    assert user.username == "testuser"
+    assert auth.scope == "foo"
+
+
+def test_authentication_class_no_header(r, authenticator):
+    assert authenticator.authenticate(r) is None
+
+
+def test_authentication_class_no_bearer(r, authenticator, access_token_generator):
     r.META["HTTP_AUTHORIZATION"] = "Token xxx"
-    assert mocked_authenticator.authenticate(r) is None
+    assert authenticator.authenticate(r) is None
