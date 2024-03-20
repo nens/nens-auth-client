@@ -1,26 +1,11 @@
-from authlib.integrations.django_client import DjangoOAuth2App
-from authlib.jose import JsonWebKey
-from authlib.jose import JsonWebToken
-from django.conf import settings
+from .oauth_base import BaseOAuthClient
 from django.http.response import HttpResponseRedirect
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
-import base64
-import json
 
-
-def decode_jwt(token):
-    """Decode a JWT without checking its signature"""
-    # JWT consists of {header}.{payload}.{signature}
-    _, payload, _ = token.split(".")
-    # JWT should be padded with = (base64.b64decode expects this)
-    payload += "=" * (-len(payload) % 4)
-    return json.loads(base64.b64decode(payload))
-
-
-class WSO2AuthClient(DjangoOAuth2App):
+class WSO2AuthClient(BaseOAuthClient):
     def logout_redirect(self, request, redirect_uri=None, login_after=False):
         """Create a redirect to the remote server's logout endpoint
 
@@ -45,50 +30,6 @@ class WSO2AuthClient(DjangoOAuth2App):
         )
         logout_url = urlunparse(auth_url)
         return HttpResponseRedirect(logout_url)
-
-    def parse_access_token(self, token, claims_options=None, leeway=120):
-        """Decode and validate a WSO2 access token and return its payload.
-
-        Args:
-          token (str): access token (base64 encoded JWT)
-
-        Returns:
-          claims (dict): the token payload
-
-        Raises:
-          authlib.jose.errors.JoseError: if token is invalid
-          ValueError: if the key id is not present in the jwks.json
-        """
-
-        # this is a copy from authlib.integrations.base_client.sync_openid.parse_id_token equivalent function
-        def load_key(header, _):
-            jwk_set = JsonWebKey.import_key_set(self.fetch_jwk_set())
-            try:
-                return jwk_set.find_by_kid(header.get("kid"))
-            except ValueError:
-                # re-try with new jwk set
-                jwk_set = JsonWebKey.import_key_set(self.fetch_jwk_set(force=True))
-                return jwk_set.find_by_kid(header.get("kid"))
-
-        metadata = self.load_server_metadata()
-        claims_options = {
-            "aud": {"essential": True, "value": settings.NENS_AUTH_RESOURCE_SERVER_ID},
-            "iss": {"essential": True, "value": metadata["issuer"]},
-            "sub": {"essential": True},
-            "scope": {"essential": True},
-            **(claims_options or {}),
-        }
-
-        alg_values = metadata.get("id_token_signing_alg_values_supported")
-        if not alg_values:
-            alg_values = ["RS256"]
-
-        claims = JsonWebToken(alg_values).decode(
-            token, key=load_key, claims_options=claims_options
-        )
-
-        claims.validate(leeway=leeway)
-        return claims
 
     @staticmethod
     def extract_provider_name(claims):
