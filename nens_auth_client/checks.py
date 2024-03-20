@@ -19,11 +19,15 @@ def check_resource_server_id(app_configs=None, **kwargs):
                 "AccessTokenMiddleware is used."
             )
         ]
-    if not url.endswith("/"):
+    if (
+        settings.NENS_AUTH_OAUTH_BACKEND
+        == "nens_auth_client.cognito.CognitoOAuthClient"
+        and not url.endswith("/")
+    ):
         return [
             Error(
                 "The NENS_AUTH_RESOURCE_SERVER_ID setting needs to end with a "
-                "slash (because AWS Cognito will automatically add one)."
+                "slash when using the CognitoOAuthClient."
             )
         ]
     return []

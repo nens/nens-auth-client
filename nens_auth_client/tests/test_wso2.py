@@ -1,5 +1,3 @@
-from authlib.oidc.discovery import get_well_known_url
-from django.conf import settings
 from nens_auth_client.wso2 import WSO2AuthClient
 
 import pytest
@@ -19,13 +17,3 @@ def test_extract_provider_name():
 )
 def test_extract_username(claims, expected):
     assert WSO2AuthClient.extract_username(claims) == expected
-
-
-@pytest.fixture
-def wso2_client():
-    return WSO2AuthClient(
-        "foo",
-        server_metadata_url=get_well_known_url(
-            settings.NENS_AUTH_ISSUER, external=True
-        ),
-    )
