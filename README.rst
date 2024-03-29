@@ -13,6 +13,15 @@ Required settings
 The nens-auth-client library exposes one django application: ``nens_auth_client``.
 The django built-in apps ``auth``, ``sessions`` and ``contenttypes`` are
 also required, but they probably are already there.
+
+To add ``nens_auth_client`` to a django project, add the following to the requirements.txt::
+
+    --extra-index-url https://packages.lizard.net
+
+    ...
+    nens-auth-client
+    ...
+
 Add these to the ``INSTALLED_APPS`` setting. Make sure your project's app is
 listed *before* nens_auth_client::
 
@@ -54,7 +63,7 @@ Include the ``nens-auth-client`` urls in your application's urls.py::
 
     urlpatterns = [
         ...
-        url(r"^accounts/", include("nens_auth_client.urls", namespace="auth")),
+        path("accounts/", include("nens_auth_client.urls", namespace="auth")),
         ...
     ]
 
@@ -73,10 +82,10 @@ Achieve this as follows (in urls.py)::
     urlpatterns = [
         ...
         *override_admin_auth(),
-        url(r"^admin/", admin.site.urls),  # is probably already there
+        path("admin/", admin.site.urls),  # is probably already there
         ...
         *override_rest_framework_auth(),  # only if you use rest_framework
-        url(r"^api-auth/", include("rest_framework.urls"), namespace="rest_framework"),
+        path("api-auth/", include("rest_framework.urls")),
         ...
     ]
 
@@ -330,7 +339,7 @@ Configure the authentication class::
     REST_FRAMEWORK = {
         (...)
         "DEFAULT_AUTHENTICATION_CLASSES": [
-            "nens_auth_client.rest_framwork.OAuth2TokenAuthentication",
+            "nens_auth_client.rest_framework.OAuth2TokenAuthentication",
             (...)
         ]
     }
