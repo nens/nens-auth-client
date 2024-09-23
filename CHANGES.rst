@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.6.1 (unreleased)
+1.6.1 (2024-09-23)
 ------------------
 
 - README fixes and updates (``path()`` instead of ``url()``, for instance).
