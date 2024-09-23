@@ -7,6 +7,9 @@ Changelog of nens-auth-client
 
 - README fixes and updates (``path()`` instead of ``url()``, for instance).
 
+- Require "authlib>=1.3.1" because of
+  https://security.snyk.io/vuln/SNYK-PYTHON-AUTHLIB-7231109.
+
 
 1.6.0 (2024-03-20)
 ------------------
