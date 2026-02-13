@@ -71,6 +71,9 @@ def login(request):
     the same time we need the redirect to go to the correct subdomain or
     else cookies will not be valid.
     """
+    from django.http import HttpResponse
+    return HttpResponse("Foobar")
+
     # Get the success redirect url
     success_url = _get_redirect_from_next(request)
 
