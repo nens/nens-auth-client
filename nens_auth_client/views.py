@@ -5,12 +5,17 @@ from . import users
 from .backends import RemoteUserBackend
 from .models import Invitation
 from .oauth import get_oauth_client
+from django import forms
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.utils.functional import cached_property
+from django.views.generic import FormView
+from django.views.generic import TemplateView
 
 try:
     from django.utils.http import url_has_allowed_host_and_scheme
@@ -71,9 +76,6 @@ def login(request):
     the same time we need the redirect to go to the correct subdomain or
     else cookies will not be valid.
     """
-    from django.http import HttpResponse
-    return HttpResponse("Foobar")
-
     # Get the success redirect url
     success_url = _get_redirect_from_next(request)
 
@@ -298,9 +300,8 @@ def accept_invitation(request, slug):
     # We need a user - redirect to login view if user is not authenticated.
     # The acceptability of the invitation is checked in the login view.
     if not request.user.is_authenticated:
-        login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
-        query_params = {"invitation": slug, "next": request.get_full_path()}
-        return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
+        welcome_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "welcome", args=[slug])
+        return HttpResponseRedirect(welcome_url)
 
     # Check if the invitation is acceptable (including if email matches)
     # If the current user has no email this check is skipped
@@ -308,3 +309,82 @@ def accept_invitation(request, slug):
     invitation.accept(request.user)
     success_url = _get_redirect_from_next(request)
     return HttpResponseRedirect(success_url or settings.NENS_AUTH_DEFAULT_SUCCESS_URL)
+
+
+@method_decorator(never_cache, name="dispatch")
+class WelcomeView(TemplateView):
+    template_name = "nens_auth_client/welcome.html"
+
+    def post(self, request, *args, **kwargs):
+        user = request.POST.get("user", "")
+        if user == "new":
+            # Present the invitee with a custom sign-up form. We no longer
+            # want to use Cognito's sign-up form.
+            slug = kwargs["slug"]
+            register_url = reverse(
+                settings.NENS_AUTH_URL_NAMESPACE + "register", args=[slug]
+            )
+            return HttpResponseRedirect(register_url)
+        elif user == "existing":
+            # The invitee already has an account.
+            # Let the login view handle it from here.
+            slug = kwargs["slug"]
+            accept_url = reverse(
+                settings.NENS_AUTH_URL_NAMESPACE + "accept_invitation", args=[slug]
+            )
+            login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
+            query_params = {"invitation": slug, "next": accept_url}
+            return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
+        # Return this page as a fallback.
+        return super().get(request, *args, **kwargs)
+
+
+class RegistrationForm(forms.Form):
+    first_name = forms.CharField(label="First name", max_length=10)
+    last_name = forms.CharField(label="Last name", max_length=10)
+    email = forms.EmailField(label="Email", disabled=True)
+    password = forms.CharField(widget=forms.PasswordInput())
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+        self.initial["email"] = self.invitation.email
+
+    @cached_property
+    def invitation(self):
+        slug = self.request.resolver_match.captured_kwargs["slug"]
+        invitation = Invitation.objects.get(slug=slug)
+        return invitation
+
+    def clean_email(self):
+        # Make sure the email field has not been tampered with.
+        return self.invitation.email
+
+    def create_cognito_account(self):
+        pass
+
+
+class RegistrationView(FormView):
+    template_name = "nens_auth_client/register.html"
+    form_class = RegistrationForm
+
+    def get_form_kwargs(self):
+        # Give the form access to the request object.
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs["request"] = self.request
+        return form_kwargs
+
+    def form_valid(self, form):
+        form.create_cognito_account()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # The invitee now has an account.
+        # Let the login view handle it from here.
+        slug = self.request.resolver_match.captured_kwargs["slug"]
+        accept_url = reverse(
+            settings.NENS_AUTH_URL_NAMESPACE + "accept_invitation", args=[slug]
+        )
+        login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
+        query_params = {"invitation": slug, "next": accept_url}
+        return login_url + "?" + urlencode(query_params)
