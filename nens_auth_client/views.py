@@ -290,7 +290,7 @@ def accept_invitation(request, slug):
     The full flow is described in the README.
     """
     # First check if the invitation is there and if it is still acceptable
-    invitation = get_object_or_404(Invitation, slug=slug)
+    invitation = get_object_or_404(Invitation, slug=slug, status=Invitation.PENDING)
 
     # We need a user - redirect to login view if user is not authenticated.
     # The acceptability of the invitation is checked in the login view.
