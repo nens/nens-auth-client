@@ -1,5 +1,7 @@
 from authlib.jose.errors import JoseError
+from importlib.metadata import version
 from nens_auth_client.oauth import get_oauth_client
+from packaging.version import Version
 
 import pytest
 import time
@@ -36,6 +38,10 @@ def test_parse_token_bad_signature(access_token_generator, jwks_request):
         get_oauth_client().parse_access_token(token)
 
 
+@pytest.mark.skipif(
+    Version(version("authlib")) > Version("1.6.6"),
+    reason="none algorithm is deprecated",
+)
 def test_parse_token_unsigned_token(access_token_generator, jwks_request):
     token = access_token_generator(alg="none")
     with pytest.raises(JoseError):

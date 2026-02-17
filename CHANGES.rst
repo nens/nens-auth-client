@@ -5,7 +5,8 @@ Changelog of nens-auth-client
 1.6.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Start the "accept invitation" workflow by checking the status of the
+  invitation - it should be PENDING.
 
 
 1.6.1 (2024-09-23)
