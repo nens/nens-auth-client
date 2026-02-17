@@ -6,9 +6,11 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+from importlib.metadata import version
 from nens_auth_client import models
 from nens_auth_client import views
 from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
+from packaging.version import Version
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
@@ -358,6 +360,10 @@ def test_authorize_bad_signature(id_token_generator, auth_req_generator):
         views.authorize(request)
 
 
+@pytest.mark.skipif(
+    Version(version("authlib")) > Version("1.6.6"),
+    reason="none algorithm is deprecated",
+)
 def test_authorize_unsigned_token(id_token_generator, auth_req_generator):
     # The id token has no signature
     id_token, claims = id_token_generator(alg="none")

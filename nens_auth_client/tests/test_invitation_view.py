@@ -42,7 +42,9 @@ def test_invitation_accept(rf, get_object_or_404, invitation, invited_user):
     assert response.status_code == 302
     assert response.url == "/success/"
 
-    get_object_or_404.assert_called_with(Invitation, slug="foo")
+    get_object_or_404.assert_called_with(
+        Invitation, slug="foo", status=Invitation.PENDING
+    )
     invitation.accept.assert_called_with(request.user)
 
 
@@ -67,7 +69,9 @@ def test_invitation_does_not_exist(rf, get_object_or_404):
     with pytest.raises(Http404):
         views.accept_invitation(request, "foo")
 
-    get_object_or_404.assert_called_with(Invitation, slug="foo")
+    get_object_or_404.assert_called_with(
+        Invitation, slug="foo", status=Invitation.PENDING
+    )
 
 
 def test_invitation_expired(rf, get_object_or_404, invitation, invited_user):
@@ -80,7 +84,9 @@ def test_invitation_expired(rf, get_object_or_404, invitation, invited_user):
     with pytest.raises(PermissionDenied, match=".*has expired.*"):
         views.accept_invitation(request, "foo")
 
-    get_object_or_404.assert_called_with(Invitation, slug="foo")
+    get_object_or_404.assert_called_with(
+        Invitation, slug="foo", status=Invitation.PENDING
+    )
 
 
 def test_invitation_expired_anonymous_user(rf, get_object_or_404, invitation):
@@ -104,7 +110,9 @@ def test_invitation_used(rf, get_object_or_404, invitation, invited_user):
     with pytest.raises(PermissionDenied, match=".*has been used already.*"):
         views.accept_invitation(request, "foo")
 
-    get_object_or_404.assert_called_with(Invitation, slug="foo")
+    get_object_or_404.assert_called_with(
+        Invitation, slug="foo", status=Invitation.PENDING
+    )
     assert not invitation.accept.called
 
 
@@ -132,4 +140,6 @@ def test_invitation_not_logged_in(rf, get_object_or_404, invitation):
     assert query_parsed["invitation"] == ["foo"]
     assert query_parsed["next"] == ["/some/url/"]
 
-    get_object_or_404.assert_called_with(Invitation, slug="foo")
+    get_object_or_404.assert_called_with(
+        Invitation, slug="foo", status=Invitation.PENDING
+    )
