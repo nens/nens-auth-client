@@ -19,17 +19,17 @@
             <fieldset class="fieldset border p-4 text-base rounded-box">
                 <legend class="fieldset-legend p-1">Sign up</legend>
                 <label class="label">First name:</label>
-                <input type="text" placeholder="Type here" class="input mb-2" />
+                <input type="text" placeholder="Type here" class="input mb-2" required />
                 <label class="label">Last name:</label>
-                <input type="text" placeholder="Type here" class="input mb-2" />
+                <input type="text" placeholder="Type here" class="input mb-2" required />
                 <label class="label">Email:</label>
                 <input type="text" class="input" disabled />
                 <p class="label text-xs mb-2">The address used for the invitation.</p>
                 <label class="label">Password:</label>
-                <input type="password" placeholder="Type here" class="input" />
+                <input type="password" placeholder="Type here" class="input" required />
                 <p class="label text-xs mb-2">At least 12 characters long.</p>
                 <label class="label">Confirm password:</label>
-                <input type="password" placeholder="Type here" class="input mb-2" />
+                <input type="password" placeholder="Type here" class="input mb-2" required />
             </fieldset>
             <a href="{% url 'nens_auth_client:welcome' slug %}" class="btn btn-outline mt-3">Back</a>
             <button class="btn btn-outline mt-3 ml-1">Next</button>
