@@ -1,25 +1,42 @@
+{% load static %}
+
+{% with slug=request.resolver_match.captured_kwargs.slug %}
+
 <!doctype html>
-<html lang=en>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Register</title>
+    <link href="{% static 'nens_auth_client/css/output.css' %}" rel="stylesheet">
 </head>
 
+
 <body>
-    <div class="container">
+    <div class="w-lg mt-40 mx-auto p-4">
         <form method="post">
             {% csrf_token %}
-            {{ form }}
-            <input type="submit" value="Next">
+            <fieldset class="fieldset border p-4 text-base rounded-box">
+                <legend class="fieldset-legend p-1">Sign up</legend>
+                <label class="label">First name:</label>
+                <input type="text" placeholder="Type here" class="input mb-2" />
+                <label class="label">Last name:</label>
+                <input type="text" placeholder="Type here" class="input mb-2" />
+                <label class="label">Email:</label>
+                <input type="text" class="input" disabled />
+                <p class="label text-xs mb-2">The address used for the invitation.</p>
+                <label class="label">Password:</label>
+                <input type="password" placeholder="Type here" class="input" />
+                <p class="label text-xs mb-2">At least 12 characters long.</p>
+                <label class="label">Confirm password:</label>
+                <input type="password" placeholder="Type here" class="input mb-2" />
+            </fieldset>
+            <a href="{% url 'nens_auth_client:welcome' slug %}" class="btn btn-outline mt-3">Back</a>
+            <button class="btn btn-outline mt-3 ml-1">Next</button>
         </form>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
 </body>
 
 </html>
+
+{% endwith %}

@@ -1,26 +1,32 @@
+{% load static %}
+
 <!doctype html>
-<html lang=en>
+<html lang="en">
 
 <head>
-    <meta charset=utf-8>
-    <title>blah</title>
+    <meta charset="utf-8">
+    <title>Welcome</title>
+    <link href="{% static 'nens_auth_client/css/output.css' %}" rel="stylesheet">
 </head>
 
 <body>
-    <form>
-        <fieldset>
-            <legend>Welcome, invitee! Have we met before?</legend>
-            <div>
-                <input type="radio" id="new" name="user" value="new" checked />
-                <label for="new">No, I am a new user and I want to sign up.</label>
-            </div>
-            <div>
-                <input type="radio" id="existing" name="user" value="existing" />
-                <label for="existing">Yes, I already have an account and want to sign in.</label>
-            </div>
-        </fieldset>
-        <input type="submit" value="Next" formmethod="post" />
-    </form>
+    <div class="w-lg mt-40 mx-auto p-4">
+        <form method="post">
+            {% csrf_token %}
+            <fieldset class="fieldset border p-4 text-base rounded-box">
+                <legend class="fieldset-legend p-1">Welcome, invitee! How would you like to proceed?</legend>
+                <div class="mb-1">
+                    <input class="radio" type="radio" id="new_user" name="user" value="new" checked />
+                    <label class="label ml-1" for="new_user">I'm a new user and I want to sign up.</label>
+                </div>
+                <div>
+                    <input class="radio" type="radio" id="existing_user" name="user" value="existing" />
+                    <label class="label ml-1" for="existing_user">I already have an account and want to sign in.</label>
+                </div>
+            </fieldset>
+            <button class="btn btn-outline mt-3">Next</button>
+        </form>
+    </div>
 </body>
 
-</html>
+</html> 

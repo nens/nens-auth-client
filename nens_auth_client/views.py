@@ -368,6 +368,10 @@ class RegistrationView(FormView):
     template_name = "nens_auth_client/register.html"
     form_class = RegistrationForm
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
     def get_form_kwargs(self):
         # Give the form access to the request object.
         form_kwargs = super().get_form_kwargs()
