@@ -6,11 +6,9 @@ from . import users
 from .backends import RemoteUserBackend
 from .models import Invitation
 from .oauth import get_oauth_client
-from django import forms
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
-from django.core.exceptions import ValidationError
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -24,6 +22,7 @@ try:
 except ImportError:
     from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
 
+from .forms import RegistrationForm
 from authlib.integrations.base_client.errors import MismatchingStateError
 from authlib.integrations.base_client.errors import OAuthError
 from django.views.decorators.cache import never_cache
@@ -341,24 +340,7 @@ class WelcomeView(TemplateView):
         return super().get(request, *args, **kwargs)
 
 
-class RegistrationForm(forms.Form):
-    first_name = forms.CharField(max_length=150)  # Limited by Django
-    last_name = forms.CharField(max_length=150)  # Limited by Django
-    password = forms.CharField(max_length=256)  # Limited by Cognito
-    password2 = forms.CharField(max_length=256)  # Limited by Cognito
-
-    def clean(self):
-        cleaned_data = super().clean()
-        password = cleaned_data["password"]
-        password2 = cleaned_data["password2"]
-        if password != password2:
-            raise ValidationError("Passwords do not match.")
-        return cleaned_data
-
-    def create_cognito_account(self):
-        pass
-
-
+@method_decorator(never_cache, name="dispatch")
 class RegistrationView(FormView):
     template_name = "nens_auth_client/register.html"
     form_class = RegistrationForm
