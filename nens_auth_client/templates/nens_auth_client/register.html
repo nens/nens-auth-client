@@ -46,7 +46,7 @@
                     <span class="label text-base">Password:</span>
                     <input name="password" type="password" placeholder="Type here" class="input validator"
                         value="{{ form.password.value|default_if_none:'' }}" minlength="8" required />
-                    <span class="validator-hint hidden mt-0">Foobar.</span>
+                    <span class="validator-hint hidden mt-0">Enter a valid password.</span>
                     {% for error in form.password.errors %}
                     <span class="label text-error">{{ error }}</span>
                     {% endfor %}
