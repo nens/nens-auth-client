@@ -1,4 +1,5 @@
 {% load static %}
+{% load filters %}
 
 {% with slug=request.resolver_match.captured_kwargs.slug %}
 
@@ -11,49 +12,45 @@
     <link href="{% static 'nens_auth_client/css/output.css' %}" rel="stylesheet">
 </head>
 
-
 <body>
     <div class="w-md mt-30 mx-auto p-4">
         <form method="post">
             {% csrf_token %}
             <fieldset class="fieldset border p-4 text-base rounded-box">
                 <legend class="fieldset-legend p-1">Sign up</legend>
-
                 <label class="fieldset">
                     <span class="label text-base">First name:</span>
                     <input name="first_name" type="text" placeholder="Type here" class="input validator"
-                        pattern="^\w+([ \-]\w+)*$" value="{{ form.first_name.value|default_if_none:'' }}" required />
+                        pattern="^\w+([ \-]\w+)*$" value="{{ form.first_name.value|default_if_none:'' }}"
+                        maxlength="150" required />
                     <span class="validator-hint hidden mt-0">Enter a valid name</span>
                 </label>
-
                 <label class="fieldset">
                     <span class="label text-base">Last name:</span>
                     <input name="last_name" type="text" placeholder="Type here" class="input validator"
-                        pattern="^\w+([ \-]\w+)*$" value="{{ form.last_name.value|default_if_none:'' }}" required />
+                        pattern="^\w+([ \-]\w+)*$" value="{{ form.last_name.value|default_if_none:'' }}"
+                        maxlength="150" required />
                     <span class="validator-hint hidden mt-0">Enter a valid name</span>
                 </label>
-
                 <label class="fieldset">
                     <span class="label text-base">Email:</span>
                     <input type="text" class="input" value="{{ email }}" disabled />
-                    <span class="label text-xs">The address used for the invitation.</span>
+                    <span class="label">The address used for the invitation.</span>
                 </label>
-
                 <label class="fieldset">
                     <span class="label text-base">Password:</span>
-                    <input name="password" type="password" placeholder="Type here" class="input validator" minlength="8" required />
-                    <span class="label text-xs">At least 8 characters long.</span>
+                    <input name="password" type="password" placeholder="Type here" class="input validator"
+                        value="{{ form.password.value|default_if_none:'' }}" minlength="8" required />
                     <span class="validator-hint hidden mt-0">Foobar</span>
                 </label>
-
                 <label class="fieldset">
                     <span class="label text-base">Confirm password:</span>
-                    <input name="password2" type="password" placeholder="Type here" class="input mb-2" required />
-                    {% if form.non_field_errors %}
-                    <div class="validator-hint">Bla bla</div>
-                    {% endif %}
+                    <input name="password2" type="password" placeholder="Type here" class="input"
+                        value="{{ form.password2.value|default_if_none:'' }}" minlength="8" required />
+                    {% for error in form.non_field_errors %}
+                    <span class="label text-error">{{ error|punctuate }}</span>
+                    {% endfor %}
                 </label>
-
             </fieldset>
             <a href="{% url 'nens_auth_client:welcome' slug %}" class="btn btn-outline mt-3">Back</a>
             <button class="btn btn-outline mt-3 ml-1">Next</button>
