@@ -1131,6 +1131,9 @@
       font-weight: 600;
     }
   }
+  .mb-0 {
+    margin-bottom: calc(var(--spacing) * 0);
+  }
   .mb-1 {
     margin-bottom: calc(var(--spacing) * 1);
   }

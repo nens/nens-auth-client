@@ -1,5 +1,4 @@
 {% load static %}
-{% load filters %}
 
 {% with slug=request.resolver_match.captured_kwargs.slug %}
 
@@ -23,14 +22,20 @@
                     <input name="first_name" type="text" placeholder="Type here" class="input validator"
                         pattern="^\w+([ \-]\w+)*$" value="{{ form.first_name.value|default_if_none:'' }}"
                         maxlength="150" required />
-                    <span class="validator-hint hidden mt-0">Enter a valid name</span>
+                    <span class="validator-hint hidden mt-0">Enter a valid name.</span>
+                    {% for error in form.first_name.errors %}
+                    <span class="label text-error">{{ error }}</span>
+                    {% endfor %}
                 </label>
                 <label class="fieldset">
                     <span class="label text-base">Last name:</span>
                     <input name="last_name" type="text" placeholder="Type here" class="input validator"
-                        pattern="^\w+([ \-]\w+)*$" value="{{ form.last_name.value|default_if_none:'' }}"
-                        maxlength="150" required />
-                    <span class="validator-hint hidden mt-0">Enter a valid name</span>
+                        pattern="^\w+([ \-]\w+)*$" value="{{ form.last_name.value|default_if_none:'' }}" maxlength="150"
+                        required />
+                    <span class="validator-hint hidden mt-0">Enter a valid name.</span>
+                    {% for error in form.last_name.errors %}
+                    <span class="label text-error">{{ error }}</span>
+                    {% endfor %}
                 </label>
                 <label class="fieldset">
                     <span class="label text-base">Email:</span>
@@ -41,14 +46,17 @@
                     <span class="label text-base">Password:</span>
                     <input name="password" type="password" placeholder="Type here" class="input validator"
                         value="{{ form.password.value|default_if_none:'' }}" minlength="8" required />
-                    <span class="validator-hint hidden mt-0">Foobar</span>
+                    <span class="validator-hint hidden mt-0">Foobar.</span>
+                    {% for error in form.password.errors %}
+                    <span class="label text-error">{{ error }}</span>
+                    {% endfor %}
                 </label>
                 <label class="fieldset">
                     <span class="label text-base">Confirm password:</span>
                     <input name="password2" type="password" placeholder="Type here" class="input"
                         value="{{ form.password2.value|default_if_none:'' }}" minlength="8" required />
                     {% for error in form.non_field_errors %}
-                    <span class="label text-error">{{ error|punctuate }}</span>
+                    <span class="label text-error">{{ error }}</span>
                     {% endfor %}
                 </label>
             </fieldset>
