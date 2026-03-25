@@ -22,15 +22,15 @@
                 <label class="fieldset">
                     <span class="label text-base">First name:</span>
                     <input name="first_name" type="text" placeholder="Type here" class="input validator"
-                        pattern=".*\S.*" value="{{ form.first_name.value|default_if_none:'' }}" required />
-                    <span class="validator-hint hidden mt-0">Required</span>
+                        pattern="^\w+([ \-]\w+)*$" value="{{ form.first_name.value|default_if_none:'' }}" required />
+                    <span class="validator-hint hidden mt-0">Enter a valid name</span>
                 </label>
 
                 <label class="fieldset">
                     <span class="label text-base">Last name:</span>
-                    <input name="last_name" type="text" placeholder="Type here" class="input validator" pattern=".*\S.*"
-                        value="{{ form.last_name.value|default_if_none:'' }}" required />
-                    <span class="validator-hint hidden mt-0">Required</span>
+                    <input name="last_name" type="text" placeholder="Type here" class="input validator"
+                        pattern="^\w+([ \-]\w+)*$" value="{{ form.last_name.value|default_if_none:'' }}" required />
+                    <span class="validator-hint hidden mt-0">Enter a valid name</span>
                 </label>
 
                 <label class="fieldset">
@@ -41,8 +41,7 @@
 
                 <label class="fieldset">
                     <span class="label text-base">Password:</span>
-                    <input name="password" type="password" placeholder="Type here" class="input validator" minlength="8"
-                        pattern="" required />
+                    <input name="password" type="password" placeholder="Type here" class="input validator" minlength="8" required />
                     <span class="label text-xs">At least 8 characters long.</span>
                     <span class="validator-hint hidden mt-0">Foobar</span>
                 </label>
