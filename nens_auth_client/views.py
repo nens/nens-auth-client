@@ -1,5 +1,6 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 # from nens_auth_client import models
+
 from . import permissions
 from . import users
 from .backends import RemoteUserBackend
@@ -9,6 +10,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ValidationError
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -340,25 +342,18 @@ class WelcomeView(TemplateView):
 
 
 class RegistrationForm(forms.Form):
-    first_name = forms.CharField(label="First name", max_length=10)
-    last_name = forms.CharField(label="Last name", max_length=10)
-    email = forms.EmailField(label="Email", disabled=True)
-    password = forms.CharField(widget=forms.PasswordInput())
+    first_name = forms.CharField(max_length=5)
+    last_name = forms.CharField()
+    password = forms.CharField()
+    password2 = forms.CharField()
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request")
-        super().__init__(*args, **kwargs)
-        self.initial["email"] = self.invitation.email
-
-    @cached_property
-    def invitation(self):
-        slug = self.request.resolver_match.captured_kwargs["slug"]
-        invitation = Invitation.objects.get(slug=slug)
-        return invitation
-
-    def clean_email(self):
-        # Make sure the email field has not been tampered with.
-        return self.invitation.email
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data["password"]
+        password2 = cleaned_data["password2"]
+        if password != password2:
+            raise ValidationError("Passwords do not match")
+        return cleaned_data
 
     def create_cognito_account(self):
         pass
@@ -368,15 +363,22 @@ class RegistrationView(FormView):
     template_name = "nens_auth_client/register.html"
     form_class = RegistrationForm
 
+    @cached_property
+    def invitation(self):
+        slug = self.request.resolver_match.captured_kwargs["slug"]
+        invitation = Invitation.objects.get(slug=slug)
+        return invitation
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["email"] = self.invitation.email
         return context
 
-    def get_form_kwargs(self):
-        # Give the form access to the request object.
-        form_kwargs = super().get_form_kwargs()
-        form_kwargs["request"] = self.request
-        return form_kwargs
+    # def get_form_kwargs(self):
+    #     # Give the form access to the request object.
+    #     form_kwargs = super().get_form_kwargs()
+    #     form_kwargs["request"] = self.request
+    #     return form_kwargs
 
     def form_valid(self, form):
         form.create_cognito_account()

@@ -13,23 +13,48 @@
 
 
 <body>
-    <div class="w-lg mt-40 mx-auto p-4">
+    <div class="w-md mt-30 mx-auto p-4">
         <form method="post">
             {% csrf_token %}
             <fieldset class="fieldset border p-4 text-base rounded-box">
                 <legend class="fieldset-legend p-1">Sign up</legend>
-                <label class="label">First name:</label>
-                <input type="text" placeholder="Type here" class="input mb-2" required />
-                <label class="label">Last name:</label>
-                <input type="text" placeholder="Type here" class="input mb-2" required />
-                <label class="label">Email:</label>
-                <input type="text" class="input" disabled />
-                <p class="label text-xs mb-2">The address used for the invitation.</p>
-                <label class="label">Password:</label>
-                <input type="password" placeholder="Type here" class="input" required />
-                <p class="label text-xs mb-2">At least 12 characters long.</p>
-                <label class="label">Confirm password:</label>
-                <input type="password" placeholder="Type here" class="input mb-2" required />
+
+                <label class="fieldset">
+                    <span class="label text-base">First name:</span>
+                    <input name="first_name" type="text" placeholder="Type here" class="input validator"
+                        pattern=".*\S.*" value="{{ form.first_name.value|default_if_none:'' }}" required />
+                    <span class="validator-hint hidden mt-0">Required</span>
+                </label>
+
+                <label class="fieldset">
+                    <span class="label text-base">Last name:</span>
+                    <input name="last_name" type="text" placeholder="Type here" class="input validator" pattern=".*\S.*"
+                        value="{{ form.last_name.value|default_if_none:'' }}" required />
+                    <span class="validator-hint hidden mt-0">Required</span>
+                </label>
+
+                <label class="fieldset">
+                    <span class="label text-base">Email:</span>
+                    <input type="text" class="input" value="{{ email }}" disabled />
+                    <span class="label text-xs">The address used for the invitation.</span>
+                </label>
+
+                <label class="fieldset">
+                    <span class="label text-base">Password:</span>
+                    <input name="password" type="password" placeholder="Type here" class="input validator" minlength="8"
+                        pattern="" required />
+                    <span class="label text-xs">At least 8 characters long.</span>
+                    <span class="validator-hint hidden mt-0">Foobar</span>
+                </label>
+
+                <label class="fieldset">
+                    <span class="label text-base">Confirm password:</span>
+                    <input name="password2" type="password" placeholder="Type here" class="input mb-2" required />
+                    {% if form.non_field_errors %}
+                    <div class="validator-hint">Bla bla</div>
+                    {% endif %}
+                </label>
+
             </fieldset>
             <a href="{% url 'nens_auth_client:welcome' slug %}" class="btn btn-outline mt-3">Back</a>
             <button class="btn btn-outline mt-3 ml-1">Next</button>

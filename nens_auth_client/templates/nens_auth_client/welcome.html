@@ -10,14 +10,14 @@
 </head>
 
 <body>
-    <div class="w-lg mt-40 mx-auto p-4">
+    <div class="w-lg mt-30 mx-auto p-4">
         <form method="post">
             {% csrf_token %}
             <fieldset class="fieldset border p-4 text-base rounded-box">
                 <legend class="fieldset-legend p-1">Welcome, invitee! How would you like to proceed?</legend>
                 <div class="mb-1">
                     <input class="radio" type="radio" id="new_user" name="user" value="new" checked />
-                    <label class="label ml-1" for="new_user">I'm a new user and I want to sign up.</label>
+                    <label class="label ml-1" for="new_user">I am a new user and I want to sign up.</label>
                 </div>
                 <div>
                     <input class="radio" type="radio" id="existing_user" name="user" value="existing" />
