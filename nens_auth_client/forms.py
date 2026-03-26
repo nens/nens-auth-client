@@ -5,10 +5,14 @@ from django.core.exceptions import ValidationError
 
 
 class RegistrationForm(forms.Form):
-    first_name = forms.CharField(max_length=150)  # Limited by Django
-    last_name = forms.CharField(max_length=150)  # Limited by Django
-    password = forms.CharField(max_length=256)  # Limited by Cognito
-    password2 = forms.CharField(max_length=256)  # Limited by Cognito
+    # Limited by Django.
+    first_name = forms.CharField(max_length=150)
+    last_name = forms.CharField(max_length=150)
+    # Limited by Cognito. Regex taken from https://docs.aws.amazon.com/cognito-user- ⏎
+    # identity-pools/latest/APIReference/API_AdminCreateUser.html
+    username = forms.RegexField(max_length=128, regex=r"")
+    password = forms.CharField(max_length=256)
+    password2 = forms.CharField(max_length=256)
 
     def clean(self):
         cleaned_data = super().clean()
