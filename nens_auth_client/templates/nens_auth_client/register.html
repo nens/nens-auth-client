@@ -42,18 +42,16 @@
                     <input type="text" class="input w-full" value="{{ email }}" disabled />
                     <span class="label">The address used for the invitation.</span>
                 </label>
-
                 <label class="fieldset">
                     <span class="label text-base">Username:</span>
                     <input name="username" type="text" placeholder="Type here" class="input validator w-full"
-                        pattern="^\w+([ \-]\w+)*$" value="{{ form.username.value|default_if_none:'' }}" maxlength="128"
+                        pattern="^[\w\.\+\-_@]+$" value="{{ form.username.value|default_if_none:email }}" maxlength="128"
                         required />
                     <span class="validator-hint hidden mt-0">Enter a valid name.</span>
                     {% for error in form.username.errors %}
                     <span class="label text-error">{{ error }}</span>
                     {% endfor %}
                 </label>
-
                 <label class="fieldset">
                     <span class="label text-base">Password:</span>
                     <input name="password" type="password" placeholder="Type here" class="input validator w-full"

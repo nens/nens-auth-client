@@ -356,9 +356,10 @@ class RegistrationView(FormView):
         context["email"] = self.invitation.email
         return context
 
-    def form_valid(self, form):
-        form.create_cognito_account()
-        return super().form_valid(form)
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs["email"] = self.invitation.email
+        return form_kwargs
 
     def get_success_url(self):
         # The invitee now has an account.
