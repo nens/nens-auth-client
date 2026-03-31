@@ -13,6 +13,7 @@ install_requires = [
     "Django",
     # https://security.snyk.io/vuln/SNYK-PYTHON-AUTHLIB-7231109
     "authlib>=1.3.1",
+    "boto3",
     "django-appconf",
     "requests",
 ]

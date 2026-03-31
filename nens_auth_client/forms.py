@@ -1,6 +1,8 @@
 # (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
 
 from django import forms
+from django.conf import settings
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 
 import boto3
@@ -14,7 +16,7 @@ class RegistrationForm(forms.Form):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
     # Length limited by Cognito.
-    username = forms.RegexField(max_length=128, regex=r"^[\w\.\+\-@]+$")
+    username = forms.CharField(max_length=128, validators=[UnicodeUsernameValidator])
     password = forms.CharField(max_length=256)
     password2 = forms.CharField(max_length=256)
 
@@ -39,9 +41,14 @@ class RegistrationForm(forms.Form):
 
     def create_cognito_account(self) -> bool:
         try:
-            client = boto3.client("cognito-idp", "eu-west-1")
+            client = boto3.client(
+                "cognito-idp",
+                region_name=settings.AWS_REGION_NAME,
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            )
             client.admin_create_user(
-                UserPoolId="eu-west-1_vPwXOnNbi",
+                UserPoolId=settings.USER_POOL_ID,
                 Username=self.cleaned_data["username"],
                 UserAttributes=[
                     {"Name": "given_name", "Value": self.cleaned_data["first_name"]},
@@ -52,7 +59,7 @@ class RegistrationForm(forms.Form):
                 MessageAction="SUPPRESS",
             )
             client.admin_set_user_password(
-                UserPoolId="eu-west-1_vPwXOnNbi",
+                UserPoolId=settings.USER_POOL_ID,
                 Username=self.cleaned_data["username"],
                 Password=self.cleaned_data["password"],
                 Permanent=True,
