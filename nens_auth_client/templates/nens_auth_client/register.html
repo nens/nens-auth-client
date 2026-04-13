@@ -45,8 +45,8 @@
                 <label class="fieldset">
                     <span class="label text-base">Username:</span>
                     <input name="username" type="text" placeholder="Type here" class="input validator w-full"
-                        pattern="^[\w\.\+\-_@]+$" value="{{ form.username.value|default_if_none:email }}" maxlength="128"
-                        required />
+                        pattern="^[\w\.\+\-_@]+$" value="{{ form.username.value|default_if_none:email }}"
+                        minlength="4" maxlength="128" required />
                     <span class="validator-hint hidden mt-0">Enter a valid name.</span>
                     {% for error in form.username.errors %}
                     <span class="label text-error">{{ error }}</span>
@@ -54,9 +54,8 @@
                 </label>
                 <label class="fieldset">
                     <span class="label text-base">Password:</span>
-                    <input name="password" type="password" placeholder="Type here" class="input validator w-full"
-                        value="{{ form.password.value|default_if_none:'' }}" minlength="8" required />
-                    <span class="validator-hint hidden mt-0">Enter a valid password.</span>
+                    <input name="password" type="password" placeholder="Type here" class="input w-full"
+                        value="{{ form.password.value|default_if_none:'' }}" minlength="8" maxlength="256" required />
                     {% for error in form.password.errors %}
                     <span class="label text-error">{{ error }}</span>
                     {% endfor %}
@@ -64,7 +63,7 @@
                 <label class="fieldset">
                     <span class="label text-base">Confirm password:</span>
                     <input name="password2" type="password" placeholder="Type here" class="input w-full"
-                        value="{{ form.password2.value|default_if_none:'' }}" minlength="8" required />
+                        value="{{ form.password2.value|default_if_none:'' }}" minlength="8" maxlength="256" required />
                     {% for error in form.non_field_errors %}
                     <span class="label text-error">{{ error }}</span>
                     {% endfor %}

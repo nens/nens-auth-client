@@ -10,14 +10,59 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Validators based on https://github.com/nens/rana/blob/main/ ⏎
+# backend-service/src/account/domain/password.py
+
+
+def has_lowercase(v: str) -> None:
+    if not any(x.islower() for x in v):
+        raise ValidationError("Must contain at least 1 lowercase letter.")
+
+
+def has_uppercase(v: str) -> None:
+    if not any(x.isupper() for x in v):
+        raise ValidationError("Must contain at least 1 uppercase letter")
+
+
+def has_number(v: str) -> None:
+    if not any(x.isdigit() for x in v):
+        raise ValidationError("Must contain at least 1 digit.")
+
+
+SPECIAL = "^$*.[]{}()?\"!@#%&/\\,><':;|_~`=+-"
+
+
+def has_special(v: str) -> None:
+    if not any(x in SPECIAL for x in v):
+        raise ValidationError("Must contain at least 1 special character.")
+
+
+def has_no_trailing_leading_spaces(v: str) -> None:
+    if not (v[0] != " " and v[-1] != " "):
+        raise ValidationError("Must not have a trailing or leading space.")
+
 
 class RegistrationForm(forms.Form):
     # Length limited by Django.
-    first_name = forms.CharField(max_length=150)
-    last_name = forms.CharField(max_length=150)
+    first_name = forms.CharField(min_length=1, max_length=150)
+    last_name = forms.CharField(min_length=1, max_length=150)
     # Length limited by Cognito.
-    username = forms.CharField(max_length=128, validators=[UnicodeUsernameValidator])
-    password = forms.CharField(max_length=256)
+    username = forms.CharField(
+        min_length=4,
+        max_length=128,
+        validators=[UnicodeUsernameValidator],
+    )
+    password = forms.CharField(
+        min_length=8,
+        max_length=256,
+        validators=[
+            has_lowercase,
+            has_uppercase,
+            has_number,
+            has_special,
+            has_no_trailing_leading_spaces,
+        ],
+    )
     password2 = forms.CharField(max_length=256)
 
     def __init__(self, *args, **kwargs):
@@ -26,17 +71,19 @@ class RegistrationForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        password = cleaned_data["password"]
-        password2 = cleaned_data["password2"]
-        if password != password2:
-            raise ValidationError("Passwords do not match.")
-        if not self.create_cognito_account():
-            raise ValidationError(
-                (
-                    "An error occurred while creating your account. "
-                    "Please try again or contact our service desk."
+        password = cleaned_data.get("password")
+        password2 = cleaned_data.get("password2")
+
+        if password and password2:
+            if password != password2:
+                raise ValidationError("Passwords do not match.")
+            if not self.create_cognito_account():
+                raise ValidationError(
+                    (
+                        "An error occurred while creating your account. "
+                        "Please try again or contact our service desk."
+                    )
                 )
-            )
         return cleaned_data
 
     def create_cognito_account(self) -> bool:
