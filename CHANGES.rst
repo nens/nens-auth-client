@@ -8,6 +8,10 @@ Changelog of nens-auth-client
 - Start the "accept invitation" workflow by checking the status of the
   invitation - it should be PENDING.
 
+- Use a custom sign-up form for new user accounts. After successful
+  registration, users will be redirected to auth.lizard.net, where
+  they can use their newly created username and password to sign in.
+
 
 1.6.1 (2024-09-23)
 ------------------

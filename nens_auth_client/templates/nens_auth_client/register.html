@@ -12,9 +12,11 @@
 
 <body>
     <div class="w-lg mt-30 mx-auto p-4">
+        <p class="text-sm">After successful registration, you will be redirected to auth.lizard.net, where you can use
+            your newly created username and password to sign in.</p>
         <form method="post">
             {% csrf_token %}
-            <fieldset class="fieldset border p-4 text-base rounded-box">
+            <fieldset class="fieldset border mt-4 p-4 text-base rounded-box">
                 <legend class="fieldset-legend p-1">Sign up</legend>
                 <label class="fieldset">
                     <span class="label text-base">First name:</span>
@@ -44,8 +46,8 @@
                 <label class="fieldset">
                     <span class="label text-base">Username:</span>
                     <input name="username" type="text" placeholder="Type here" class="input validator w-full"
-                        pattern="^[\w\.\+\-_@]+$" value="{{ form.username.value|default_if_none:email }}"
-                        minlength="4" maxlength="128" required />
+                        pattern="^[\w\.\+\-_@]+$" value="{{ form.username.value|default_if_none:email }}" minlength="4"
+                        maxlength="128" required />
                     <span class="validator-hint hidden mt-0">Enter a valid name.</span>
                     {% for error in form.username.errors %}
                     <span class="label text-error">{{ error }}</span>
