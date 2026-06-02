@@ -6,7 +6,6 @@ from django.utils import timezone
 from nens_auth_client import views
 from nens_auth_client.models import Invitation
 from unittest import mock
-from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
 import pytest
@@ -135,10 +134,7 @@ def test_invitation_not_logged_in(rf, get_object_or_404, invitation):
     response = views.accept_invitation(request, "foo")
     assert response.status_code == 302
     _, _, path, _, query, _ = urlparse(response.url)
-    assert path == "/login/"
-    query_parsed = parse_qs(query)
-    assert query_parsed["invitation"] == ["foo"]
-    assert query_parsed["next"] == ["/some/url/"]
+    assert path == "/invitations/foo/welcome/"
 
     get_object_or_404.assert_called_with(
         Invitation, slug="foo", status=Invitation.PENDING
