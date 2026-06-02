@@ -90,12 +90,12 @@ class RegistrationForm(forms.Form):
         try:
             client = boto3.client(
                 "cognito-idp",
-                region_name=settings.AWS_REGION_NAME,
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.NENS_AUTH_REGION_NAME,
+                aws_access_key_id=settings.NENS_AUTH_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.NENS_AUTH_SECRET_ACCESS_KEY,
             )
             client.admin_create_user(
-                UserPoolId=settings.USER_POOL_ID,
+                UserPoolId=settings.NENS_AUTH_USER_POOL_ID,
                 Username=self.cleaned_data["username"],
                 UserAttributes=[
                     {"Name": "given_name", "Value": self.cleaned_data["first_name"]},
@@ -106,7 +106,7 @@ class RegistrationForm(forms.Form):
                 MessageAction="SUPPRESS",
             )
             client.admin_set_user_password(
-                UserPoolId=settings.USER_POOL_ID,
+                UserPoolId=settings.NENS_AUTH_USER_POOL_ID,
                 Username=self.cleaned_data["username"],
                 Password=self.cleaned_data["password"],
                 Permanent=True,
