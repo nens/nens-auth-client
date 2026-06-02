@@ -12,7 +12,7 @@ long_description = "\n\n".join(
 install_requires = [
     "Django",
     # https://security.snyk.io/vuln/SNYK-PYTHON-AUTHLIB-7231109
-    "authlib>=1.3.1",
+    "authlib>=1.7,<2.0",
     "boto3",
     "django-appconf",
     "requests",
