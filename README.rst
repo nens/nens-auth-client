@@ -220,7 +220,7 @@ By default, an invitation is valid for 14 days. Change this as follows::
 There are two types of invitees: existing users and new users. Existing users,
 for example, may be invited to join another organisation. They already have
 an account that they can use to sign in. New users, however, will have to
-sign up first. The following settings are required for this to work:
+sign up first. The following settings are required for this to work::
 
     NENS_AUTH_REGION_NAME = "..."  # AWS region code
     NENS_AUTH_ACCESS_KEY_ID = "..."  # Access key ID of the AWS IAM user
