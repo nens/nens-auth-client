@@ -1,5 +1,3 @@
-# (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
-
 from django import forms
 from django.conf import settings
 from django.contrib.auth.validators import UnicodeUsernameValidator
