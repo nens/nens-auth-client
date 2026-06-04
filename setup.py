@@ -10,7 +10,7 @@ long_description = "\n\n".join(
 )
 
 install_requires = [
-    "Django",
+    "Django>=5.2",
     "authlib>=1.7,<2.0",
     "boto3",
     "django-appconf",
