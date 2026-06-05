@@ -1,6 +1,3 @@
-# (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
-# from nens_auth_client import models
-
 from . import permissions
 from . import users
 from .backends import RemoteUserBackend
@@ -17,15 +14,13 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.generic import FormView
 from django.views.generic import TemplateView
 from urllib.parse import urlencode
 
 import django.contrib.auth as django_auth
-
-from django.utils.http import url_has_allowed_host_and_scheme
-
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 INVITATION_KEY = "nens_auth_invitation_slug"
