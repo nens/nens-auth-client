@@ -52,4 +52,5 @@ class NensAuthClientAppConf(AppConf):
             "ACCESS_KEY_ID",  # Provided by AWS Cognito
             "SECRET_ACCESS_KEY",  # Provided by AWS Cognito
             "USER_POOL_ID",  # Provided by AWS Cognito
+            "APPLICATION",  # E.g. Lizard, BROSTAR, etc.
         )

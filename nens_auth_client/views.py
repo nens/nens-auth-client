@@ -331,6 +331,10 @@ class WelcomeView(TemplateView):
         # Return this page as a fallback.
         return super().get(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        kwargs["application"] = settings.NENS_AUTH_APPLICATION
+        return super().get_context_data(**kwargs)
+
 
 @method_decorator(never_cache, name="dispatch")
 class RegistrationView(FormView):

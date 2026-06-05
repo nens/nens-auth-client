@@ -139,6 +139,7 @@ NENS_AUTH_REGION_NAME = os.environ.get("NENS_AUTH_REGION_NAME", "test-region")
 NENS_AUTH_ACCESS_KEY_ID = os.environ.get("NENS_AUTH_ACCESS_KEY_ID", "test-access-key-id")
 NENS_AUTH_SECRET_ACCESS_KEY = os.environ.get("NENS_AUTH_SECRET_ACCESS_KEY", "test-secret-access-key")
 NENS_AUTH_USER_POOL_ID = os.environ.get("NENS_AUTH_USER_POOL_ID", "test-pool")
+NENS_AUTH_APPLICATION = "KillerApp"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 USE_TZ = True
