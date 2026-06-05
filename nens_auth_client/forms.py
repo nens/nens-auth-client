@@ -109,7 +109,7 @@ class RegistrationForm(forms.Form):
                 Password=self.cleaned_data["password"],
                 Permanent=True,
             )
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            logger.exception("Error when creating cognito account")
             return False
         return True
