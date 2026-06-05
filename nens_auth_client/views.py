@@ -4,8 +4,11 @@
 from . import permissions
 from . import users
 from .backends import RemoteUserBackend
+from .forms import RegistrationForm
 from .models import Invitation
 from .oauth import get_oauth_client
+from authlib.integrations.base_client.errors import MismatchingStateError
+from authlib.integrations.base_client.errors import OAuthError
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
@@ -14,21 +17,18 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
+from django.views.decorators.cache import never_cache
 from django.views.generic import FormView
 from django.views.generic import TemplateView
+from urllib.parse import urlencode
+
+import django.contrib.auth as django_auth
 
 try:
     from django.utils.http import url_has_allowed_host_and_scheme
 except ImportError:
     from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
 
-from .forms import RegistrationForm
-from authlib.integrations.base_client.errors import MismatchingStateError
-from authlib.integrations.base_client.errors import OAuthError
-from django.views.decorators.cache import never_cache
-from urllib.parse import urlencode
-
-import django.contrib.auth as django_auth
 
 LOGIN_REDIRECT_SESSION_KEY = "nens_auth_login_redirect_to"
 INVITATION_KEY = "nens_auth_invitation_slug"
