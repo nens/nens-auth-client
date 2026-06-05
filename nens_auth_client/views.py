@@ -317,8 +317,8 @@ class WelcomeView(TemplateView):
     template_name = "nens_auth_client/welcome.html"
 
     def post(self, request, *args, **kwargs):
-        user = request.POST.get("user", "")
-        if user == "new":
+        type_of_user = request.POST.get("type_of_user", "")
+        if type_of_user == "new":
             # Present the invitee with a custom sign-up form. We no longer
             # want to use Cognito's sign-up form.
             slug = kwargs["slug"]
@@ -326,7 +326,7 @@ class WelcomeView(TemplateView):
                 settings.NENS_AUTH_URL_NAMESPACE + "register", args=[slug]
             )
             return HttpResponseRedirect(register_url)
-        elif user == "existing":
+        elif type_of_user == "existing":
             # The invitee already has an account.
             # Let the login view handle it from here.
             slug = kwargs["slug"]
