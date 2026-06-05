@@ -96,8 +96,6 @@ msgid "Email"
 msgstr "E-mailadres"
 
 #: nens_auth_client/templates/nens_auth_client/register.html:44
-#, fuzzy
-#| msgid "The email address used for the invitation"
 msgid "The email address used for the invitation."
 msgstr "Het e-mailadres gebruikt voor de uitnodiging."
 
