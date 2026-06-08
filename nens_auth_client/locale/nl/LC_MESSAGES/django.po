@@ -1,0 +1,137 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-05 07:20-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: nens_auth_client/forms.py:18
+msgid "Must contain at least 1 lowercase letter."
+msgstr "Moet minstens 1 kleine letter bevatten."
+
+#: nens_auth_client/forms.py:23
+msgid "Must contain at least 1 uppercase letter."
+msgstr "Moet minstens 1 hoofdletter bevatten."
+
+#: nens_auth_client/forms.py:28
+msgid "Must contain at least 1 digit."
+msgstr "Moet minstens 1 cijfer bevatten."
+
+#: nens_auth_client/forms.py:36
+msgid "Must contain at least 1 special character."
+msgstr "Moet minstens 1 vreemd teken bevatten."
+
+#: nens_auth_client/forms.py:41
+msgid "Must not have a trailing or leading space."
+msgstr "Mag niet beginnen of eindigen met een spatie."
+
+#: nens_auth_client/forms.py:78
+msgid "Passwords do not match."
+msgstr "Wachtwoorden komen niet overeen."
+
+#: nens_auth_client/forms.py:82
+#, fuzzy
+#| msgid ""
+#| "An error occurred while creating your account. Please try again or "
+#| "contact our service desk: servicedesk@nelen-schuurmans.nl"
+msgid ""
+"An error occurred while creating your account. Please try again or contact "
+"our service desk."
+msgstr ""
+"Er is een fout opgetreden. Probeert u het opnieuw of neem contact op met "
+"onze service desk: servicedesk@nelen-schuurmans.nl"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:9
+msgid "Register"
+msgstr "Registreren"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:16
+msgid ""
+"After successful registration, you will be redirected to auth.lizard.net, "
+"where you can use your newly created username and password to sign in."
+msgstr ""
+"Na registratie wordt u doorgestuurd naar auth.lizard.net, waar u kunt "
+"inloggen met uw gekozen gebruikersnaam en wachtwoord."
+
+#: nens_auth_client/templates/nens_auth_client/register.html:20
+msgid "Sign up"
+msgstr "Aanmelden"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:22
+msgid "First name"
+msgstr "Voornaam"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:23
+#: nens_auth_client/templates/nens_auth_client/register.html:33
+#: nens_auth_client/templates/nens_auth_client/register.html:48
+#: nens_auth_client/templates/nens_auth_client/register.html:58
+#: nens_auth_client/templates/nens_auth_client/register.html:66
+msgid "Type here"
+msgstr "Vul in"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:26
+#: nens_auth_client/templates/nens_auth_client/register.html:36
+msgid "Enter a valid name."
+msgstr "Voer een geldige naam in."
+
+#: nens_auth_client/templates/nens_auth_client/register.html:32
+msgid "Last name"
+msgstr "Achternaam"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:42
+msgid "Email"
+msgstr "E-mailadres"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:44
+msgid "The email address used for the invitation."
+msgstr "Het e-mailadres gebruikt voor de uitnodiging."
+
+#: nens_auth_client/templates/nens_auth_client/register.html:47
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:57
+msgid "Password"
+msgstr "Wachtwoord"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:65
+msgid "Confirm password"
+msgstr "Bevestig wachtwoord"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:73
+msgid "Back"
+msgstr "Terug"
+
+#: nens_auth_client/templates/nens_auth_client/register.html:74
+#: nens_auth_client/templates/nens_auth_client/welcome.html:28
+msgid "Next"
+msgstr "Volgende"
+
+#: nens_auth_client/templates/nens_auth_client/welcome.html:8
+msgid "Welcome"
+msgstr "Welkom"
+
+#: nens_auth_client/templates/nens_auth_client/welcome.html:18
+msgid "Welcome to"
+msgstr "Welkom bij"
+
+#: nens_auth_client/templates/nens_auth_client/welcome.html:21
+msgid "I am a new user and I want to sign up."
+msgstr "Ik wil mezelf registreren als een nieuwe gebruiker."
+
+#: nens_auth_client/templates/nens_auth_client/welcome.html:25
+msgid "I already have an account and want to sign in."
+msgstr "Ik heb al een account om mee in te loggen."

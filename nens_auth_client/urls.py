@@ -77,6 +77,16 @@ urlpatterns = [
         views.accept_invitation,
         name="accept_invitation",
     ),
+    re_path(
+        r"^invitations/(?P<slug>\w+)/welcome/",
+        views.WelcomeView.as_view(),
+        name="welcome",
+    ),
+    re_path(
+        r"^invitations/(?P<slug>\w+)/register/",
+        views.RegistrationView.as_view(),
+        name="register",
+    ),
 ]
 
 if settings.NENS_AUTH_STANDALONE:

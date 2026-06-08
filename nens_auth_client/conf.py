@@ -48,4 +48,9 @@ class NensAuthClientAppConf(AppConf):
             "CLIENT_ID",  # Provided by AWS Cognito
             "CLIENT_SECRET",  # Provided by AWS Cognito
             "ISSUER",  # N&S Global (authorization server URL)
+            "REGION_NAME",  # Provided by AWS Cognito
+            "ACCESS_KEY_ID",  # Provided by AWS Cognito
+            "SECRET_ACCESS_KEY",  # Provided by AWS Cognito
+            "USER_POOL_ID",  # Provided by AWS Cognito
+            "APPLICATION",  # E.g. Lizard, BROSTAR, etc.
         )

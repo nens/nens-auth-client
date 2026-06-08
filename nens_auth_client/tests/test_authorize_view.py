@@ -7,6 +7,11 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from importlib.metadata import version
+from joserfc.errors import BadSignatureError
+from joserfc.errors import ExpiredTokenError
+from joserfc.errors import InvalidClaimError
+from joserfc.errors import InvalidKeyIdError
+from joserfc.errors import MissingClaimError
 from nens_auth_client import models
 from nens_auth_client import views
 from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
@@ -298,7 +303,7 @@ def test_authorize_wrong_nonce(id_token_generator, auth_req_generator):
     # The id token has a different nonce than the session
     id_token, claims = id_token_generator(nonce="a")
     request = auth_req_generator(id_token, nonce="b")
-    with pytest.raises(JoseError):
+    with pytest.raises(InvalidClaimError):
         views.authorize(request)
 
 
@@ -323,7 +328,7 @@ def test_authorize_wrong_issuer(id_token_generator, auth_req_generator):
     # The issuer in the id token is unknown
     id_token, claims = id_token_generator(iss="https://google.com")
     request = auth_req_generator(id_token)
-    with pytest.raises(JoseError):
+    with pytest.raises(InvalidClaimError):
         views.authorize(request)
 
 
@@ -331,7 +336,7 @@ def test_authorize_wrong_audience(id_token_generator, auth_req_generator):
     # The audience in the id token is not equal to client_id
     id_token, claims = id_token_generator(aud="abcd")
     request = auth_req_generator(id_token)
-    with pytest.raises(JoseError):
+    with pytest.raises(MissingClaimError):
         views.authorize(request)
 
 
@@ -340,7 +345,7 @@ def test_authorize_expired(id_token_generator, auth_req_generator):
     # Note that authlib has a 120 seconds "leeway" (for clock skew)
     id_token, claims = id_token_generator(exp=int(time.time()) - 121)
     request = auth_req_generator(id_token)
-    with pytest.raises(JoseError):
+    with pytest.raises(ExpiredTokenError):
         views.authorize(request)
 
 
@@ -348,7 +353,7 @@ def test_authorize_corrupt_signature(id_token_generator, auth_req_generator):
     # The id token has invalid signature padding
     id_token, claims = id_token_generator()
     request = auth_req_generator(id_token[:-1])
-    with pytest.raises(JoseError):
+    with pytest.raises(BadSignatureError):
         views.authorize(request)
 
 
@@ -356,7 +361,7 @@ def test_authorize_bad_signature(id_token_generator, auth_req_generator):
     # The id token has invalid signature
     id_token, claims = id_token_generator()
     request = auth_req_generator(id_token[:-16])
-    with pytest.raises(JoseError):
+    with pytest.raises(BadSignatureError):
         views.authorize(request)
 
 
@@ -376,7 +381,7 @@ def test_authorize_invalid_key_id(id_token_generator, auth_req_generator):
     # The id token is signed with an unknown key
     id_token, claims = id_token_generator(kid="unknown_key_id")
     request = auth_req_generator(id_token)
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidKeyIdError):
         views.authorize(request)
 
 

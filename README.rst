@@ -103,6 +103,16 @@ sender ('from') email address::
 
 See https://docs.djangoproject.com/en/2.2/topics/email/ for further information.
 
+There are two types of invitees: existing users and new users. Existing users,
+for example, may be invited to join another organisation. They already have
+an account that they can use to sign in. New users, however, will have to
+sign up first. The following settings are required for this to work::
+
+    NENS_AUTH_REGION_NAME = "..."  # AWS region code
+    NENS_AUTH_ACCESS_KEY_ID = "..."  # Access key ID of the AWS IAM user
+    NENS_AUTH_SECRET_ACCESS_KEY = "..."  # Secret access key of the AWS IAM user
+    NENS_AUTH_USER_POOL_ID = "..."  # User pool ID in AWS Cognito
+
 
 Login & logout
 --------------

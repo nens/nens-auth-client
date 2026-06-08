@@ -1,25 +1,23 @@
-# (c) Nelen & Schuurmans.  Proprietary, see LICENSE file.
-# from nens_auth_client import models
 from . import permissions
 from . import users
 from .backends import RemoteUserBackend
+from .forms import RegistrationForm
 from .models import Invitation
 from .oauth import get_oauth_client
+from authlib.integrations.base_client.errors import MismatchingStateError
+from authlib.integrations.base_client.errors import OAuthError
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-
-try:
-    from django.utils.http import url_has_allowed_host_and_scheme
-except ImportError:
-    from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
-
-from authlib.integrations.base_client.errors import MismatchingStateError
-from authlib.integrations.base_client.errors import OAuthError
+from django.utils.decorators import method_decorator
+from django.utils.functional import cached_property
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
+from django.views.generic import FormView
+from django.views.generic import TemplateView
 from urllib.parse import urlencode
 
 import django.contrib.auth as django_auth
@@ -295,9 +293,8 @@ def accept_invitation(request, slug):
     # We need a user - redirect to login view if user is not authenticated.
     # The acceptability of the invitation is checked in the login view.
     if not request.user.is_authenticated:
-        login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
-        query_params = {"invitation": slug, "next": request.get_full_path()}
-        return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
+        welcome_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "welcome", args=[slug])
+        return HttpResponseRedirect(welcome_url)
 
     # Check if the invitation is acceptable (including if email matches)
     # If the current user has no email this check is skipped
@@ -305,3 +302,68 @@ def accept_invitation(request, slug):
     invitation.accept(request.user)
     success_url = _get_redirect_from_next(request)
     return HttpResponseRedirect(success_url or settings.NENS_AUTH_DEFAULT_SUCCESS_URL)
+
+
+@method_decorator(never_cache, name="dispatch")
+class WelcomeView(TemplateView):
+    template_name = "nens_auth_client/welcome.html"
+
+    def post(self, request, *args, **kwargs):
+        type_of_user = request.POST.get("type_of_user", "")
+        if type_of_user == "new":
+            # Present the invitee with a custom sign-up form. We no longer
+            # want to use Cognito's sign-up form.
+            slug = kwargs["slug"]
+            register_url = reverse(
+                settings.NENS_AUTH_URL_NAMESPACE + "register", args=[slug]
+            )
+            return HttpResponseRedirect(register_url)
+        elif type_of_user == "existing":
+            # The invitee already has an account.
+            # Let the login view handle it from here.
+            slug = kwargs["slug"]
+            accept_url = reverse(
+                settings.NENS_AUTH_URL_NAMESPACE + "accept_invitation", args=[slug]
+            )
+            login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
+            query_params = {"invitation": slug, "next": accept_url}
+            return HttpResponseRedirect(login_url + "?" + urlencode(query_params))
+        # Return this page as a fallback.
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        kwargs["application"] = settings.NENS_AUTH_APPLICATION
+        return super().get_context_data(**kwargs)
+
+
+@method_decorator(never_cache, name="dispatch")
+class RegistrationView(FormView):
+    template_name = "nens_auth_client/register.html"
+    form_class = RegistrationForm
+
+    @cached_property
+    def invitation(self):
+        slug = self.request.resolver_match.captured_kwargs["slug"]
+        invitation = Invitation.objects.get(slug=slug)
+        return invitation
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["email"] = self.invitation.email
+        return context
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs["email"] = self.invitation.email
+        return form_kwargs
+
+    def get_success_url(self):
+        # The invitee now has an account.
+        # Let the login view handle it from here.
+        slug = self.request.resolver_match.captured_kwargs["slug"]
+        accept_url = reverse(
+            settings.NENS_AUTH_URL_NAMESPACE + "accept_invitation", args=[slug]
+        )
+        login_url = reverse(settings.NENS_AUTH_URL_NAMESPACE + "login")
+        query_params = {"invitation": slug, "next": accept_url}
+        return login_url + "?" + urlencode(query_params)
