@@ -5,6 +5,10 @@ Changelog of nens-auth-client
 1.6.2 (unreleased)
 ------------------
 
+- Support multiple audiences by using the (optional) `NENS_AUTH_EXTRA_RESOURCE_SERVER_IDS` setting.
+  The extra resource server ids are added to the `NENS_AUTH_RESOURCE_SERVER_ID` setting. The first
+  matching entry is used as audience.
+
 - Start the "accept invitation" workflow by checking the status of the
   invitation - it should be PENDING.
 
