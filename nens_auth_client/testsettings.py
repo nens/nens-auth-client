@@ -4,7 +4,6 @@
 import os
 import sys
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -134,10 +133,15 @@ NENS_AUTH_CLIENT_SECRET = os.environ.get("NENS_AUTH_CLIENT_SECRET", "test-secret
 NENS_AUTH_ISSUER = os.environ.get("NENS_AUTH_ISSUER", "http://localhost/test-issuer")
 NENS_AUTH_DEFAULT_LOGOUT_URL = "/admin/"
 NENS_AUTH_DEFAULT_SUCCESS_URL = "/admin/"
+# list[str] or str, e.g. "api/" or ["api/", "api2/"] to match scopes like "api/read" or "api2/write"
 NENS_AUTH_RESOURCE_SERVER_ID = "localhost/"  # trailing slash
 NENS_AUTH_REGION_NAME = os.environ.get("NENS_AUTH_REGION_NAME", "test-region")
-NENS_AUTH_ACCESS_KEY_ID = os.environ.get("NENS_AUTH_ACCESS_KEY_ID", "test-access-key-id")
-NENS_AUTH_SECRET_ACCESS_KEY = os.environ.get("NENS_AUTH_SECRET_ACCESS_KEY", "test-secret-access-key")
+NENS_AUTH_ACCESS_KEY_ID = os.environ.get(
+    "NENS_AUTH_ACCESS_KEY_ID", "test-access-key-id"
+)
+NENS_AUTH_SECRET_ACCESS_KEY = os.environ.get(
+    "NENS_AUTH_SECRET_ACCESS_KEY", "test-secret-access-key"
+)
 NENS_AUTH_USER_POOL_ID = os.environ.get("NENS_AUTH_USER_POOL_ID", "test-pool")
 NENS_AUTH_APPLICATION = "KillerApp"
 

@@ -88,10 +88,10 @@ class CognitoOAuthClient(BaseOAuthClient):
         if "aud" in claims:
             return
 
-        # Get the expected "aud" claim
-        audiences = [settings.NENS_AUTH_RESOURCE_SERVER_ID] + getattr(
-            settings, "NENS_AUTH_EXTRA_RESOURCE_SERVER_IDS", []
-        )
+        if isinstance(settings.NENS_AUTH_RESOURCE_SERVER_ID, list):
+            audiences = settings.NENS_AUTH_RESOURCE_SERVER_ID
+        else:
+            audiences = [settings.NENS_AUTH_RESOURCE_SERVER_ID]
 
         # List scopes and chop off the audience from the scope
         new_scopes = []

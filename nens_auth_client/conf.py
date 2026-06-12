@@ -12,6 +12,7 @@ class NensAuthClientAppConf(AppConf):
     DEFAULT_SUCCESS_URL = "/"  # Default redirect after successful login
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout
 
+    # str or list of str, e.g. "api/" or ["api/", "api2/"] to match scopes like "api/read" or "api2/write"
     RESOURCE_SERVER_ID = None  # For Access Tokens ("aud" should equal this)
 
     PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"

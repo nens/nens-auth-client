@@ -33,8 +33,7 @@ def test_preprocess_access_token(claims, expected, settings):
     ],
 )
 def test_preprocess_access_token_multi_resource_server_ids(claims, expected, settings):
-    settings.NENS_AUTH_RESOURCE_SERVER_ID = "api/"
-    settings.NENS_AUTH_EXTRA_RESOURCE_SERVER_IDS = ["api2/", "api3/"]
+    settings.NENS_AUTH_RESOURCE_SERVER_ID = ["api/", "api2/", "api3/"]
     CognitoOAuthClient.preprocess_access_token(None, claims)
     assert claims == expected
 
