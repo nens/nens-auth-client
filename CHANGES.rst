@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.6.3 (unreleased)
+1.6.3 (2026-06-12)
 ------------------
 
 - Lower Django version requirement in setup.py to 4.2.27 for HCC.
