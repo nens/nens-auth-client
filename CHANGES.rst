@@ -2,7 +2,7 @@ Changelog of nens-auth-client
 ===================================================
 
 
-1.6.2 (unreleased)
+1.6.2 (2026-06-12)
 ------------------
 
 - Support multiple audiences by providing a list[str] to the `NENS_AUTH_RESOURCE_SERVER_ID` setting.
