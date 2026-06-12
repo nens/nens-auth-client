@@ -1,9 +1,9 @@
-from urllib.parse import urlencode, urlparse, urlunparse
-
+from .oauth_base import BaseOAuthClient
 from django.conf import settings
 from django.http.response import HttpResponseRedirect
-
-from .oauth_base import BaseOAuthClient
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from urllib.parse import urlunparse
 
 
 def get_scopes_by_audience(claims, audience):

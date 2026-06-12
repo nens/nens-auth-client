@@ -1,6 +1,6 @@
-import pytest
-
 from nens_auth_client.cognito import CognitoOAuthClient
+
+import pytest
 
 
 @pytest.mark.parametrize(
