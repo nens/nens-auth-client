@@ -6,6 +6,19 @@ from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
 
+def get_scopes_by_audience(claims, audience):
+    """
+    Extract scopes prefixed with the given audience from the claims and
+    return them without the audience prefix.
+    """
+    new_scopes = []
+    for scope_item in claims.get("scope", "").split(" "):
+        if scope_item.startswith(audience):
+            scope_without_audience = scope_item[len(audience) :]
+            new_scopes.append(scope_without_audience)
+    return new_scopes
+
+
 class CognitoOAuthClient(BaseOAuthClient):
     def logout_redirect(self, request, redirect_uri=None, login_after=False):
         """Create a redirect to the remote server's logout endpoint
@@ -75,23 +88,27 @@ class CognitoOAuthClient(BaseOAuthClient):
         if "aud" in claims:
             return
 
-        # Get the expected "aud" claim
-        audience = settings.NENS_AUTH_RESOURCE_SERVER_ID
+        if isinstance(settings.NENS_AUTH_RESOURCE_SERVER_ID, list):
+            audiences = settings.NENS_AUTH_RESOURCE_SERVER_ID
+        else:
+            audiences = [settings.NENS_AUTH_RESOURCE_SERVER_ID]
 
         # List scopes and chop off the audience from the scope
         new_scopes = []
-        for scope_item in claims.get("scope", "").split(" "):
-            if scope_item.startswith(audience):
-                scope_without_audience = scope_item[len(audience) :]
-                new_scopes.append(scope_without_audience)
+        aud = None
+        for audience in audiences:
+            new_scopes = get_scopes_by_audience(claims, audience)
+            if new_scopes:
+                aud = audience
+                break
 
         # Don't set the audience if there are no scopes as Access Token is
         # apparently not meant for this server.
-        if not new_scopes:
+        if not new_scopes or aud is None:
             return
 
         # Update the claims inplace
-        claims["aud"] = audience
+        claims["aud"] = aud
         claims["scope"] = " ".join(new_scopes)
 
     @staticmethod

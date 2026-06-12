@@ -6,7 +6,7 @@ import pytest
 @pytest.mark.parametrize(
     "claims,expected",
     [
-        ({"scope": "api/read"}, {"aud": "api/", "scope": "read"}),
+        ({"scope": "api/read api2/read2 api3/read3"}, {"aud": "api/", "scope": "read"}),
         ({"scope": "api/r api/w"}, {"aud": "api/", "scope": "r w"}),
         ({"scope": "api/read write"}, {"aud": "api/", "scope": "read"}),
         ({"scope": "api/read other/write"}, {"aud": "api/", "scope": "read"}),
@@ -18,6 +18,22 @@ import pytest
 )
 def test_preprocess_access_token(claims, expected, settings):
     settings.NENS_AUTH_RESOURCE_SERVER_ID = "api/"
+    CognitoOAuthClient.preprocess_access_token(None, claims)
+    assert claims == expected
+
+
+@pytest.mark.parametrize(
+    "claims,expected",
+    [
+        ({"scope": "email api/read"}, {"aud": "api/", "scope": "read"}),
+        ({"scope": "email api2/read2"}, {"aud": "api2/", "scope": "read2"}),
+        ({"scope": "email api3/read3"}, {"aud": "api3/", "scope": "read3"}),
+        # Should pick the first matching audience, even if there are scopes for the second audience.
+        ({"scope": "email api/read api2/read2"}, {"aud": "api/", "scope": "read"}),
+    ],
+)
+def test_preprocess_access_token_multi_resource_server_ids(claims, expected, settings):
+    settings.NENS_AUTH_RESOURCE_SERVER_ID = ["api/", "api2/", "api3/"]
     CognitoOAuthClient.preprocess_access_token(None, claims)
     assert claims == expected
 

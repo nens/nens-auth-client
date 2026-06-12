@@ -5,6 +5,9 @@ Changelog of nens-auth-client
 1.6.2 (unreleased)
 ------------------
 
+- Support multiple audiences by providing a list[str] to the `NENS_AUTH_RESOURCE_SERVER_ID` setting.
+  The first matching audience in the scope of the token is used as the `aud` claim.
+
 - Start the "accept invitation" workflow by checking the status of the
   invitation - it should be PENDING.
 
