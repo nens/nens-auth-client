@@ -5,8 +5,7 @@ Changelog of nens-auth-client
 1.6.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix: Support multiple audiences in token validation.
 
 1.6.3 (2026-06-12)
 ------------------

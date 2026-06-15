@@ -56,8 +56,14 @@ class BaseOAuthClient(DjangoOAuth2App):
           ValueError: if the key id is not present in the jwks.json
         """
         metadata = self.load_server_metadata()
+
+        aud_key = (
+            "values"
+            if isinstance(settings.NENS_AUTH_RESOURCE_SERVER_ID, list)
+            else "value"
+        )
         claims_options = {
-            "aud": {"essential": True, "value": settings.NENS_AUTH_RESOURCE_SERVER_ID},
+            "aud": {"essential": True, aud_key: settings.NENS_AUTH_RESOURCE_SERVER_ID},
             "iss": {"essential": True, "value": metadata["issuer"]},
             "sub": {"essential": True},
             "scope": {"essential": True},
