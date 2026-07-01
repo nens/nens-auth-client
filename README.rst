@@ -112,6 +112,7 @@ sign up first. The following settings are required for this to work::
     NENS_AUTH_ACCESS_KEY_ID = "..."  # Access key ID of the AWS IAM user
     NENS_AUTH_SECRET_ACCESS_KEY = "..."  # Secret access key of the AWS IAM user
     NENS_AUTH_USER_POOL_ID = "..."  # User pool ID in AWS Cognito
+    NENS_AUTH_APPLICATION = "..."  # Application name, e.g. Lizard
 
 
 Login & logout
