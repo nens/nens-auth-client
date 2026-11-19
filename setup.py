@@ -14,6 +14,7 @@ install_requires = [
     "authlib>=1.7,<2.0",
     "boto3",
     "django-appconf",
+    "joserfc>=1.6.8",
     "requests",
 ]
 

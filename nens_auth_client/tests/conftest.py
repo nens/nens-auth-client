@@ -1,6 +1,7 @@
-from authlib.jose import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from joserfc import jwk
+from joserfc import jwt
 from nens_auth_client.views import LOGIN_REDIRECT_SESSION_KEY
 
 import json
@@ -89,10 +90,9 @@ def token_generator(private_key):
         header = {"alg": key["alg"], "kid": key["kid"]}
 
         # Sign the token
-        token = jwt.encode(header, claims, key)
+        token = jwt.encode(header, claims, jwk.import_key(key))
 
-        # Convert bytes to string
-        return token.decode("ascii")
+        return token
 
     return func
 

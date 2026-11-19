@@ -1,5 +1,6 @@
-from authlib.jose.errors import JoseError
 from importlib.metadata import version
+from joserfc.errors import InvalidKeyIdError
+from joserfc.errors import JoseError
 from nens_auth_client.oauth import get_oauth_client
 from packaging.version import Version
 
@@ -50,5 +51,5 @@ def test_parse_token_unsigned_token(access_token_generator, jwks_request):
 
 def test_parse_token_invalid_key_id(access_token_generator, jwks_request):
     token = access_token_generator(kid="unknown_key_id")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidKeyIdError):
         get_oauth_client().parse_access_token(token)

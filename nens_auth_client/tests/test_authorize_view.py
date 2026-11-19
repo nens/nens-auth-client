@@ -1,5 +1,4 @@
 from authlib.integrations.base_client.errors import OAuthError
-from authlib.jose.errors import JoseError
 from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -11,6 +10,7 @@ from joserfc.errors import BadSignatureError
 from joserfc.errors import ExpiredTokenError
 from joserfc.errors import InvalidClaimError
 from joserfc.errors import InvalidKeyIdError
+from joserfc.errors import JoseError
 from joserfc.errors import MissingClaimError
 from nens_auth_client import models
 from nens_auth_client import views
