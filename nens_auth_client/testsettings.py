@@ -3,6 +3,7 @@
 
 import os
 import sys
+
 import django
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
