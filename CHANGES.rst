@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 1.6.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Prepare for Django 6.1 compatibility (new MAILERS setting).
 
 
 1.6.4 (2026-06-15)

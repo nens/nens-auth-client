@@ -4,6 +4,8 @@
 import os
 import sys
 
+import django
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -124,7 +126,14 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+if django.VERSION < (6, 1):
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    MAILERS = {
+        "default": {
+            "BACKEND": "django.core.mail.backends.smtp.EmailBackend"
+        }
+    }
 
 NENS_AUTH_STANDALONE = True  # for testing
 NENS_AUTH_URL_NAMESPACE = ""  # nens_auth_client urls.py is the root url conf
