@@ -5,7 +5,7 @@ Changelog of nens-auth-client
 1.6.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Migrated from authlib.jose (deprecated) to joserfc.
 
 
 1.6.4 (2026-06-15)
