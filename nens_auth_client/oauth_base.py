@@ -1,7 +1,8 @@
 from authlib.integrations.django_client import DjangoOAuth2App
-from authlib.jose import JsonWebKey
-from authlib.jose import JsonWebToken
 from django.conf import settings
+from joserfc import jwk
+from joserfc import jwt
+from joserfc.errors import InvalidKeyIdError
 
 
 class BaseOAuthClient(DjangoOAuth2App):
@@ -27,13 +28,13 @@ class BaseOAuthClient(DjangoOAuth2App):
         Source:
           authlib.integrations.base_client.sync_openid.parse_id_token
         """
-        jwk_set = JsonWebKey.import_key_set(self.fetch_jwk_set())
+        jwk_set = jwk.KeySet.import_key_set(self.fetch_jwk_set())
         try:
-            return jwk_set.find_by_kid(header.get("kid"))
-        except ValueError:
+            return jwk_set.get_by_kid(header.get("kid"))
+        except InvalidKeyIdError:
             # re-try with new jwk set
-            jwk_set = JsonWebKey.import_key_set(self.fetch_jwk_set(force=True))
-            return jwk_set.find_by_kid(header.get("kid"))
+            jwk_set = jwk.KeySet.import_key_set(self.fetch_jwk_set(force=True))
+            return jwk_set.get_by_kid(header.get("kid"))
 
     def preprocess_access_token(self, claims):
         """Convert access token claims to standard form, inplace.
@@ -52,8 +53,8 @@ class BaseOAuthClient(DjangoOAuth2App):
           claims (dict): the token payload
 
         Raises:
-          authlib.jose.errors.JoseError: if token is invalid
-          ValueError: if the key id is not present in the jwks.json
+          joserfc.errors.JoseError: if token is invalid
+          joserfc.errors.InvalidKeyIdError: if the key id is not present in the jwks.json
         """
         metadata = self.load_server_metadata()
 
@@ -74,14 +75,16 @@ class BaseOAuthClient(DjangoOAuth2App):
         if not alg_values:
             alg_values = ["RS256"]
 
-        claims = JsonWebToken(alg_values).decode(
-            token, key=self.load_key, claims_options=claims_options
-        )
+        def resolve_key(token):
+            return self.load_key(token.headers(), None)
+
+        claims = jwt.decode(token, key=resolve_key, algorithms=alg_values).claims
 
         # Preprocess the token (to add the "aud" claim)
         self.preprocess_access_token(claims)
 
-        claims.validate(leeway=leeway)
+        claims_registry = jwt.JWTClaimsRegistry(leeway=leeway, **claims_options)
+        claims_registry.validate(claims)
         return claims
 
     @staticmethod

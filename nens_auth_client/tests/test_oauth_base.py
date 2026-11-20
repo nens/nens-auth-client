@@ -1,6 +1,6 @@
-from authlib.jose.errors import JoseError
 from authlib.oidc.discovery import get_well_known_url
 from django.conf import settings
+from joserfc.errors import JoseError
 from nens_auth_client.oauth_base import BaseOAuthClient
 from unittest import mock
 

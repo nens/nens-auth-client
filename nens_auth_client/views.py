@@ -139,7 +139,7 @@ def authorize(request):
       the invitation is not)
 
     Raises:
-    - ``authlib.jose.errors.JoseError``: cryptographic errors
+    - ``joserfc.errors.JoseError``: cryptographic errors
       The error details must never be shown to the user.
     - ``authlib.integrations.base_client.errors.OAuthError``: OAuth2 errors.
       These are defined in https://tools.ietf.org/html/rfc6749#section-4.1.2.1.
