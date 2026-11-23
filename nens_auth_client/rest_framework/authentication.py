@@ -1,5 +1,5 @@
-from authlib.jose.errors import JoseError
 from django.conf import settings
+from joserfc.errors import JoseError
 from nens_auth_client.oauth import get_oauth_client
 from rest_framework import exceptions
 from rest_framework import HTTP_HEADER_ENCODING

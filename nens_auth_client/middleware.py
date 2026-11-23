@@ -1,6 +1,6 @@
 from .oauth import get_oauth_client
-from authlib.jose.errors import JoseError
 from django.conf import settings
+from joserfc.errors import JoseError
 
 import django.contrib.auth as django_auth
 

@@ -7,6 +7,8 @@ Changelog of nens-auth-client
 
 - Prepare for Django 6.1 compatibility (new MAILERS setting).
 
+- Migrate from authlib.jose (deprecated) to joserfc.
+
 
 1.6.4 (2026-06-15)
 ------------------
