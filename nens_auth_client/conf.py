@@ -14,7 +14,9 @@ class NensAuthClientAppConf(AppConf):
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout
 
     # str or list of str, e.g. "api/" or ["api/", "api2/"] to match scopes like "api/read" or "api2/write"
-    RESOURCE_SERVER_ID = None  # Matching the "aud" claim (or the prefix of scopes for Cognito)
+    RESOURCE_SERVER_ID = (
+        None  # Matching the "aud" claim (or the prefix of scopes for Cognito)
+    )
 
     PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"
     OAUTH_BACKEND = "nens_auth_client.cognito.CognitoOAuthClient"

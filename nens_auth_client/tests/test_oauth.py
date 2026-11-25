@@ -15,7 +15,9 @@ def test_openid_configuration_uri_can_be_configured(settings, mocker):
     )
     oauth.oauth_registry._clients.clear()
     oauth.oauth_registry._registry.clear()
-    mocker.patch.object(oauth.oauth_registry, "create_client", side_effect=[None, "client"])
+    mocker.patch.object(
+        oauth.oauth_registry, "create_client", side_effect=[None, "client"]
+    )
     register = mocker.patch.object(oauth.oauth_registry, "register")
 
     assert get_oauth_client() == "client"
