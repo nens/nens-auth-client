@@ -5,7 +5,11 @@ Changelog of nens-auth-client
 1.7.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add separate OPENID_CONFIGURATION_URI setting for specifying the OpenID Connect discovery URL
+  in case it differs from the issuer.
+
+- Clarify that RESOURCE_SERVER_ID is used directly for validating the "aud" claim in access tokens,
+  if present (not for AWS Cognito).
 
 
 1.7.0 (2026-11-23)

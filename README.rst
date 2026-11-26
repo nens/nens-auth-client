@@ -52,6 +52,12 @@ Set the authorization server (the "issuer")::
 
     NENS_AUTH_ISSUER = "https://cognito-idp.eu-west-1.amazonaws.com/...."
 
+The OpenID configuration endpoint normally follows from the issuer. It can be
+configured independently when the authorization server uses a different
+endpoint; the JWKS endpoint and token endpoints are then discovered from that configuration::
+
+    NENS_AUTH_OPENID_CONFIGURATION_URI = "https://auth.example.com/.well-known/openid-configuration"
+
 Identify your application as a unique OpenID Connect Client::
 
     NENS_AUTH_CLIENT_ID = "..."  # generate one on AWS Cognito
@@ -314,10 +320,14 @@ http requests. ``nens-auth-client`` implements two methods for this:
 Django middleware and Django REST framework authentication class.
 
 In both cases, you need to configure the ``NENS_AUTH_RESOURCE_SERVER_ID`` setting, which
-should match the one set in the AWS Cognito. It needs a trailing slash::
+should match the one set in the AWS Cognito.
 
-    NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this on AWS Cognito
+    NENS_AUTH_RESOURCE_SERVER_ID = "..."  # configure this in the Authorization Server
 
+AWS Cognito includes this resource server ID in the ``scope`` claim of the access token.
+Every scope is prefixed by the resource server ID; therefore it needs a trailing slash.
+For other (more spec-compliant) authorization servers, the resource server ID is just in
+the `"aud"` claim. This is also supported.
 
 *Option 1: middleware*
 

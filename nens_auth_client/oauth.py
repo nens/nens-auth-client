@@ -12,7 +12,9 @@ def get_oauth_client():
     if client is not None:
         return client
 
-    url = get_well_known_url(settings.NENS_AUTH_ISSUER, external=True)
+    url = settings.NENS_AUTH_OPENID_CONFIGURATION_URI
+    if url is None:
+        url = get_well_known_url(settings.NENS_AUTH_ISSUER, external=True)
     oauth_registry.register(
         name="oauth",
         client_id=settings.NENS_AUTH_CLIENT_ID,

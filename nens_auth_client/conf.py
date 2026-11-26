@@ -9,11 +9,14 @@ class NensAuthClientAppConf(AppConf):
     TIMEOUT = 10  # Timeout for token, JWKS and discovery requests (seconds)
     LEEWAY = 120  # Amount of seconds that a token's expiry can be off
 
+    OPENID_CONFIGURATION_URI = None
     DEFAULT_SUCCESS_URL = "/"  # Default redirect after successful login
     DEFAULT_LOGOUT_URL = "/"  # Default redirect after successful logout
 
     # str or list of str, e.g. "api/" or ["api/", "api2/"] to match scopes like "api/read" or "api2/write"
-    RESOURCE_SERVER_ID = None  # For Access Tokens ("aud" should equal this)
+    RESOURCE_SERVER_ID = (
+        None  # Matching the "aud" claim (or the prefix of scopes for Cognito)
+    )
 
     PERMISSION_BACKEND = "nens_auth_client.permissions.DjangoPermissionBackend"
     OAUTH_BACKEND = "nens_auth_client.cognito.CognitoOAuthClient"

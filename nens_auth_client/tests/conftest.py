@@ -129,7 +129,6 @@ def access_token_template():
         "iss": settings.NENS_AUTH_ISSUER,
         "aud": settings.NENS_AUTH_RESOURCE_SERVER_ID,
         "scope": "readwrite",
-        "token_use": "access",
         "sub": "some_sub",
         "username": "some_username",
         "iat": int(time.time()),
